@@ -1,3 +1,4 @@
 .dockerignore
 Dockerfile
 *.sh
+!entrypoint.sh

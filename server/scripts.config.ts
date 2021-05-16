@@ -40,6 +40,9 @@ const config: DenonConfig = {
       allow: []
     }
   },
+  watcher: {
+    legacy: true // May want to switch this between true and false depending on the env where this is being run
+  }
 };
 
 export default config;

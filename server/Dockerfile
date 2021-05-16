@@ -1,6 +1,10 @@
 # --------------------------------------------------------------------------------------------------------
+# set default build mode
+ARG DEFAULT_BUILD_MODE=base
 
 FROM debian:buster-slim as build
+
+ARG DEFAULT_BUILD_MODE
 
 ENV DENO_VERSION=1.10.1
 ARG DEBIAN_FRONTEND=noninteractive
@@ -14,9 +18,15 @@ RUN apt-get -qq update \
 
 # --------------------------------------------------------------------------------------------------------
 
-FROM debian:buster-slim as final
+FROM debian:buster-slim as base
+
+ARG DEFAULT_BUILD_MODE
 
 COPY --from=build deno /usr/bin/deno
+
+# copy entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod 755 /usr/local/bin/entrypoint.sh
 
 # add deno user
 RUN useradd --uid 1000 --user-group deno \
@@ -26,9 +36,7 @@ RUN useradd --uid 1000 --user-group deno \
 # deno-dir is where you will place all of your deno project files
 ENV DENO_DIR /deno-dir/
 ENV DENO_INSTALL_ROOT /usr/local/
-
-# Specific for the app
-# ----------------------------------------------------
+ENV DENO_VERSION=1.10.1
 
 # expose port 1993
 EXPOSE 1993
@@ -36,20 +44,39 @@ EXPOSE 1993
 WORKDIR /app
 
 # use deno user instead of root
-USER deno
+# excluded for now as with the denon dependency or the unstable flag is requiring root
+#USER deno
 
 # cache all dependencies declared in deps.ts
 COPY deps.ts .
-RUN deno cache deps.ts
+RUN deno cache --unstable deps.ts
 
 ADD . .
 
 # avoids compiling the app everytime we startup the container
-RUN deno cache app.ts
+RUN deno cache --unstable app.ts
 
-ENTRYPOINT ["deno"]
-CMD ["run", "--allow-net", "app.ts"]
+# --------------------------------------------------------------------------------------------------------
 
-# ----------------------------------------------------
+FROM base as development
+
+ARG DEFAULT_BUILD_MODE
+
+# install denon
+RUN deno install -qAf --unstable https://deno.land/x/denon/denon.ts
+
+# clean WORKDIR as it will be mounted instead
+RUN rm -rf /app/
+
+# --------------------------------------------------------------------------------------------------------
+
+FROM $DEFAULT_BUILD_MODE as final
+
+ARG DEFAULT_BUILD_MODE
+
+ENV BUILD_MODE=$DEFAULT_BUILD_MODE
+
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["run", "--allow-net", "--unstable", "app.ts"]
 
 # --------------------------------------------------------------------------------------------------------
