@@ -1,28 +1,55 @@
-FROM hayd/alpine-deno:1.9.2
+# --------------------------------------------------------------------------------------------------------
 
-# Listening port used by the application (This will likely change to be more dynamic for kubernetes)
+FROM debian:buster-slim as build
+
+ENV DENO_VERSION=1.10.1
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends curl ca-certificates unzip \
+    && curl -fsSL https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-x86_64-unknown-linux-gnu.zip --output deno.zip \
+    && unzip deno.zip \
+    && rm deno.zip \
+    && chmod 755 deno
+
+# --------------------------------------------------------------------------------------------------------
+
+FROM debian:buster-slim as final
+
+COPY --from=build deno /usr/bin/deno
+
+# add deno user
+RUN useradd --uid 1000 --user-group deno \
+    && mkdir /deno-dir/ \
+    && chown deno:deno /deno-dir/
+
+# deno-dir is where you will place all of your deno project files
+ENV DENO_DIR /deno-dir/
+ENV DENO_INSTALL_ROOT /usr/local/
+
+# Specific for the app
+# ----------------------------------------------------
+
+# expose port 1993
 EXPOSE 1993
 
-WORKDIR /server
+WORKDIR /app
 
-# Running as deno instead of root
+# use deno user instead of root
 USER deno
 
-# Cache dependencies 
-# (docker will create a checksum for this file at the moment of creation of this image. The next time docker 
-# is required to build this image, it will check its cache for an existing image, and compare the checksum for that file on the previous image,
-# with a checksum for the current version of the deps.ts file, if the checksums match it uses the old image, otherwise it creates a new image)
+# cache all dependencies declared in deps.ts
 COPY deps.ts .
-# This will download and cache all the dependencies listed inside the deps.ts file. Run deno cache -h for more details
 RUN deno cache deps.ts
 
-# After this point, if there is a change on any file on the working dir these steps will be re-run
 ADD . .
-# Compile the app.ts so that it doesn't need to be compiled each startup
+
+# avoids compiling the app everytime we startup the container
 RUN deno cache app.ts
 
+ENTRYPOINT ["deno"]
 CMD ["run", "--allow-net", "app.ts"]
 
-# Dockerfile based on example provided here https://github.com/hayd/deno-docker
-# Example on how to build and run it
-# docker build -t eva-investments-server . && docker run -it --init -p 8080:1993 eva-investments-server
+# ----------------------------------------------------
+
+# --------------------------------------------------------------------------------------------------------
