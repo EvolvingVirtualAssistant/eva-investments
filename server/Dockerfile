@@ -45,7 +45,7 @@ WORKDIR /app
 
 # use deno user instead of root
 # excluded for now as with the denon dependency or the unstable flag is requiring root
-#USER deno
+USER deno
 
 # cache all dependencies declared in deps.ts
 COPY deps.ts .
@@ -62,11 +62,15 @@ FROM base as development
 
 ARG DEFAULT_BUILD_MODE
 
+USER root
+
 # install denon
 RUN deno install -qAf --unstable https://deno.land/x/denon/denon.ts
 
 # clean WORKDIR as it will be mounted instead
 RUN rm -rf /app/
+
+USER deno
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -78,5 +82,4 @@ ENV BUILD_MODE=$DEFAULT_BUILD_MODE
 
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["run", "--allow-net", "--unstable", "app.ts"]
-
 # --------------------------------------------------------------------------------------------------------

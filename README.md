@@ -14,12 +14,23 @@ Environments description
 #### Software installed
 - Deno (autocomplete included)
 
+## How to run
+
+- Docker development:
+  ```
+  docker build --build-arg DEFAULT_BUILD_MODE=development -t eva-investments-server-debian . && docker run -it --mount type=bind,source=${ABSOLUTE_PATH_EVA_INVESTMENTS_DIR}/server,target=/app,readonly --init -p 8080:1993 eva-investments-server-debian
+  ```
+- Docker prod:
+  ```
+  docker build -t eva-investments-server-debian . && docker run -it --init -p 8080:1993 eva-investments-server-debian
+  ```
+
 ## IDEs configuration
 
 ### Deno code editor configs
 #### VS Code
 ***settings.json***
-```
+```json
 {
     "deno.enable": true,
     "deno.lint": true,
@@ -30,7 +41,7 @@ Environments description
 }
 ```
 ***launch.json***
-```
+```json
 {
     "version": "0.2.0",
     "configurations": [
