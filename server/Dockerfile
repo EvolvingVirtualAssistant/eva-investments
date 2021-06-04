@@ -41,7 +41,6 @@ ENV DENO_VERSION=1.10.1
 WORKDIR /app
 
 # use deno user instead of root
-# excluded for now as with the denon dependency or the unstable flag is requiring root
 USER deno
 
 # cache all dependencies declared in deps.ts
