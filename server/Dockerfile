@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------------------------------------
 # set default build mode
-ARG DEFAULT_BUILD_MODE=base
+ARG DEFAULT_BUILD_MODE=production
 
 FROM debian:buster-slim as build
 
@@ -38,13 +38,9 @@ ENV DENO_DIR /deno-dir/
 ENV DENO_INSTALL_ROOT /usr/local/
 ENV DENO_VERSION=1.10.1
 
-# expose port 1993
-EXPOSE 1993
-
 WORKDIR /app
 
 # use deno user instead of root
-# excluded for now as with the denon dependency or the unstable flag is requiring root
 USER deno
 
 # cache all dependencies declared in deps.ts
@@ -74,12 +70,43 @@ USER deno
 
 # --------------------------------------------------------------------------------------------------------
 
+FROM base as compile-for-production
+
+ARG DEFAULT_BUILD_MODE
+
+USER root
+
+# compile deno app
+RUN deno compile --unstable --allow-net app.ts
+
+# --------------------------------------------------------------------------------------------------------
+
+FROM debian:buster-slim as production
+
+ARG DEFAULT_BUILD_MODE
+
+# add deno user
+RUN useradd --uid 1000 --user-group deno
+
+USER deno
+
+COPY --from=compile-for-production /app/app /app/app
+COPY --from=compile-for-production /app/entrypoint.sh /usr/local/bin/entrypoint.sh
+
+WORKDIR /app
+
+# --------------------------------------------------------------------------------------------------------
+
 FROM $DEFAULT_BUILD_MODE as final
 
 ARG DEFAULT_BUILD_MODE
 
 ENV BUILD_MODE=$DEFAULT_BUILD_MODE
 
+# expose port 1993
+EXPOSE 1993
+
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["run", "--allow-net", "--unstable", "app.ts"]
+
 # --------------------------------------------------------------------------------------------------------
