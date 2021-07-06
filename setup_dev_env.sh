@@ -23,30 +23,6 @@ function get_current_os() {
     echo "Current OS: $os"
 }
 
-function install_deno() {
-
-    ## Checks if deno is installed
-    if ! [ -x "$(command -v deno)" ]; then
-        echo 'Warn: deno is not installed.' >&2
-        echo "Trying to install deno"
-        if [ $os == "WINDOWS" ]; then
-            choco install deno
-        elif [ $os == "LINUX" ]; then
-            curl -fsSL https://deno.land/x/install/install.sh | sh
-        fi
-    else
-        ## Upgrades deno
-        echo "Trying to upgrade deno"
-        deno upgrade
-    fi
-
-    ## Prints deno version
-    deno --version
-
-    ## Installs deno autocomplete
-    install_deno_autocomplete
-}
-
 function add_autocomplete_to_bash() {
     ## If bash is used then add support for deno autocomplete in all sessions
     if [ $os == "LINUX" ]; then
@@ -111,6 +87,84 @@ function install_deno_autocomplete() {
 
 }
 
+function add_to_bashrc() {
+    local bashrcFile=~/.bashrc
+    if [ -f "$bashrcFile" ]; then
+        if ! grep -q "$2" $bashrcFile; then
+            echo "$1" >>~/.bashrc
+        fi
+    fi
+}
+
+function add_to_zshrc() {
+    local zshrcFile=~/.zshrc
+    if [ -f "$zshrcFile" ]; then
+        if ! grep -q "$2" $zshrcFile; then
+            echo "$1" >>~/.zshrc
+        fi
+    fi
+}
+
+function add_to_cmder_user_profile() {
+    local cmderDir
+    cmderDir="$(command type -P cmder)"
+    if [ -n "$cmderDir" ]; then
+        local cmderUserProfile
+        cmderUserProfile="$(echo $cmderDir | sed 's/\(.*\)cmder/\1config\/user-profile.sh/')"
+        if ! grep -q "$2" $cmderUserProfile; then
+            echo "$1" >>$cmderUserProfile
+        fi
+    fi
+}
+
+function update_PATH_deno() {
+    add_to_bashrc "export PATH=""$HOME"/.deno/bin:"\${PATH}""" .deno/bin
+
+    add_to_zshrc "export PATH=""$HOME"/.deno/bin:"\${PATH}""" .deno/bin
+
+    add_to_cmder_user_profile "export PATH=""$HOME"/.deno/bin:"\${PATH}""" .deno/bin
+}
+
+function install_deno() {
+
+    ## Checks if deno is installed
+    if ! [ -x "$(command -v deno)" ]; then
+        echo 'Warn: deno is not installed.' >&2
+        echo "Trying to install deno"
+        if [ $os == "WINDOWS" ]; then
+            choco install deno
+        elif [ $os == "LINUX" ]; then
+            curl -fsSL https://deno.land/x/install/install.sh | sh
+        fi
+    else
+        ## Upgrades deno
+        echo "Trying to upgrade deno"
+        deno upgrade
+    fi
+
+    ## Prints deno version
+    deno --version
+
+    ## Installs deno autocomplete
+    install_deno_autocomplete
+
+    ## Updates PATH with .deno/bin
+    update_PATH_deno
+}
+
+function install_denon() {
+
+    ## Tries to install dependency required for hot reload
+    echo "Trying to install denon (hot reload)"
+    ## Checks if deno is installed
+    if ! [ -x "$(command -v deno)" ]; then
+        echo "Can not install denon: deno not installed"
+        exit 1
+    fi
+
+    deno install -qAf --unstable https://deno.land/x/denon/denon.ts
+}
+
 ## https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c
 function get_latest_release() {
     curl --silent "https://api.github.com/repos/$1/releases/latest" | # Get latest release from GitHub api
@@ -129,6 +183,8 @@ function print_notes() {
 get_current_os
 
 install_deno
+
+install_denon
 
 print_notes
 
