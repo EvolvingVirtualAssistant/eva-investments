@@ -70,6 +70,27 @@ USER deno
 
 # --------------------------------------------------------------------------------------------------------
 
+FROM base as continuous-integration
+
+ARG DEFAULT_BUILD_MODE
+
+USER root
+
+# find files to be ingored and lint
+RUN ["/bin/bash", "-c", "lint_ignore=$(readarray -d '' array < <(find . -print | grep -i .bundle); echo $array | tr ' ' ','); \
+    deno lint --unstable --ignore=$lint_ignore"]
+
+# vunerabilities
+# yet to be decided what to use
+
+# compile deno app
+RUN deno compile --unstable --allow-net app.ts
+
+# tests - commented for now since we do not yet have tests
+#RUN deno test
+
+# --------------------------------------------------------------------------------------------------------
+
 FROM base as compile-for-production
 
 ARG DEFAULT_BUILD_MODE
