@@ -1,0 +1,12 @@
+pipeline:
+  agent:
+    node:
+      label: 'eva-jenkins-agent-1'
+  stages:
+    - stage: 'CI - Validate, Build, Run Tests'
+      parallel:
+        - stage: 'Server'
+          steps: #lint, check vunerabilities, compile, run tests
+            sh "jenkins/server_ci.sh"
+        #- stage: 'Client'
+        #  steps:  
