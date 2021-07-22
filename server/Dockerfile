@@ -78,7 +78,8 @@ USER root
 
 # find files to be ingored and lint
 RUN ["/bin/bash", "-c", "lint_ignore=$(readarray -d '' array < <(find . -print | grep -i .bundle); echo $array | tr ' ' ','); \
-    deno lint --unstable --ignore=$lint_ignore"]
+    ignore_flag='--ignore='; if [ -n $lint_ignore ]; then ignore_flag=''; fi; \
+    deno lint --unstable $ignore_flag$lint_ignore"]
 
 # vunerabilities
 # yet to be decided what to use
