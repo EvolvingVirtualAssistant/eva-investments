@@ -1,0 +1,18 @@
+version: '3.9'
+services: 
+  blockchain:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: blockchain
+    ports:
+      - 8545:8545
+    secrets:
+      - ganache_test_acc1_priv_key
+      - ganache_test_acc2_priv_key
+
+secrets:
+  ganache_test_acc1_priv_key:
+    file: '.secrets/ganache_test_acc1_priv_key'
+  ganache_test_acc2_priv_key:
+    file: '.secrets/ganache_test_acc2_priv_key'

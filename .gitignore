@@ -2,3 +2,4 @@
 *.bundle.js
 resources
 server/src/libs/ccxt-test
+.secrets/
