@@ -123,6 +123,9 @@ RUN npm run test
 # integration tests using ganache as a blockchain
 # nothing for now
 
+# integration tests using ganache as a blockchain
+# nothing for now
+
 # --------------------------------------------------------------------------------------------------------
 
 FROM base as compile-for-production

@@ -2,6 +2,8 @@ import { execute, web3, initCli, terminateCli } from './deps';
 import { sleep } from './utils/async';
 import { RootCliAdapter } from './rootCliAdapter';
 import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter';
+import { ExperimentalCliAdapter } from './experimental/drivers/experimentalCliAdapter';
+import { CompoundService } from './experimental/domain/services/compoundService';
 
 /*await execute();
 
@@ -20,7 +22,8 @@ function initCliAdapters() {
   initCli();
   return {
     rootCliAdapter: new RootCliAdapter(),
-    walletsCliAdapter: new WalletsCliAdapter()
+    walletsCliAdapter: new WalletsCliAdapter(),
+    experimentalAdapter: new ExperimentalCliAdapter(new CompoundService())
   };
 }
 

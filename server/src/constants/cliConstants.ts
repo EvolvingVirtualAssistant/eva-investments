@@ -47,8 +47,11 @@ export const ExperimentalCliConstants = {
   ADAPTER_TOKEN: 'experimental',
   ADAPTER_DESCRIPTION:
     'Experimental operations (due to be removed/changed at any point)',
-  COMPOUND_SHORT_INFO_MSG_TEMPLATE: taggedTemplate`Sell price of token 1: ${0}(${1})\nSell quantity of token 1: ${1}(${2})\nBuy price of token 1: ${3}(${4})\nBuy quantity of token 1: ${5}(${6})\nFinal quantity of token 1: ${7}(${8})\nProfit in token 1: ${9}(${10})\nProfit in percentage of token 1: ${11}%(${12}%)`,
-  COMPOUND_LONG_INFO_MSG_TEMPLATE: taggedTemplate`Sell price of token 1: ${0}(${1})\nSell quantity of token 1: ${1}(${2})\nBuy price of token 1: ${3}(${4})\nBuy quantity of token 1: ${5}(${6})\nInitial quantity of token 2: ${7}(${8})\nProfit in token 1: ${9}(${10})\nProfit in percentage of token 1: ${11}%(${12}%)`,
+  COMPOUND_SHORT_INFO_MSG_TEMPLATE: taggedTemplate`Sell price of ${0}: ${2}(${3}) ${1}\nSell quantity of ${0}: ${4}(${5}) ${0}\nBuy price of ${0}: ${6}(${7}) ${1}\nBuy quantity of ${0}: ${8}(${9}) ${0}\nFinal quantity of ${0}: ${10}(${11}) ${0}\nProfit in ${0}: ${12}(${13}) ${0}\nProfit in percentage of ${0}: ${14}%(${15}%) ${0}`,
+  COMPOUND_SHORT_INVERSE_INFO_MSG_TEMPLATE: taggedTemplate`Sell price of ${0}: ${2}(${3}) ${1}\nSell quantity of ${0}: ${4}(${5}) ${0}\nBuy price of ${0}: ${6}(${7}) ${1}\nBuy quantity of ${0}: ${8}(${9}) ${0}\nInitial quantity of ${1}: ${10}(${11}) ${1}\nProfit in ${1}: ${12}(${13}) ${1}\nProfit in percentage of ${1}: ${14}%(${15}%) ${1}`,
+  COMPOUND_LONG_INFO_MSG_TEMPLATE: taggedTemplate`Sell price of ${0}: ${2}(${3}) ${1}\nSell quantity of ${0}: ${4}(${5}) ${0}\nBuy price of ${0}: ${6}(${7}) ${1}\nBuy quantity of ${0}: ${8}(${9}) ${0}\nInitial quantity of ${1}: ${10}(${11}) ${1}\nProfit in ${0}: ${12}(${13}) ${0}\nProfit in percentage ${0}: ${14}%(${15}%) ${0}`,
+  COMPOUND_LONG_INVERSE_INFO_MSG_TEMPLATE: taggedTemplate`Sell price of ${0}: ${2}(${3}) ${1}\nSell quantity of ${0}: ${4}(${5}) ${0}\nBuy price of ${0}: ${6}(${7}) ${1}\nBuy quantity of ${0}: ${8}(${9}) ${0}\nFinal quantity of ${1}: ${10}(${11}) ${1}\nProfit in ${1}: ${12}(${13}) ${1}\nProfit in percentage ${1}: ${14}%(${15}%) ${1}`,
+  COMPOUND_WITH_INVERSE: taggedTemplate`${2}\n\n For compounding ${1}, the values are the following (in case you have the inverse pair available, ${1}/${0}):\n\n${3}\n\n For compounding token ${1}, the values are the following:\n\n${4}`,
   SELL_QUANTITY: 'SELL_QUANTITY',
   BUY_QUANTITY: 'BUY_QUANTITY',
   SELL_PRICE: 'SELL_PRICE',
