@@ -35,8 +35,8 @@ RUN npm install -g ganache-cli
 EXPOSE 8545
 
 CMD ganache-cli -v -h 0.0.0.0 \ 
-    --account=\"$(cat run/secrets/ganache_test_acc1_priv_key),100000000000000000000\" \
-    --account=\"$(cat run/secrets/ganache_test_acc2_priv_key),100000000000000000000\"
+    --account=\"$(cat run/secrets/test_acc1_priv_key),100000000000000000000\" \
+    --account=\"$(cat run/secrets/test_acc2_priv_key),100000000000000000000\"
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -83,6 +83,8 @@ FROM base as base-blockchain
 ARG DEFAULT_BUILD_MODE
 ARG DEBIAN_FRONTEND=noninteractive
 
+USER root
+
 RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends curl ca-certificates \
     && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
@@ -90,6 +92,8 @@ RUN apt-get -qq update \
 
 # install ethereum blockchain
 RUN npm install -g ganache-cli
+
+USER deno
 
 # expose port 8545 (default ganache port)
 EXPOSE 8545
@@ -155,7 +159,10 @@ ARG DEFAULT_BUILD_MODE
 # add deno user
 RUN useradd --uid 1000 --user-group deno
 
-USER deno
+# When possible revert back to deno user, but for now we're having this issue
+# error: Could not create TypeScript compiler cache location: "/home/deno/.cache/deno/gen"
+# Check the permission of the directory.
+USER root
 
 COPY --from=compile-for-production /app/app /app/app
 COPY --from=compile-for-production /app/entrypoint.sh /usr/local/bin/entrypoint.sh
