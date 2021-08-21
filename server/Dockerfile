@@ -131,7 +131,7 @@ RUN ["/bin/bash", "-c", "lint_ignore=$(readarray -d '' array < <(find . -print |
 # yet to be decided what to use
 
 # compile deno app
-RUN deno compile --unstable --allow-net src/app.ts
+RUN deno compile --unstable --allow-net --allow-read src/app.ts
 
 # tests - commented for now since we do not yet have tests
 RUN deno test --unstable --allow-read --location https://example.com tests/
@@ -148,7 +148,7 @@ ARG DEFAULT_BUILD_MODE
 USER root
 
 # compile deno app
-RUN deno compile --unstable --allow-net src/app.ts
+RUN deno compile --unstable --allow-net --allow-read src/app.ts
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -181,6 +181,6 @@ ENV BUILD_MODE=$DEFAULT_BUILD_MODE
 EXPOSE 1993
 
 ENTRYPOINT ["entrypoint.sh"]
-CMD ["run", "--allow-net", "--unstable", "src/app.ts"]
+CMD ["run", "--allow-net", "--allow-read", "--unstable", "src/app.ts"]
 
 # --------------------------------------------------------------------------------------------------------
