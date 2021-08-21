@@ -1,5 +1,5 @@
 
-import { DenonConfig } from "./deps.ts";
+import { DenonConfig } from "./src/deps.ts";
 
 const config: DenonConfig = {
   scripts: {
