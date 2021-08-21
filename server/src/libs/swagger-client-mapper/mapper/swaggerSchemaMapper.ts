@@ -1,8 +1,12 @@
+import MapperNotFoundError from "./errors/mapperNotFoundError.ts";
+import OpenApiSpecMissingPropertyError from "./errors/openApiSpecMissingPropertyError.ts";
+
 type Mapper = {
+    // deno-lint-ignore no-explicit-any
     [key: string] : (source: Record<string,any>) => any
 };
 
-type Mappers = {
+export type Mappers = {
     [key: string] : Mapper
 };
 
@@ -25,7 +29,7 @@ type XMapperRefSchema = {
 }
 
 interface SwaggerSchemaMapperType {
-    map<T>(operationId: string, httpStatus: string, source: Record<string, any>): T | undefined
+    map<T>(operationId: string, httpStatus: number, source: Record<string, unknown>): T | undefined
 }
 
 class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
@@ -35,7 +39,7 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
     // mappers structure
     private mappers: Mappers;
 
-    constructor(specJson: Record<string, any>){
+    constructor(specJson: Record<string, unknown>){
         this.specJson = specJson;
         this.mappers = this.buildMappers();
     }
@@ -68,18 +72,21 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
             return;
         }
 
-        type mapFunctionType = (targetObject: any, sourceObject?: Record<string,any> | Array<any>) => any;
+        type mapFunctionType = (targetObject: unknown, sourceObject?: Record<string,unknown> | Array<unknown>) => unknown;
 
         const mappingFunctions: Record<string,mapFunctionType> = mapperJson.map.map((item: MapperItemSchema) => {
             
             const key = item.target;
             let mapFn;
             if(item["x-mapper"]) {
-                mapFn = (targetObject: any, sourceObject: Record<string,any> | Array<any>) => this.resolveXMapperRef(targetObject, item, sourceObject, mappers);
+                // deno-lint-ignore no-explicit-any
+                mapFn = (targetObject: any, sourceObject: Record<string,unknown> | Array<unknown>) => this.resolveXMapperRef(targetObject, item, sourceObject, mappers);
             } else if(item.value) {
+                // deno-lint-ignore no-explicit-any
                 mapFn = (targetObject: any) => this.assignValueToTarget(targetObject, item.target, item.value);
             } else if(item.source) {
-                mapFn = (targetObject: any, sourceObject: Record<string,any> | Array<any>) => {
+                // deno-lint-ignore no-explicit-any
+                mapFn = (targetObject: any, sourceObject: Record<string,unknown> | Array<unknown>) => {
                     const value = this.resolveSourceTargetMap(item, sourceObject);
                     return this.assignValueToTarget(targetObject, item.target, value);
                 }
@@ -90,42 +97,22 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
             return { ...previousValue, [currentValue.key]: currentValue.mapFn };
         }, {});
 
-        sourceMappers[sourceSchemaRef] = (sourceObject: Record<string,any> | Array<any>) => {
-            // deno-lint-ignore no-explicit-any
-            let targetObject: any = {};
+        sourceMappers[sourceSchemaRef] = (sourceObject: Record<string,unknown> | Array<unknown>) => {
+            let targetObject: unknown = {};
             mapperJson.map.forEach((item: MapperItemSchema) => {
 
                 targetObject = mappingFunctions[item.target] ? mappingFunctions[item.target](targetObject, sourceObject) : targetObject;
                 
-                /*if(item["x-mapper"]) {
-                    targetObject = this.resolveXMapperRef(targetObject, item, sourceObject, mappers);
-                    //targetObject[item.target] = this.resolverXMapperRef(item["x-mapper"], mappers)(sourceObject[item.source!]);
-                } else if(item.value) {
-                    this.assignValueToTarget(targetObject, item.target, item.value);
-                } else if(item.source) {
-                    const value = this.resolveSourceTargetMap(item, sourceObject);
-                    this.assignValueToTarget(targetObject, item.target, value);
-                }*/
-
             });
             return targetObject
         };
     }
 
-    private resolveXMapperRef(targetObject: Record<string,any>, item: MapperItemSchema, sourceObject: Record<string,any> | Array<any>, mappers: Mappers){
+    // deno-lint-ignore no-explicit-any
+    private resolveXMapperRef(targetObject: Record<string,unknown>, item: MapperItemSchema, sourceObject: Record<string,any> | Array<unknown>, mappers: Mappers){
         if(item.target === "#idx#" && item.source === "#key#") {
             return this.handleMapObjectIntoArray(item, sourceObject, mappers);
         }
-
-        /*
-        if(this.isArray(sourceObject)) {
-            const targetObjectArray = sourceObject.map(sourceObjectItem => {
-                const targetObjectItem = {};
-                const value = this.getMapperFunction(item["x-mapper"]!, mappers)(sourceObjectItem[item.source!]);
-                this.assignValueToTarget(targetObjectItem, item.target, value);
-            })
-            return targetObjectArray;
-        }*/ 
 
         if(this.isArray(sourceObject) && item.target === "#item#" && item.source === "#item#"){
             return this.handleMapArrayToArray(item, sourceObject, mappers);
@@ -144,19 +131,21 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
         });
     }
 
+    // deno-lint-ignore no-explicit-any
     private handleMapArrayToArray(item: MapperItemSchema, sourceObject: Array<any>, mappers: Mappers) {
         return sourceObject.map(sourceObjectItem => this.getMapperFunction(item["x-mapper"]!, mappers)(sourceObjectItem));
     }
 
-    private getMapperFunction(item: XMapperRefSchema, mappers: Mappers):  (source: Record<string,any> | Array<any>) => any {
+    private getMapperFunction(item: XMapperRefSchema, mappers: Mappers):  (source: Record<string,unknown> | Array<unknown>) => unknown {
+        // deno-lint-ignore no-explicit-any
         return (sourceObject: Record<string,any>) => mappers[item.$$ref]?.[item.source_schema.$$ref]?.(sourceObject);
     }
 
-    private isArray(array: Array<any> | Record<string,any>): array is Array<any> {
-        return (array as Array<any>).filter !== undefined;
+    private isArray(array: Array<unknown> | Record<string,unknown>): array is Array<unknown> {
+        return (array as Array<unknown>).filter !== undefined;
     }
 
-    private resolveSourceTargetMap(item: MapperItemSchema, sourceObject: Record<string,any> | Array<any>) {
+    private resolveSourceTargetMap(item: MapperItemSchema, sourceObject: Record<string,unknown> | Array<unknown>) {
         if(item.source?.startsWith("#array[") && this.isArray(sourceObject)) {
             return this.handleMapArrayIntoObject(item, sourceObject);
         }
@@ -164,7 +153,7 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
         return !this.isArray(sourceObject) ? sourceObject[item.source!] : undefined;
     }
 
-    private handleMapArrayIntoObject(item: MapperItemSchema, sourceObject: Array<any>) {
+    private handleMapArrayIntoObject(item: MapperItemSchema, sourceObject: Array<unknown>) {
         if(item.source?.startsWith("#array[")) {
             const idx: number = parseInt(item.source?.match(/\d+/)?.[0] || "-1");
             if(idx < 0) {
@@ -176,14 +165,15 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
         return undefined;
     }
 
-    private assignValueToTarget(targetObject: any, targetKey: string, value: any){
+    private assignValueToTarget(targetObject: Record<string,unknown>, targetKey: string, value: unknown){
         //warn: still not supporting arrays, i.e: limits.amounts[2].min 
         const targetKeys = targetKey.split(".");
         this.assignValueToTargetRecursive(targetObject, targetKeys, value);
         return targetObject;
     }
 
-    private assignValueToTargetRecursive(targetObject: any, targetKeys: string[], value: any){
+    // deno-lint-ignore no-explicit-any
+    private assignValueToTargetRecursive(targetObject: Record<string,any>, targetKeys: string[], value: unknown){
         const targetKey = targetKeys[0];
         if(targetKeys.length === 1){
             targetObject[targetKey] = value;
@@ -197,16 +187,14 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
         targetKeys.splice(0,1);
         this.assignValueToTargetRecursive(targetObject[targetKey], targetKeys, value);
     }
-
     
-    public map<T>(operationId: string, httpStatus: string, source: Record<string, any>): T | undefined {
+    public map<T>(operationId: string, httpStatus: number, source: Record<string, any> | Array<any>): T | undefined {
 
         //based on the operationid, identify the operation
         //search for responses key -> success http code -> content -> application/json
         //search for x-mapper ; extract source_schema.$$ref to obtain source type ; extract $$ref to obtain target type
         if(!this.specJson.paths) {
-            //should throw an error maybe
-            return undefined;
+            throw new OpenApiSpecMissingPropertyError(this.specJson, "paths");
         }
         
         const sourceTargetRefs = Object.keys(this.specJson.paths)
@@ -222,16 +210,16 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
             .filter(sourceTargetSchemaRef => !!sourceTargetSchemaRef.sourceSchemaRef && !!sourceTargetSchemaRef.targetMapperSchemaRef)?.[0];
         
         if(!sourceTargetRefs) {
-            return undefined;
+            throw new MapperNotFoundError(operationId, httpStatus);
         }
 
         //with target type search mappers structure, it will return an object with all the supported sources as keys
-        //then use source type to fetch the value of that object { [key: string]: { [key:string]: (source: Record<string, never>) => any } }
+        //then use source type to fetch the value of that object { [key: string]: { [key:string]: (source: Record<string, never>) => unknown } }
 
         const mapper = this.mappers[sourceTargetRefs.targetMapperSchemaRef]?.[sourceTargetRefs.sourceSchemaRef];
 
         if(!mapper){
-            return undefined;
+            throw new MapperNotFoundError(operationId, httpStatus, sourceTargetRefs.targetMapperSchemaRef, sourceTargetRefs.sourceSchemaRef, this.mappers);
         }
 
         return mapper(source) as T;

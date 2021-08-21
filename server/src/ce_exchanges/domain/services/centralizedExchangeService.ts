@@ -1,3 +1,4 @@
+import { SwaggerClientWrapper } from "../../../libs/swagger-client-mapper/mod.ts";
 import { CentralizedExchangeSpec, CentralizedExchange } from '../entities/exchange.ts'
 import { Market } from "../entities/market.ts";
 
@@ -33,20 +34,20 @@ export class CentralizedExchangeService {
         return exchangesSpecs;
     }
 
-    fetchMarkets(exchangeId: string) : Market[] {
+    public async fetchMarkets(exchangeId: string) : Promise<Market[]> {
 
-        const exchange = this.getExchange(exchangeId);
+        const exchange = await this.getExchange(exchangeId);
 
         // call repository.fetchMarkets(exchange)
 
         return [];
     }
 
-    private getExchange(exchangeId: string) : CentralizedExchange {
-        return this.centralizedExchanges[exchangeId] || this.initExchange(exchangeId);
+    private async getExchange(exchangeId: string) : Promise<CentralizedExchange> {
+        return this.centralizedExchanges[exchangeId] || await this.initExchange(exchangeId);
     }
 
-    private initExchange(exchangeId: string) : CentralizedExchange {
+    private async initExchange(exchangeId: string) : Promise<CentralizedExchange> {
         
         const exchangeSpec = this.centralizedExchangesSpecs[exchangeId];
         if(!exchangeSpec) {
@@ -57,7 +58,8 @@ export class CentralizedExchangeService {
         // create swagger client
         // ...
         // instantiate exchange
-        const exchange = new CentralizedExchange();
+        const swaggerClient = await new SwaggerClientWrapper().init(exchangeSpec.openApiDefinitionFile);
+        const exchange = new CentralizedExchange(swaggerClient);
 
         this.centralizedExchanges[exchangeId] = exchange;
 

@@ -1,3 +1,4 @@
+import { SwaggerClientWrapper } from "../../../libs/swagger-client-mapper/mod.ts";
 
 export class CentralizedExchangeSpec {
 
@@ -13,9 +14,9 @@ export class CentralizedExchangeSpec {
 
 export class CentralizedExchange {
 
-    readonly swaggerClient: any/*SwaggerClient*/;
+    readonly swaggerClient: SwaggerClientWrapper;
     
-    constructor() {
-
+    constructor(swaggerClient: SwaggerClientWrapper) {
+        this.swaggerClient = swaggerClient;
     }
 }
