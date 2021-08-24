@@ -125,12 +125,28 @@ function update_PATH_deno() {
     add_to_cmder_user_profile "export PATH=""$HOME"/.deno/bin:"\${PATH}""" .deno/bin
 }
 
+function install_unzip() {
+    if ! [ -x "$(command -v unzip)" ]; then
+        echo 'Warn: unzip is not installed.' >&2
+        echo "Trying to install unzip"
+        if [ $os == "WINDOWS" ]; then
+            choco install unzip
+        elif [ $os == "LINUX" ]; then
+            apt-get install unzip -y
+        fi
+    fi
+}
+
 function install_deno() {
 
     ## Checks if deno is installed
     if ! [ -x "$(command -v deno)" ]; then
         echo 'Warn: deno is not installed.' >&2
         echo "Trying to install deno"
+
+        ## Install unzip
+        install_unzip
+        
         if [ $os == "WINDOWS" ]; then
             choco install deno
         elif [ $os == "LINUX" ]; then
@@ -142,14 +158,14 @@ function install_deno() {
         deno upgrade
     fi
 
+    ## Updates PATH with .deno/bin
+    update_PATH_deno
+
     ## Prints deno version
     deno --version
 
     ## Installs deno autocomplete
     install_deno_autocomplete
-
-    ## Updates PATH with .deno/bin
-    update_PATH_deno
 }
 
 function install_denon() {
