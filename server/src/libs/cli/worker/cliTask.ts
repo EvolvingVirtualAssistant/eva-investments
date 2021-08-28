@@ -1,8 +1,9 @@
-import { CliConstants } from "./constants.ts";
-import { tokenizer } from "./parser.ts";
-import { print, println, readln } from "./io.ts";
+import { CliConstants } from "../constants/cliConstants.ts";
+import { tokenizer } from "../utils/parser.ts";
+import { print, println, readln } from "../utils/io.ts";
+import { cliContext } from "./cliContext.ts";
 
-class CliAdapter {
+class CliTask {
     private running: boolean;
     private workerRef: Worker;
 
@@ -22,12 +23,13 @@ class CliAdapter {
         try {
             do {
                 // Add prefix
-                print("> ");
+                print(CliConstants.LINE_PREFIX);
 
                 const line = await readln();
-                const tokens = tokenizer(<string>line);
-                println(tokens.join(" "));
+                const tokens = tokenizer(line);
+                cliContext.interpretCommand(tokens);
 
+                // THIS WILL LIKELY SHOULD BE REMOVED FROM HERE AND BE SPECIFIC FOR A SYSTEM USING THIS LIB
                 if (line === CliConstants.STOP_APP_COMMAND) {
                     this.workerRef.postMessage(CliConstants.STOP_APP_COMMAND);
                 }
@@ -44,12 +46,12 @@ class CliAdapter {
     }
 }
 
-const cliAdapter = new CliAdapter((<Worker><unknown>self));
+const cliTask = new CliTask((<Worker><unknown>self));
 
 (<Worker><unknown>self).onmessage = function handleMessageFromParent(event: MessageEvent) {
-    if (event.data === "start") {
-        cliAdapter.run();
-    } else if (event.data === "stop") {
-        cliAdapter.terminate()
+    if (event.data === CliConstants.START_CLI_COMMAND) {
+        cliTask.run();
+    } else if (event.data === CliConstants.STOP_CLI_COMMAND) {
+        cliTask.terminate()
     }
 }

@@ -8,10 +8,12 @@ export async function println(message = ""): Promise<void> {
     await print(message+"\n");
 }
 
-export async function readln() {
+export async function readln(): Promise<string> {
     for await(const line of readLines(Deno.stdin)) {
         return line.trim();
     }
+
+    return "";
 }
 
 /*async function readMessage(): Promise<string> {

@@ -1,5 +1,5 @@
-import { ParserConstants } from "./constants.ts"
-import { CliError } from "./cliError.ts";
+import { ParserConstants } from "../constants/cliConstants.ts"
+import { CliError } from "../errors/cliError.ts";
 
 export function tokenizer(args: string): string[] {
     // deno-lint-ignore prefer-const
