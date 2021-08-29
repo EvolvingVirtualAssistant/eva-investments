@@ -1,0 +1,183 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "REST API",
+    "version": "1.0.0",
+    "description": "Open Api Example"
+  },
+  "paths": {
+    "/public/assets": {
+      "get": {
+        "operationId": "fetchAssets",
+        "responses": {
+          "200": {
+            "description": "Assets retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetsResponse"
+                },
+                "x-mapper": {
+                  "$ref": "#/components/x-mappers/MarketDataResponseMapper"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AssetsResponse": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "object",
+            "additionalProperties": {
+              "title": "Asset",
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "baseName": {
+                  "type": "string"
+                },
+                "volume": {
+                  "type": "string"
+                },
+                "decimals": {
+                  "type": "integer"
+                },
+                "fees": {
+                  "description": "Fee tuples `[<volume>, <percent fee>]`",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "orderMin": {
+                  "type": "string"
+                },
+                "orderMax": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "x-mappers": {
+      "MarketDataResponseMapper": {
+        "source_schema": {
+          "$ref": "#/components/schemas/AssetsResponse"
+        },
+        "map": [
+          {
+            "source": "result",
+            "target": "result",
+            "x-mapper": {
+              "$ref": "#/components/x-mappers/MarketsResultMapper"
+            }
+          }
+        ]
+      },
+      "MarketsResultMapper": {
+        "source_schema": {
+          "$ref": "#/components/schemas/AssetsResponse/properties/result"
+        },
+        "map": [
+          {
+            "source": "#key#",
+            "target": "#idx#",
+            "x-mapper": {
+              "$ref": "#/components/x-mappers/MarketMapper"
+            }
+          }
+        ]
+      },
+      "MarketMapper": {
+        "source_schema": {
+          "$ref": "#/components/schemas/AssetsResponse/properties/result/additionalProperties"
+        },
+        "map": [
+          {
+            "source": "#key#",
+            "target": "id"
+          },
+          {
+            "source": "baseName",
+            "target": "baseId"
+          },
+          {
+            "value": true,
+            "target": "active"
+          },
+          {
+            "source": "fees",
+            "target": "marketFees",
+            "x-mapper": {
+              "$ref": "#/components/x-mappers/FeeArrayMapper"
+            }
+          },
+          {
+            "source": "decimals",
+            "target": "precision.price"
+          },
+          {
+            "source": "orderMin",
+            "target": "limits.amount.min"
+          },
+          {
+            "source": "orderMax",
+            "target": "limits.amount.max"
+          }
+        ]
+      },
+      "FeeArrayMapper": {
+        "source_schema": {
+          "$ref": "#/components/schemas/AssetsResponse/properties/result/additionalProperties/properties/fees"
+        },
+        "map": [
+          {
+            "source": "#item#",
+            "target": "#item#",
+            "x-mapper": {
+              "$ref": "#/components/x-mappers/FeeMapper"
+            }
+          }
+        ]
+      },
+      "FeeMapper": {
+        "source_schema": {
+          "$ref": "#/components/schemas/AssetsResponse/properties/result/additionalProperties/properties/fees/items"
+        },
+        "map": [
+          {
+            "source": "#array[0]#",
+            "target": "volume"
+          },
+          {
+            "source": "#array[1]#",
+            "target": "fee"
+          }
+        ]
+      }
+    }
+  }
+}
