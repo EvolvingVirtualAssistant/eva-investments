@@ -166,6 +166,9 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
     }
 
     private assignValueToTarget(targetObject: Record<string,unknown>, targetKey: string, value: unknown){
+        if(value === undefined) {
+            return targetObject;
+        }
         //warn: still not supporting arrays, i.e: limits.amounts[2].min 
         const targetKeys = targetKey.split(".");
         this.assignValueToTargetRecursive(targetObject, targetKeys, value);

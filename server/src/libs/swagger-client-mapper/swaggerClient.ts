@@ -6,7 +6,7 @@ interface OperationsCallableMap {
     [key: string]: (parameters?: unknown, ...args: unknown[]) => Promise<any>
 }
 
-interface TypedSwaggerClient extends SwaggerClient {
+export interface TypedSwaggerClient extends SwaggerClient {
     apis: { default: OperationsCallableMap }
 }
 
@@ -119,7 +119,7 @@ export async function execute() {
     for await (const dirEntry of Deno.readDir(".")) {
         console.log(dirEntry);
     }
-    const specPath = '../resources/exchanges/open_api_schemas/kraken.json';
+    const specPath = 'server/resources/exchanges/open_api_schemas/kraken.json';
     const swaggerClientWrapper = await new SwaggerClientWrapper().init(specPath);
     const response = await swaggerClientWrapper.dispatchRESTRequest("fetchMarkets");
     console.log(response);

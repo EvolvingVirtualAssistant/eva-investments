@@ -16,11 +16,13 @@ interface ValueLimit {
 
 interface Limit {
     amount?: ValueLimit,
-    price?: ValueLimit
+    price?: ValueLimit,
+    cost?: ValueLimit
 }
 
 export interface Market {
     id: string,
+    altname: string,
     base: string,
     quote: string,
     basedId: string,
@@ -30,7 +32,8 @@ export interface Market {
     maker?: Fee[],
     feePercentage: boolean,
     precision?: Precision,
-    limits?: Limit
+    limits?: Limit,
+    darkpool?: boolean
 }
 
 export interface MarketDataResponse {
