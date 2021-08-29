@@ -4,8 +4,9 @@ import { Command } from "../types/cli.types.ts";
 import { CliError } from "../errors/cliError.ts";
 import { CliConstants } from "../constants/cliConstants.ts";
 import { getCurrentPath } from "../utils/paths.ts";
+import { isAsync } from "../utils/async.ts";
 
-export function cliEntrypoint(command: Command): MethodDecorator {
+export function cliEntrypoint(command: Command, isFallback = false): MethodDecorator {
     initCliWorker();
 
     return function (target: any, key: string | symbol, descriptor: PropertyDescriptor) {
@@ -16,9 +17,20 @@ export function cliEntrypoint(command: Command): MethodDecorator {
 
         const original = descriptor.value;
 
-        descriptor.value = function (...args: any[]) {
-            const parsedArgs = args.map((arg) => parseType(arg));
-            return original.call(this, parsedArgs);
+        if (isFallback && original.length === 0) {
+			throw new CliError(CliConstants.FALLBACK_MISSING_ARG(key, target.constructor.name));
+		}
+
+        if (isAsync(original)) {
+            descriptor.value = async function (...args: any[]) {
+                const parsedArgs = args.map((arg) => parseType(arg));
+                return await original.call(this, parsedArgs);
+            }
+        } else {
+            descriptor.value = function (...args: any[]) {
+                const parsedArgs = args.map((arg) => parseType(arg));
+                return original.call(this, parsedArgs);
+            }
         }
 
         cliContext.registerCliEntrypoint(
@@ -27,7 +39,8 @@ export function cliEntrypoint(command: Command): MethodDecorator {
                 ...command,
                 this: target,
                 fn: descriptor.value,
-                argsSize: original.length
+                argsSize: original.length,
+                isFallback
             }
 		);
     }

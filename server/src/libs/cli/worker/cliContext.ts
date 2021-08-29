@@ -1,12 +1,13 @@
 import { CliAdapter, CommandCliEntrypoint, CommandCliAdapter, Dictionary, Command } from "../types/cli.types.ts";
 import { CliConstants } from "../constants/cliConstants.ts";
+import { isAsync } from "../utils/async.ts";
 
 class CliContext {
     private cliAdapters: Dictionary<CliAdapter>; // CHANGE THIS CLIADAPTER NAME TO SOMETHING ELSE
     
     // Used as a temp collection.
     // This is only used because the method decorators are registered before the class decorators
-    // And I need to associate the entrypoints with a temporary adapter
+    // and I need to associate the entrypoints with a temporary adapter
     private cliAdaptersByName: Dictionary<CliAdapter>;
 
     constructor() {
@@ -30,9 +31,6 @@ class CliContext {
         } else {
             command.tokens.forEach(token => this.addTokenToCliAdapter(cliAdapterName, token, command));
         }
-
-        // REMOVE THIS SHIT FROM HERE
-        this.interpretCommand(["-h"]);
     }
     
     private addTokenToCliAdapter(cliAdapterName: string, token: string, command: CommandCliAdapter) {
@@ -60,7 +58,7 @@ class CliContext {
             .forEach(token => this.cliAdaptersByName[cliAdapterName].cliEntrypoints[token] = command);
     }
 
-    interpretCommand(tokens: string[]) {
+    async interpretCommand(tokens: string[]) {
 
         let cliAdapter: CliAdapter | undefined = undefined;
         let isTokenEntrypoint = false;
@@ -81,30 +79,80 @@ class CliContext {
             if (isTokenEntrypoint) {
                 const command = cliAdapter?.cliEntrypoints[tokens[i]];
 
-                // CLEAN THIS IF ELSE CONFUSION
                 if (command == null) {
-                    // TOKEN NOT FOUND
-                } else {
+                    // Token not found
+                    // Attempt to call fallback entrypoint
+                    const fallbackEntrypoint = this.getFallbackEntrypoint(cliAdapter);
+                    const errMsg = CliConstants.CLI_TOKEN_NOT_FOUND(tokens[i]);
+                    isAsync(fallbackEntrypoint?.fn) ? 
+                        await fallbackEntrypoint?.fn?.call(fallbackEntrypoint.this, errMsg) : 
+                        fallbackEntrypoint?.fn?.call(fallbackEntrypoint.this, errMsg);
 
-                    if (command.argsSize === 0) {
-                        // INSTEAD OF THIS WE MAY WANT TO PASS THE FUNCTION DESCRIPTOR AND USE IT HERE, MAYBE????
-                        command?.fn?.call(command.this); // NOT SURE IF THIS WORKS HERE. TEST THIS
+                    return;
+                } else {
+                    // if it is a fallback then it only receives 1 arg which is never inserted via cli
+                    // only through this code in this method
+                    const argsSize = command.isFallback ? command.argsSize - 1 : command.argsSize;
+                    
+                    if (argsSize === 0) {
+                        isAsync(command?.fn) ? await command?.fn?.call(command.this) : command?.fn?.call(command.this);
 
                         // reset cliAdapter
                         cliAdapter = undefined;
                     } else {
-                        if (i + command.argsSize > tokens.length) {
-                            // MISSING ARGS
+                        
+                        if (i + argsSize >= tokens.length) {
+                            // Missing args
+                            // Attempt to call fallback entrypoint
+                            const fallbackEntrypoint = this.getFallbackEntrypoint(cliAdapter);
+                            const errMsg = CliConstants.CLI_MISSING_ARGS(tokens[i], "" + argsSize, "" + (tokens.length - 1 - i));
+                            isAsync(fallbackEntrypoint?.fn) ? 
+                                await fallbackEntrypoint?.fn?.call(fallbackEntrypoint.this, errMsg) : 
+                                fallbackEntrypoint?.fn?.call(fallbackEntrypoint.this, errMsg);
+                            
+                            return;
                         } else {
-                            // INSTEAD OF THIS WE MAY WANT TO PASS THE FUNCTION DESCRIPTOR AND USE IT HERE, MAYBE????
-                            command?.fn?.call(command.this, tokens.slice(i, i + command.argsSize));
+                            
+                            isAsync(command?.fn) ? 
+                                await command?.fn?.call(command.this, tokens.slice(i, i + argsSize)) : 
+                                command?.fn?.call(command.this, tokens.slice(i, i + argsSize));
                             
                             // reset cliAdapter
                             cliAdapter = undefined;
-                            i += command.argsSize;
+                            i += argsSize;
                         }
                     }
                 }
+            }
+        }
+
+        if (tokens.length > 0 && (cliAdapter = this.cliAdapters[tokens[tokens.length - 1]]) != null) {
+            // No options specified for the command
+            // Attempt to call fallback entrypoint
+            const fallbackEntrypoint = this.getFallbackEntrypoint(cliAdapter);
+            const errMsg = CliConstants.CLI_COMMAND_NEEDS_OPTIONS(tokens[tokens.length - 1]);
+            isAsync(fallbackEntrypoint?.fn) ? 
+                await fallbackEntrypoint?.fn?.call(fallbackEntrypoint.this, errMsg) : 
+                fallbackEntrypoint?.fn?.call(fallbackEntrypoint.this, errMsg);
+        }
+    }
+
+    private getFallbackEntrypoint(adapter?: CliAdapter): CommandCliEntrypoint | undefined {
+        if (adapter == null) {
+            return undefined;
+        }
+
+        for (const key in adapter.cliEntrypoints) {
+            if (adapter.cliEntrypoints[key].isFallback === true) {
+                return adapter.cliEntrypoints[key];
+            }
+        }
+
+        // In case the adapter does not contain a fallback method
+        // we try to search in the default adapter for a fallback method
+        for (const key in this.cliAdapters[CliConstants.CLI_ADAPTER_DEFAULT_TOKEN]?.cliEntrypoints) {
+            if (this.cliAdapters[CliConstants.CLI_ADAPTER_DEFAULT_TOKEN]?.cliEntrypoints[key].isFallback === true) {
+                return this.cliAdapters[CliConstants.CLI_ADAPTER_DEFAULT_TOKEN]?.cliEntrypoints[key];
             }
         }
     }

@@ -1,23 +1,24 @@
-import { CliConstants, cliAdapter, cliEntrypoint } from "../../libs/cli/mod.ts";
+import { cliAdapter, cliEntrypoint, getAllCliEntrypointsByCliAdapter, println } from "../../libs/cli/mod.ts";
+import { CliConstants, WalletsCliConstants } from "../../constants/cliConstants.ts";
 
 @cliAdapter({
-    tokens: ["wallets"],
-    description: "My fucking wallets"
+    tokens: [WalletsCliConstants.ADAPTER_TOKEN],
+    description: WalletsCliConstants.ADAPTER_DESCRIPTION
 })
 export class WalletsCliAdapter {
     
     constructor() {}
     
     @cliEntrypoint({
-        tokens: ["a"],
-        description: CliConstants.ROOT_OPTION_HELP_DESCRIPTION
-    })
-    getHelpMessage(): string {
-        throw new Error("Method not implemented.");
+        tokens: [CliConstants.OPTION_HELP_TOKEN_1, CliConstants.OPTION_HELP_TOKEN_2],
+        description: CliConstants.OPTION_HELP_DESCRIPTION
+    }, true)
+    async getHelpMessage(errMsg?: string): Promise<void> {
+        const entrypoints = getAllCliEntrypointsByCliAdapter(WalletsCliConstants.ADAPTER_TOKEN);
+        await println((errMsg || "") + WalletsCliConstants.HELP_COMMAND_TEMPLATE(WalletsCliConstants.USAGE, 
+            CliConstants.LIST_TEMPLATE(
+                ...entrypoints.map(entry => [CliConstants.OPTION_TEMPLATE(CliConstants.LIST_INLINE_TEMPLATE(...entry.tokens.map(t => [t])), entry.description)])
+            )
+        ));
     }
-
-    interpretCommand(tokens: string[]): void {
-        throw new Error("Method not implemented.");
-    }
-
 }

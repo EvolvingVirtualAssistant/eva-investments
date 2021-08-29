@@ -1,7 +1,6 @@
 import { CliConstants } from "../constants/cliConstants.ts";
 import { tokenizer } from "../utils/parser.ts";
 import { print, println, readln } from "../utils/io.ts";
-import { cliContext } from "./cliContext.ts";
 
 class CliTask {
     private running: boolean;
@@ -21,23 +20,26 @@ class CliTask {
         }
 
         try {
+            // Add next command prefix
+            print(CliConstants.LINE_PREFIX);
             do {
-                // Add prefix
-                print(CliConstants.LINE_PREFIX);
-
                 const line = await readln();
+                
                 const tokens = tokenizer(line);
-                cliContext.interpretCommand(tokens);
 
-                // THIS WILL LIKELY SHOULD BE REMOVED FROM HERE AND BE SPECIFIC FOR A SYSTEM USING THIS LIB
-                if (line === CliConstants.STOP_APP_COMMAND) {
-                    this.workerRef.postMessage(CliConstants.STOP_APP_COMMAND);
+                if (tokens.length > 0) {
+                    this.workerRef.postMessage({
+                        msg: CliConstants.INTERPRET_COMMAND,
+                        tokens,
+                    });
+                } else {
+                    print(CliConstants.LINE_PREFIX);
                 }
             } while (this.running)
         } catch (err) {
-            this.running = false;
+            this.terminate();
             println(err);
-            this.workerRef.postMessage(CliConstants.STOP_APP_COMMAND);
+            this.workerRef.postMessage(CliConstants.STOP_CLI_COMMAND);
         }
     }
 
@@ -52,6 +54,13 @@ const cliTask = new CliTask((<Worker><unknown>self));
     if (event.data === CliConstants.START_CLI_COMMAND) {
         cliTask.run();
     } else if (event.data === CliConstants.STOP_CLI_COMMAND) {
-        cliTask.terminate()
+        cliTask.terminate();
+    } else if (event.data === CliConstants.FININSHED_PROCESSING_COMMAND) {
+        // This only seems like it blocks while it's executing what was called
+        // but in reality this worker is never blocked, so there's nothing stopping the
+        // user from keeping on typing new commands, it will just look a bit odd visually
+
+        // Add next command prefix
+        print(CliConstants.LINE_PREFIX);
     }
 }

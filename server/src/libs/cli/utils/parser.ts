@@ -2,6 +2,10 @@ import { ParserConstants } from "../constants/cliConstants.ts"
 import { CliError } from "../errors/cliError.ts";
 
 export function tokenizer(args: string): string[] {
+    if (args.trim() === "") {
+        return [];
+    }
+
     // deno-lint-ignore prefer-const
     let tokens = args.split(" ");
 
