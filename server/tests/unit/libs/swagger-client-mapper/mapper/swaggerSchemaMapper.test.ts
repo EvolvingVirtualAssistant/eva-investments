@@ -19,7 +19,10 @@ async function readSpecAndParseToJSON(openApiSpecPath: string) {
   return JSON.parse(specContentText);
 }
 
-function createSwaggerClient(spec: {}): Promise<TypedSwaggerClient> {
+function createSwaggerClient(
+  // deno-lint-ignore no-explicit-any
+  spec: Record<string, any>,
+): Promise<TypedSwaggerClient> {
   return new SwaggerClient({ spec }) as unknown as Promise<TypedSwaggerClient>;
 }
 
@@ -28,7 +31,10 @@ async function initSwaggerSchemaMapper() {
   return initSwaggerSchemaMapperWithSpecifiedSpecJson(specJson);
 }
 
-function initSwaggerSchemaMapperWithSpecifiedSpecJson(specJson: {}) {
+function initSwaggerSchemaMapperWithSpecifiedSpecJson(
+  // deno-lint-ignore no-explicit-any
+  specJson: Record<string, any>,
+) {
   const swaggerSchemaMapper = new SwaggerSchemaMapper(specJson);
   //needed because it alters the specJson slightly
   // deno-lint-ignore no-unused-vars

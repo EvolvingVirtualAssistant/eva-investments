@@ -1,3 +1,4 @@
+// deno-lint-ignore-file
 import url2 from 'https://cdn.skypack.dev/-/url@v0.11.0-UOyhvzpSRF855VFpSAKm/dist=es2020,mode=imports/optimized/url.js';
 import 'https://cdn.skypack.dev/-/cross-fetch@v3.1.4-QRrT2D9K40kk7VVb31Pb/dist=es2020,mode=imports/unoptimized/dist/node-polyfill.js';
 import qs2 from 'https://cdn.skypack.dev/-/qs@v6.10.1-OJTYw74K0TVnjoTCQ0K6/dist=es2020,mode=imports/optimized/qs.js';
