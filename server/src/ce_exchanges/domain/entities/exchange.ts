@@ -1,22 +1,21 @@
 import { SwaggerClientWrapper } from "../../../libs/swagger-client-mapper/mod.ts";
+import { Market } from "./market.ts";
 
 export class CentralizedExchangeSpec {
+  openApiDefinitionFile: string;
+  name: string;
 
-    openApiDefinitionFile: string;
-    name: string;
-
-    constructor(openApiFile: string, name: string) {
-        this.openApiDefinitionFile = openApiFile;
-        this.name = name;
-    }
-    
+  constructor(openApiFile: string, name: string) {
+    this.openApiDefinitionFile = openApiFile;
+    this.name = name;
+  }
 }
 
 export class CentralizedExchange {
+  readonly swaggerClient: SwaggerClientWrapper;
+  markets: Market[] = [];
 
-    readonly swaggerClient: SwaggerClientWrapper;
-    
-    constructor(swaggerClient: SwaggerClientWrapper) {
-        this.swaggerClient = swaggerClient;
-    }
+  constructor(swaggerClient: SwaggerClientWrapper) {
+    this.swaggerClient = swaggerClient;
+  }
 }
