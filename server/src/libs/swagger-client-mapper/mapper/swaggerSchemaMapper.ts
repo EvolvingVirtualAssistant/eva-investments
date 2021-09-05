@@ -29,11 +29,17 @@ type XMapperRefSchema = {
 };
 
 interface SwaggerSchemaMapperType {
-  map<T>(
+  mapResponse<T>(
     operationId: string,
     httpStatus: number,
     source: Record<string, unknown>,
   ): T | undefined;
+  mapRequestParameter(
+    operationId: string,
+    // deno-lint-ignore no-explicit-any
+    source: Record<string, any>,
+    // deno-lint-ignore no-explicit-any
+  ): Record<string, any>;
 }
 
 class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
@@ -264,11 +270,91 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
     );
   }
 
-  public map<T>(
+  public mapResponse<T>(
     operationId: string,
     httpStatus: number,
     // deno-lint-ignore no-explicit-any
     source: Record<string, any> | Array<any>,
+  ): T | undefined {
+    return this.map(
+      operationId,
+      source,
+      this.mapOperationToResponsePayloadDefinition(httpStatus),
+    );
+  }
+
+  private mapOperationToResponsePayloadDefinition = (httpStatus: number) => {
+    // deno-lint-ignore no-explicit-any
+    return (operation: any) =>
+      Object.keys(operation.responses)
+        .filter((status) => status === (httpStatus + ""))
+        .map((httpStatusKey) => operation.responses[httpStatusKey])
+        .map((response) => response?.content?.["application/json"]);
+  };
+
+  /*public mapRequestBody<T>(
+    operationId: string,
+    // deno-lint-ignore no-explicit-any
+    source: Record<string, any> | Array<any>,
+  ): T | undefined {
+    //TODO
+    return this.map(
+      operationId,
+      source,
+      this.mapOperationToResponsePayloadDefinition(),
+    );
+  }*/
+
+  public mapRequestParameter(
+    operationId: string,
+    // deno-lint-ignore no-explicit-any
+    source: Record<string, any>,
+    // deno-lint-ignore no-explicit-any
+  ): Record<string, any> {
+    if (!this.specJson.paths) {
+      throw new OpenApiSpecMissingPropertyError(this.specJson, "paths");
+    }
+
+    // deno-lint-ignore no-explicit-any
+    const target: Record<string, any> = {};
+
+    if (Object.keys(source).length === 0) {
+      return target;
+    }
+
+    Object.keys(this.specJson.paths)
+      .map((path) => this.specJson.paths[path])
+      .flatMap((operations) =>
+        Object.keys(operations).map((operationKey) => operations[operationKey])
+      )
+      .filter((operation) =>
+        operation.operationId === operationId && operation.parameters
+      )
+      .flatMap((operation) => operation.parameters)
+      .filter((parameter) => {
+        const xName = parameter["x-name"]
+          ? parameter["x-name"] as unknown as string
+          : undefined;
+        // deno-lint-ignore no-explicit-any
+        const sourceTyped = source as Record<string, any>;
+        return xName && sourceTyped[xName];
+      })
+      .forEach((parameter) => {
+        // deno-lint-ignore no-explicit-any
+        const sourceTyped = source as Record<string, any>;
+        const xName = parameter["x-name"];
+        target[parameter.name] = sourceTyped[xName];
+      });
+
+    return target;
+  }
+
+  private map<T>(
+    operationId: string,
+    // deno-lint-ignore no-explicit-any
+    source: Record<string, any> | Array<any>,
+    // deno-lint-ignore no-explicit-any
+    mapOperationToPayloadDefinitionFn: (operation: any) => any[],
   ): T | undefined {
     //based on the operationid, identify the operation
     //search for responses key -> success http code -> content -> application/json
@@ -285,12 +371,7 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
       .filter((operation) =>
         operation.operationId === operationId && operation.responses
       )
-      .flatMap((operation) =>
-        Object.keys(operation.responses)
-          .filter((status) => status === (httpStatus + ""))
-          .map((httpStatusKey) => operation.responses[httpStatusKey])
-      )
-      .map((response) => response?.content?.["application/json"])
+      .flatMap(mapOperationToPayloadDefinitionFn)
       .filter((payloadDefinition) => !!payloadDefinition)
       .map((payloadDefinition) => ({
         sourceSchemaRef: payloadDefinition["schema"]?.["$$ref"],
@@ -302,7 +383,7 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
       )?.[0];
 
     if (!sourceTargetRefs) {
-      throw new MapperNotFoundError(operationId, httpStatus);
+      throw new MapperNotFoundError(operationId);
     }
 
     //with target type search mappers structure, it will return an object with all the supported sources as keys
@@ -314,7 +395,6 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
     if (!mapper) {
       throw new MapperNotFoundError(
         operationId,
-        httpStatus,
         sourceTargetRefs.targetMapperSchemaRef,
         sourceTargetRefs.sourceSchemaRef,
         this.mappers,
