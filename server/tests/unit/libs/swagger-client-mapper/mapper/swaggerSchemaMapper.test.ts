@@ -1,7 +1,4 @@
-import {
-  assertEquals,
-  assertThrows,
-} from "https://deno.land/std/testing/asserts.ts";
+import { assertEquals, assertThrows } from "../../../../../src/deps.ts";
 import { SwaggerClient } from "../../../../../src/deps.ts";
 import MapperNotFoundError from "../../../../../src/libs/swagger-client-mapper/mapper/errors/mapperNotFoundError.ts";
 import OpenApiSpecMissingPropertyError from "../../../../../src/libs/swagger-client-mapper/mapper/errors/openApiSpecMissingPropertyError.ts";
@@ -51,7 +48,7 @@ Deno.test("Should map array to object and fixed value to target", async () => {
     },
   };
 
-  const mappedResult = swaggerSchemaMapper.map(
+  const mappedResult = swaggerSchemaMapper.mapResponse(
     GET_OPERATION_ID,
     SUCCESS_HTTP_STATUS,
     sourceMock,
@@ -79,7 +76,7 @@ Deno.test("Should map source to nested property target", async () => {
     },
   };
 
-  const mappedResult = swaggerSchemaMapper.map(
+  const mappedResult = swaggerSchemaMapper.mapResponse(
     GET_OPERATION_ID,
     SUCCESS_HTTP_STATUS,
     sourceMock,
@@ -116,7 +113,7 @@ Deno.test("Should map source array to object target", async () => {
     },
   };
 
-  const mappedResult = swaggerSchemaMapper.map(
+  const mappedResult = swaggerSchemaMapper.mapResponse(
     GET_OPERATION_ID,
     SUCCESS_HTTP_STATUS,
     sourceMock,
@@ -157,7 +154,7 @@ Deno.test("Should map source null value to target null value", async () => {
     },
   };
 
-  const mappedResult = swaggerSchemaMapper.map(
+  const mappedResult = swaggerSchemaMapper.mapResponse(
     GET_OPERATION_ID,
     SUCCESS_HTTP_STATUS,
     sourceMock,
@@ -185,7 +182,7 @@ Deno.test("Should not map source undefined value to target", async () => {
     },
   };
 
-  const mappedResult = swaggerSchemaMapper.map(
+  const mappedResult = swaggerSchemaMapper.mapResponse(
     GET_OPERATION_ID,
     SUCCESS_HTTP_STATUS,
     sourceMock,
@@ -224,7 +221,7 @@ Deno.test("Should receive OpenApiSpecMissingPropertyError when spec is missing '
 
   assertThrows(
     () =>
-      swaggerSchemaMapper.map(
+      swaggerSchemaMapper.mapResponse(
         GET_OPERATION_ID,
         SUCCESS_HTTP_STATUS,
         sourceMock,
@@ -249,12 +246,12 @@ Deno.test("Should receive MapperNotFoundError when operationId is not correct", 
 
   assertThrows(
     () =>
-      swaggerSchemaMapper.map(
+      swaggerSchemaMapper.mapResponse(
         operationId,
         SUCCESS_HTTP_STATUS,
         sourceMock,
       ),
     MapperNotFoundError,
-    `Could not find mapper for operationId: ${operationId} and http status: ${SUCCESS_HTTP_STATUS} .`,
+    `Could not find mapper for operationId: ${operationId}.`,
   );
 });

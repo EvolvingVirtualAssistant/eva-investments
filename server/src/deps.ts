@@ -6,5 +6,11 @@ import { config as dotEnvConfig } from "https://deno.land/x/dotenv/mod.ts";
 export { dotEnvConfig };
 
 // libs
-import SwaggerClient from "../src/libs/swagger-client-v3_15_0.js";//v3.15.0 -> "https://cdn.skypack.dev/swagger-client"; 
+import SwaggerClient from "../src/libs/swagger-client-v3_15_0.js"; //v3.15.0 -> "https://cdn.skypack.dev/swagger-client";
 export { SwaggerClient };
+
+// tests
+export {
+  assertEquals,
+  assertThrows,
+} from "https://deno.land/std@0.106.0/testing/asserts.ts";
