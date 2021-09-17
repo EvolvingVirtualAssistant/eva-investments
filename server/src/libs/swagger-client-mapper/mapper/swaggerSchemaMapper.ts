@@ -214,6 +214,15 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
       return this.handleMapArrayIntoObject(item, sourceObject);
     }
 
+    const idxArrayFirstSqrBracket = item.source?.indexOf("[");
+    if (idxArrayFirstSqrBracket !== -1 && !this.isArray(sourceObject)) {
+      const arrayName = (item.source)!.substr(0, idxArrayFirstSqrBracket);
+      const items =
+        sourceObject[arrayName] as (Array<unknown> | Record<string, unknown>);
+      if (items && this.isArray(items)) {
+        return this.handleMapArrayIntoObject(item, items);
+      }
+    }
     return !this.isArray(sourceObject) ? sourceObject[item.source!] : undefined;
   }
 
@@ -221,7 +230,7 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
     item: MapperItemSchema,
     sourceObject: Array<unknown>,
   ) {
-    if (item.source?.startsWith("#array[")) {
+    if (item.source?.startsWith("#array[") || item.source?.indexOf("[")) {
       const idx: number = parseInt(item.source?.match(/\d+/)?.[0] || "-1");
       if (idx < 0) {
         return;

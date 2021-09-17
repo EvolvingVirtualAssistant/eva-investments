@@ -75,6 +75,12 @@
                 },
                 "orderMax": {
                   "type": "string"
+                },
+                "txid": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               }
             }
@@ -146,6 +152,10 @@
           {
             "source": "orderMax",
             "target": "limits.amount.max"
+          },
+          {
+            "source": "txid[0]",
+            "target": "txid"
           }
         ]
       },

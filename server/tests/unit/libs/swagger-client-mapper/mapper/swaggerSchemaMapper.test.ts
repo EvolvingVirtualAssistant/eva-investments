@@ -143,6 +143,36 @@ Deno.test("Should map source array to object target", async () => {
   });
 });
 
+Deno.test("Should map source array value to value in object", async () => {
+  const swaggerSchemaMapper = await initSwaggerSchemaMapper();
+
+  const sourceMock = {
+    result: {
+      assetA: {
+        txid: [
+          "txid1",
+        ],
+      },
+    },
+  };
+
+  const mappedResult = swaggerSchemaMapper.mapResponse(
+    GET_OPERATION_ID,
+    SUCCESS_HTTP_STATUS,
+    sourceMock,
+  );
+
+  assertEquals(mappedResult, {
+    result: [
+      {
+        id: "assetA",
+        active: true,
+        txid: "txid1",
+      },
+    ],
+  });
+});
+
 Deno.test("Should map source null value to target null value", async () => {
   const swaggerSchemaMapper = await initSwaggerSchemaMapper();
 
