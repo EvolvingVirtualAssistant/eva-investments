@@ -73,6 +73,12 @@ export class SwaggerClientWrapper {
     operationId: string,
     parameters: Record<string, string | number> = {},
     requestBody: B | undefined = undefined,
+    preProcessRequest?: (
+      uriPath: string,
+      httpMethod: string,
+      requestParameters: any,
+      requestBody: any,
+    ) => void,
   ): Promise<RestResponse<R>> {
     if (!this.openApiSpecPath) {
       throw new Error(
@@ -94,6 +100,11 @@ export class SwaggerClientWrapper {
         requestBody,
       );*/
 
+      //pre-process request
+      if (preProcessRequest) {
+        preProcessRequest("", "", mappedParameters, mappedRequestBody);
+      }
+
       const request = operationSignature(mappedParameters, {
         requestInterceptor: (req: SwaggerClientRequest) =>
           this.interfaceLevelRequesInterceptor(req, operationId),
@@ -113,6 +124,9 @@ export class SwaggerClientWrapper {
       });
       return response;
     });
+  }
+
+  private buildRequestHeaders() {
   }
 
   public isSuccess<T>(response: RestResponse<T>): boolean {

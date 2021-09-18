@@ -5,7 +5,9 @@ interface Sign {
     secret: string,
     httpMethod?: string,
     // deno-lint-ignore no-explicit-any
-    data?: any,
+    requestBody?: any,
+    // deno-lint-ignore no-explicit-any
+    requestParameters?: any,
   ) => string;
 }
 

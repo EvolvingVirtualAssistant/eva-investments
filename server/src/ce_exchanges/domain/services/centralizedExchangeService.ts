@@ -1,3 +1,4 @@
+import { getApiSignature } from "../../../deps.ts";
 import { SwaggerClientWrapper } from "../../../libs/swagger-client-mapper/mod.ts";
 import { CentralizedExchangeRestAdapter } from "../../driven/data_sources/centralizedExchangeRestAdapter.ts";
 import { CentralizedExchangeRepository } from "../../driven/repositories/centralizedExchangeRepository.ts";
@@ -6,6 +7,7 @@ import {
   CentralizedExchangeSpec,
 } from "../entities/exchange.ts";
 import { Market } from "../entities/market.ts";
+import SignatureBuilderMissingError from "./errors/signatureBuilderMissingError.ts";
 
 type Dict<T> = {
   [key: string]: T;
@@ -76,7 +78,12 @@ export class CentralizedExchangeService {
     const swaggerClient = await new SwaggerClientWrapper().init(
       exchangeSpec.openApiDefinitionFile,
     );
-    const exchange = new CentralizedExchange(swaggerClient);
+
+    const sign = getApiSignature(exchangeId);
+    if (!sign) {
+      throw new SignatureBuilderMissingError(exchangeId);
+    }
+    const exchange = new CentralizedExchange(swaggerClient, sign);
 
     this.centralizedExchanges[exchangeId] = exchange;
 

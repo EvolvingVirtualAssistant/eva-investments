@@ -7,7 +7,7 @@ Deno.test("Should build Kraken REST API signature", () => {
   const privateKey =
     "kQH5HW/8p1uGOVjbgWA7FunAmGO8lsSUXNsu3eow76sz84Q18fWxnyRzBHCd3pd5nE9qa99HAZtuZuj6F1huXg==";
   const nonce = 1616492376594;
-  const data = {
+  const requestBody = {
     "nonce": "1616492376594",
     "ordertype": "limit",
     "pair": "XBTUSD",
@@ -22,7 +22,8 @@ Deno.test("Should build Kraken REST API signature", () => {
     nonce,
     privateKey,
     undefined,
-    data,
+    requestBody,
+    undefined,
   );
   assertEquals(
     apiSign,

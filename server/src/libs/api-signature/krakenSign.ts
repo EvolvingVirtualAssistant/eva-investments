@@ -11,9 +11,11 @@ class KrakenSignature implements Sign {
     // deno-lint-ignore no-unused-vars
     httpMethod?: string | undefined,
     // deno-lint-ignore no-explicit-any
-    data?: any,
+    requestBody?: any,
+    // deno-lint-ignore no-unused-vars no-explicit-any
+    requestParameters?: any,
   ): string {
-    const msg = data ? stringify(data) : "";
+    const msg = requestBody ? stringify(requestBody) : "";
     const hashDigest = this.hash(nonce + msg, SHA256, BINARY);
     const uriBinary = this.stringToBinary(uriPath);
     const hmacData = this.binaryConcat(uriBinary, hashDigest);
@@ -43,6 +45,7 @@ class KrakenSignature implements Sign {
       : result.toString(CryptoJS.enc[this.capitalize(digest)]);
   };
 
+  // deno-lint-ignore no-explicit-any
   hmac = (request: any, secret: string, hash = "sha256", digest = "hex") => {
     const result = CryptoJS["Hmac" + hash.toUpperCase()](request, secret);
     if (digest) {

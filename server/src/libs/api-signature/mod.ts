@@ -8,4 +8,8 @@ const signatures: SignaturesMap = {
   "kraken": () => new KrakenSignature(),
 };
 
-export const getApiSignature = (id: string) => signatures[id];
+export const getApiSignature = (id: string) => {
+  const initSignature = signatures[id];
+  return initSignature ? initSignature() : undefined;
+};
+export type { Sign };

@@ -8,6 +8,8 @@ export { dotEnvConfig };
 // libs
 import SwaggerClient from "../src/libs/swagger-client-v3_15_0.js"; //v3.15.0 -> "https://cdn.skypack.dev/swagger-client";
 export { SwaggerClient };
+export { getApiSignature } from "../src/libs/api-signature/mod.ts";
+export type { Sign } from "../src/libs/api-signature/mod.ts";
 
 // tests
 export {

@@ -1,5 +1,6 @@
 import { CentralizedExchange } from "../../domain/entities/exchange.ts";
 import { Market } from "../../domain/entities/market.ts";
+import { CreateOrder, Order } from "../../domain/entities/order.ts";
 import { OrderBook } from "../../domain/entities/orderbook.ts";
 
 export interface CentralizedExchangeRepository {
@@ -10,6 +11,11 @@ export interface CentralizedExchangeRepository {
   fetchOrderBooks(
     exchange: CentralizedExchange,
     symbol: string,
-    count: number,
+    limit: number,
   ): Promise<OrderBook[]>;
+
+  createOrder(
+    exchange: CentralizedExchange,
+    order: CreateOrder,
+  ): Promise<Order>;
 }
