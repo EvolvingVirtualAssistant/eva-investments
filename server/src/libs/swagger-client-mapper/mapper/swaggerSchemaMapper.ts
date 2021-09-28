@@ -339,6 +339,7 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
     // deno-lint-ignore no-explicit-any
     filterByParameterType: (parameter: Record<string, any>) => boolean = () =>
       true,
+    // deno-lint-ignore no-explicit-any
   ): Record<string, any> {
     if (!this.specJson.paths) {
       throw new OpenApiSpecMissingPropertyError(this.specJson, "paths");

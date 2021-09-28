@@ -184,6 +184,7 @@ export class CentralizedExchangeService {
     );
 
     const exchange = new CentralizedExchange(
+      exchangeId,
       swaggerClient,
       sign,
       privateKey,

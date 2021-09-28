@@ -16,6 +16,7 @@ export class CentralizedExchangeSpec {
 }
 
 export class CentralizedExchange {
+  exchangeId: string;
   readonly swaggerClient: SwaggerClientWrapper;
   markets: Market[] = [];
   sign: Sign;
@@ -23,11 +24,13 @@ export class CentralizedExchange {
   restAPIPublicKeyFile: string;
 
   constructor(
+    exchangeId: string,
     swaggerClient: SwaggerClientWrapper,
     sign: Sign,
     restAPIPrivateKeyFile: string,
     restAPIPublicKeyFile: string,
   ) {
+    this.exchangeId = exchangeId;
     this.swaggerClient = swaggerClient;
     this.sign = sign;
     this.restAPIPrivateKeyFile = restAPIPrivateKeyFile;

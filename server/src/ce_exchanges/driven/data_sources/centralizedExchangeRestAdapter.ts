@@ -16,7 +16,12 @@ import {
   OrderBooksResponse,
 } from "../../domain/entities/orderbook.ts";
 import { CentralizedExchangeRepository } from "../repositories/centralizedExchangeRepository.ts";
+import CouldNotFetchMarketsError from "./errors/couldNotFetchMarketsError.ts";
+import CouldNotFetchOrderBookError from "./errors/couldNotFetchOrderBookError.ts";
+import CouldNotFetchOrdersError from "./errors/couldNotFetchOrdersError.ts";
+import OrderCreatedMissingBodyError from "./errors/orderCreatedMissingBodyError.ts";
 import OrderNotAddedMissingIdError from "./errors/orderNotAddedMissingIdError.ts";
+import OrderNotCreatedError from "./errors/orderNotCreatedError.ts";
 import OrderNotFoundError from "./errors/orderNotFoundError.ts";
 
 export class CentralizedExchangeRestAdapter
@@ -28,7 +33,7 @@ export class CentralizedExchangeRestAdapter
       .swaggerClient.dispatchRESTRequest("fetchMarkets");
 
     if (!exchange.swaggerClient.isSuccess(response)) {
-      //do something
+      throw new CouldNotFetchMarketsError(exchange.exchangeId);
     }
 
     return response?.body?.result || [];
@@ -43,7 +48,7 @@ export class CentralizedExchangeRestAdapter
       .swaggerClient.dispatchRESTRequest("fetchOrderBook", { symbol, limit });
 
     if (!exchange.swaggerClient.isSuccess(response)) {
-      //do something
+      throw new CouldNotFetchOrderBookError(symbol, response.body?.error);
     }
 
     return response?.body?.result || [];
@@ -71,12 +76,7 @@ export class CentralizedExchangeRestAdapter
       );
 
     if (!exchange.swaggerClient.isSuccess(response) || !response.body) {
-      //do something
-      throw new Error();
-    }
-
-    if (response.body == null) {
-      throw new Error();
+      throw new OrderNotCreatedError(order, response.body?.error);
     }
 
     if (this.isPartialCreateOrderResponse(response.body)) {
@@ -102,7 +102,7 @@ export class CentralizedExchangeRestAdapter
     const createdOrder = (response.body as CreateOrderResponse).result;
 
     if (createdOrder == null) {
-      throw new Error();
+      throw new OrderCreatedMissingBodyError(order.clientOrderId);
     }
 
     return createdOrder!;
@@ -163,9 +163,8 @@ export class CentralizedExchangeRestAdapter
         preProcessRequest,
       );
 
-    if (!exchange.swaggerClient.isSuccess(response) && !response.body) {
-      //do something
-      throw new Error();
+    if (!exchange.swaggerClient.isSuccess(response) || !response.body) {
+      throw new CouldNotFetchOrdersError(response.body?.error);
     }
 
     return response.body?.result || [];

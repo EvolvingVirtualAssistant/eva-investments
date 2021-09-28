@@ -24,6 +24,8 @@ const order = await ceService.createOrder("kraken", {
   price: 2.246,
 });
 
+console.log("order", JSON.stringify(order));
+
 await execute();
 
 const PORT = 1993;
