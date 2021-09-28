@@ -1,4 +1,5 @@
 export { serve } from "https://deno.land/std@0.77.0/http/server.ts";
+export { join as pathJoin } from "https://deno.land/std@0.108.0/path/mod.ts";
 
 // config
 export type { DenonConfig } from "https://deno.land/x/denon@2.4.7/mod.ts";

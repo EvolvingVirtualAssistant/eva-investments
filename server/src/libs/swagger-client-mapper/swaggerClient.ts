@@ -11,7 +11,7 @@ export interface TypedSwaggerClient extends SwaggerClient {
   apis: { default: OperationsCallableMap };
 }
 
-type SwaggerClientRequest = {
+export type SwaggerClientRequest = {
   credentials?: string;
   headers?: Record<string, string>;
   method: string;
@@ -19,6 +19,7 @@ type SwaggerClientRequest = {
   requestInterceptor?(req: SwaggerClientRequest): SwaggerClientRequest;
   responseInterceptor?(res: SwaggerClientResponse): SwaggerClientResponse;
   url: string;
+  body: string | undefined;
 };
 
 type SwaggerClientResponse = {
@@ -40,6 +41,15 @@ export interface RestResponse<T> {
   operationId: string;
   body?: T;
 }
+
+type preProcesseRequestType = (
+  request: SwaggerClientRequest,
+  // deno-lint-ignore no-explicit-any
+  requestParameters: any,
+  // deno-lint-ignore no-explicit-any
+  requestBody: any,
+  requestHeaders: Record<string, string>,
+) => void;
 
 export class SwaggerClientWrapper {
   private swaggerClient!: Promise<TypedSwaggerClient>;
@@ -73,12 +83,7 @@ export class SwaggerClientWrapper {
     operationId: string,
     parameters: Record<string, string | number> = {},
     requestBody: B | undefined = undefined,
-    preProcessRequest?: (
-      uriPath: string,
-      httpMethod: string,
-      requestParameters: any,
-      requestBody: any,
-    ) => void,
+    preProcessRequest?: preProcesseRequestType,
   ): Promise<RestResponse<R>> {
     if (!this.openApiSpecPath) {
       throw new Error(
@@ -94,20 +99,22 @@ export class SwaggerClientWrapper {
         operationId,
         parameters,
       );
-      const mappedRequestBody = undefined; /*this.swaggerSchemaMapper.map(
-        operationId,
-        undefined,
-        requestBody,
-      );*/
-
-      //pre-process request
-      if (preProcessRequest) {
-        preProcessRequest("", "", mappedParameters, mappedRequestBody);
-      }
+      // deno-lint-ignore no-explicit-any
+      const mappedRequestBody: Record<string, any> | undefined = this
+        .swaggerSchemaMapper.mapRequestBody(
+          operationId,
+          requestBody,
+        );
 
       const request = operationSignature(mappedParameters, {
         requestInterceptor: (req: SwaggerClientRequest) =>
-          this.interfaceLevelRequesInterceptor(req, operationId),
+          this.interfaceLevelRequesInterceptor(
+            req,
+            operationId,
+            mappedParameters,
+            mappedRequestBody,
+            preProcessRequest,
+          ),
         requestBody: mappedRequestBody,
       });
 
@@ -124,9 +131,6 @@ export class SwaggerClientWrapper {
       });
       return response;
     });
-  }
-
-  private buildRequestHeaders() {
   }
 
   public isSuccess<T>(response: RestResponse<T>): boolean {
@@ -148,8 +152,32 @@ export class SwaggerClientWrapper {
   private interfaceLevelRequesInterceptor(
     request: SwaggerClientRequest,
     operationId: string,
+    // deno-lint-ignore no-explicit-any
+    requestParameters: Record<string, any>,
+    // deno-lint-ignore no-explicit-any
+    requestBody: Record<string, any> | undefined,
+    preProcessRequest?: preProcesseRequestType,
   ) {
     request.operationId = operationId;
+
+    //pre-process request
+    if (preProcessRequest) {
+      let requestHeaders = {};
+      preProcessRequest(
+        request,
+        requestParameters,
+        requestBody,
+        requestHeaders,
+      );
+
+      requestHeaders = this.swaggerSchemaMapper.mapRequestParameter(
+        operationId,
+        requestHeaders,
+        this.swaggerSchemaMapper.getParameterInHeaderFilter(),
+      );
+      request.headers = { ...request.headers, ...requestHeaders };
+    }
+
     //TODO: Need to add proper logging
     console.log(`Interface level request interceptor, request: ${request}`);
     //should add mapping to map parameters

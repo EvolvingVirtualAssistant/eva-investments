@@ -34,12 +34,21 @@ interface SwaggerSchemaMapperType {
     httpStatus: number,
     source: Record<string, unknown>,
   ): T | undefined;
+  mapRequestBody<T>(
+    operationId: string,
+    // deno-lint-ignore no-explicit-any
+    source: Record<string, any> | Array<any>,
+  ): T | undefined;
   mapRequestParameter(
     operationId: string,
     // deno-lint-ignore no-explicit-any
     source: Record<string, any>,
     // deno-lint-ignore no-explicit-any
+    filterByParameterType: (parameter: Record<string, any>) => boolean,
+    // deno-lint-ignore no-explicit-any
   ): Record<string, any>;
+  // deno-lint-ignore no-explicit-any
+  getParameterInHeaderFilter(): (parameter: Record<string, any>) => boolean;
 }
 
 class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
@@ -295,30 +304,41 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
   private mapOperationToResponsePayloadDefinition = (httpStatus: number) => {
     // deno-lint-ignore no-explicit-any
     return (operation: any) =>
-      Object.keys(operation.responses)
+      Object.keys(operation.responses || {})
         .filter((status) => status === (httpStatus + ""))
         .map((httpStatusKey) => operation.responses[httpStatusKey])
         .map((response) => response?.content?.["application/json"]);
   };
 
-  /*public mapRequestBody<T>(
+  public mapRequestBody<T>(
     operationId: string,
     // deno-lint-ignore no-explicit-any
-    source: Record<string, any> | Array<any>,
+    source: Record<string, any> | Array<any> = {},
   ): T | undefined {
     //TODO
     return this.map(
       operationId,
       source,
-      this.mapOperationToResponsePayloadDefinition(),
+      this.mapOperationToRequestPayloadDefinition(),
     );
-  }*/
+  }
+
+  private mapOperationToRequestPayloadDefinition = () => {
+    // deno-lint-ignore no-explicit-any
+    return (operation: any) =>
+      Object.keys(operation?.requestBody?.content || {})
+        .map((produceFormat) =>
+          operation?.requestBody?.content?.[produceFormat]
+        );
+  };
 
   public mapRequestParameter(
     operationId: string,
     // deno-lint-ignore no-explicit-any
     source: Record<string, any>,
     // deno-lint-ignore no-explicit-any
+    filterByParameterType: (parameter: Record<string, any>) => boolean = () =>
+      true,
   ): Record<string, any> {
     if (!this.specJson.paths) {
       throw new OpenApiSpecMissingPropertyError(this.specJson, "paths");
@@ -340,6 +360,7 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
         operation.operationId === operationId && operation.parameters
       )
       .flatMap((operation) => operation.parameters)
+      .filter(filterByParameterType)
       .filter((parameter) => {
         const xName = parameter["x-name"]
           ? parameter["x-name"] as unknown as string
@@ -356,6 +377,11 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
       });
 
     return target;
+  }
+
+  public getParameterInHeaderFilter() {
+    // deno-lint-ignore no-explicit-any
+    return (parameter: Record<string, any>) => parameter.in === "header";
   }
 
   private map<T>(
@@ -377,9 +403,7 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
       .flatMap((operations) =>
         Object.keys(operations).map((operationKey) => operations[operationKey])
       )
-      .filter((operation) =>
-        operation.operationId === operationId && operation.responses
-      )
+      .filter((operation) => operation.operationId === operationId)
       .flatMap(mapOperationToPayloadDefinitionFn)
       .filter((payloadDefinition) => !!payloadDefinition)
       .map((payloadDefinition) => ({

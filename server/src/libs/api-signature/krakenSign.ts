@@ -15,9 +15,14 @@ class KrakenSignature implements Sign {
     // deno-lint-ignore no-unused-vars no-explicit-any
     requestParameters?: any,
   ): string {
+    const toStartSubsIdx = uriPath.indexOf(".com");
+    let url = uriPath;
+    if (toStartSubsIdx !== -1) {
+      url = uriPath.substring(toStartSubsIdx + 4);
+    }
     const msg = requestBody ? stringify(requestBody) : "";
     const hashDigest = this.hash(nonce + msg, SHA256, BINARY);
-    const uriBinary = this.stringToBinary(uriPath);
+    const uriBinary = this.stringToBinary(url);
     const hmacData = this.binaryConcat(uriBinary, hashDigest);
     const secretBase64 = this.stringToBase64(secret);
 

@@ -1,16 +1,16 @@
-enum OrderStatus {
+export enum OrderStatus {
   open = "open",
   closed = "closed",
   canceled = "canceled",
   expired = "expired",
 }
 
-enum OrderType {
+export enum OrderType {
   market = "market",
   limit = "limit",
 }
 
-enum OrderSide {
+export enum OrderSide {
   buy = "buy",
   sell = "sell",
 }
@@ -29,22 +29,22 @@ export interface Order {
   average?: number; // float average filling price
   amount: number; // ordered amount of base currency
   filled: number; // filled amount of base currency
-  remaining: number; // remaining amount to fill
+  remaining?: number; // remaining amount to fill
   cost: number; // 'filled' * 'price' (filling price used where available)
   fee?: { // fee info, if available
-    currency: string; // which currency the fee is (usually quote)
+    currency?: string; // which currency the fee is (usually quote)
     cost: number; // the fee amount in that currency
-    rate: number; // the fee rate (if available)
+    rate?: number; // the fee rate (if available)
   };
 }
 
 export interface CreateOrder {
   clientOrderId?: string;
-  nonce: number;
+  nonce?: number;
   symbol: string;
   side: OrderSide;
   type: OrderType;
-  amount: string;
+  amount: number;
   price: number;
 }
 
@@ -55,5 +55,10 @@ export interface CreateOrderResponse {
 
 export interface PartialCreateOrderResponse {
   result?: { id: string };
+  error?: string;
+}
+
+export interface OrdersResponse {
+  result?: Order[];
   error?: string;
 }

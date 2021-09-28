@@ -1,10 +1,14 @@
-import { RestResponse } from "../../../libs/swagger-client-mapper/mod.ts";
+import {
+  RestResponse,
+  SwaggerClientRequest,
+} from "../../../libs/swagger-client-mapper/mod.ts";
 import { CentralizedExchange } from "../../domain/entities/exchange.ts";
 import { Market, MarketDataResponse } from "../../domain/entities/market.ts";
 import {
   CreateOrder,
   CreateOrderResponse,
   Order,
+  OrdersResponse,
   PartialCreateOrderResponse,
 } from "../../domain/entities/order.ts";
 import {
@@ -12,6 +16,8 @@ import {
   OrderBooksResponse,
 } from "../../domain/entities/orderbook.ts";
 import { CentralizedExchangeRepository } from "../repositories/centralizedExchangeRepository.ts";
+import OrderNotAddedMissingIdError from "./errors/orderNotAddedMissingIdError.ts";
+import OrderNotFoundError from "./errors/orderNotFoundError.ts";
 
 export class CentralizedExchangeRestAdapter
   implements CentralizedExchangeRepository {
@@ -47,9 +53,11 @@ export class CentralizedExchangeRestAdapter
     exchange: CentralizedExchange,
     order: CreateOrder,
   ): Promise<Order> {
-    const preProcessRequest = this.getCreateOrderPreProcessRequestCallback(
+    const nonce = order.nonce ? order.nonce : exchange.getNonce();
+    order.nonce = nonce;
+    const preProcessRequest = this.getPreProcessRequestCallback(
       exchange,
-      order.nonce,
+      nonce,
     );
 
     const response: RestResponse<
@@ -62,44 +70,67 @@ export class CentralizedExchangeRestAdapter
         preProcessRequest,
       );
 
-    if (!exchange.swaggerClient.isSuccess(response) && !response.body) {
+    if (!exchange.swaggerClient.isSuccess(response) || !response.body) {
       //do something
       throw new Error();
     }
 
-    let orderResult: Order;
-    if (response.body && this.isPartialCreateOrderResponse(response.body)) {
-      //TODO: have to add logic in this method to see if the output of the createOrder is just an Order with an id. In that case I will have to do a GET to fetch the order
+    if (response.body == null) {
+      throw new Error();
     }
 
-    orderResult = (response.body)!.result! as Order;
+    if (this.isPartialCreateOrderResponse(response.body)) {
+      if (!response.body.result?.id) {
+        throw new OrderNotAddedMissingIdError(order);
+      }
+      const orders = await this.fetchOrders(
+        exchange,
+        exchange.getNonce(),
+        order.clientOrderId,
+        response.body.result?.id,
+      );
+      if (orders.length) {
+        return orders[0];
+      } else {
+        throw new OrderNotFoundError(
+          response.body.result?.id,
+          order.clientOrderId,
+        );
+      }
+    }
 
-    return orderResult;
+    const createdOrder = (response.body as CreateOrderResponse).result;
+
+    if (createdOrder == null) {
+      throw new Error();
+    }
+
+    return createdOrder!;
   }
 
-  private getCreateOrderPreProcessRequestCallback = (
+  private getPreProcessRequestCallback = (
     exchange: CentralizedExchange,
     nonce: number,
   ) =>
     (
-      uriPath: string,
-      httpMethod: string,
+      request: SwaggerClientRequest,
       // deno-lint-ignore no-explicit-any
       requestParameters: any,
       // deno-lint-ignore no-explicit-any
       requestBody: any,
+      requestHeaders: Record<string, string>,
     ) => {
       const apiSignature = exchange.sign.buildRESTApiSignature(
-        uriPath,
+        request.url,
         nonce,
         exchange.getApiSecret(),
-        httpMethod,
-        requestParameters,
+        request.method,
         requestBody,
+        requestParameters,
       );
 
-      requestParameters["API-Sign"] = apiSignature;
-      requestParameters["API-Key"] = exchange.getApiKey();
+      requestHeaders["API-Sign"] = apiSignature;
+      requestHeaders["API-Key"] = exchange.getApiKey();
     };
 
   private isPartialCreateOrderResponse(
@@ -107,5 +138,36 @@ export class CentralizedExchangeRestAdapter
   ): createOrderResponse is PartialCreateOrderResponse {
     return (createOrderResponse as CreateOrderResponse).result?.symbol ===
       undefined;
+  }
+
+  public async fetchOrders(
+    exchange: CentralizedExchange,
+    nonce: number,
+    clientOrderId?: string,
+    orderId?: string,
+  ): Promise<Order[]> {
+    const preProcessRequest = this.getPreProcessRequestCallback(
+      exchange,
+      nonce,
+    );
+
+    const response: RestResponse<OrdersResponse> = await exchange
+      .swaggerClient.dispatchRESTRequest(
+        "fetchOrders",
+        undefined,
+        {
+          nonce,
+          clientOrderId,
+          orderId,
+        },
+        preProcessRequest,
+      );
+
+    if (!exchange.swaggerClient.isSuccess(response) && !response.body) {
+      //do something
+      throw new Error();
+    }
+
+    return response.body?.result || [];
   }
 }

@@ -18,4 +18,11 @@ export interface CentralizedExchangeRepository {
     exchange: CentralizedExchange,
     order: CreateOrder,
   ): Promise<Order>;
+
+  fetchOrders(
+    exchange: CentralizedExchange,
+    nonce: number,
+    clientOrderId?: string,
+    orderId?: string,
+  ): Promise<Order[]>;
 }
