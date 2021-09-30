@@ -1,4 +1,3 @@
-import { MarketDataResponse } from "../../ce_exchanges/domain/entities/market.ts";
 import { SwaggerClient } from "../../deps.ts";
 import SwaggerSchemaMapper from "./mapper/swaggerSchemaMapper.ts";
 
@@ -203,10 +202,11 @@ export async function execute() {
   }
   const specPath = "server/resources/exchanges/open_api_schemas/kraken.json";
   const swaggerClientWrapper = await new SwaggerClientWrapper().init(specPath);
-  const marketResponse: RestResponse<MarketDataResponse> =
-    await swaggerClientWrapper.dispatchRESTRequest(
-      "fetchMarkets",
-    );
+  const marketResponse: RestResponse<
+    { result?: Array<{ id: string }> }
+  > = await swaggerClientWrapper.dispatchRESTRequest(
+    "fetchMarkets",
+  );
   console.log(marketResponse);
   const orderBookResponse = await swaggerClientWrapper.dispatchRESTRequest(
     "fetchOrderBook",
