@@ -43,6 +43,8 @@ WORKDIR /app
 # use deno user instead of root
 USER deno
 
+# copies required libs folder referenced in src/deps.ts file
+COPY src/libs ./src/libs
 # cache all dependencies declared in deps.ts
 COPY src/deps.ts ./src/deps.ts
 RUN deno cache --unstable src/deps.ts
