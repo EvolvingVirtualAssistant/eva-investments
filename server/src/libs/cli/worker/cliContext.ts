@@ -21,7 +21,11 @@ export class CliContext {
     this.cliAdaptersByName = {};
   }
 
-  registerCliAdapter(cliAdapterName: string, command?: CommandCliAdapter) {
+  registerCliAdapter(
+    classInstance: any,
+    cliAdapterName: string,
+    command?: CommandCliAdapter
+  ): void {
     // If it is null then no entrypoint has been registered for this adapter,
     // which basically means this adapter has no point to exist
     if (this.cliAdaptersByName[cliAdapterName] == null) {
@@ -36,11 +40,12 @@ export class CliContext {
         {
           tokens: [CliConstants.CLI_ADAPTER_DEFAULT_TOKEN],
           description: '',
-        }
+        },
+        classInstance
       );
     } else {
       command.tokens.forEach((token) =>
-        this.addTokenToCliAdapter(cliAdapterName, token, command)
+        this.addTokenToCliAdapter(cliAdapterName, token, command, classInstance)
       );
     }
   }
@@ -48,10 +53,19 @@ export class CliContext {
   private addTokenToCliAdapter(
     cliAdapterName: string,
     token: string,
-    command: CommandCliAdapter
-  ) {
+    command: CommandCliAdapter,
+    classInstance: any
+  ): void {
     // this.cliAdaptersByName[cliAdapterName] -> at this point should never be null
     // as methods using this one, already validate this (at least they should have)
+
+    // Add instance to each entrypoint
+    for (const key in this.cliAdaptersByName[cliAdapterName]?.cliEntrypoints) {
+      this.cliAdaptersByName[cliAdapterName].cliEntrypoints[key] = {
+        ...this.cliAdaptersByName[cliAdapterName].cliEntrypoints[key],
+        this: classInstance,
+      };
+    }
 
     if (this.cliAdapters[token] == null) {
       this.cliAdapters[token] = {
@@ -70,7 +84,10 @@ export class CliContext {
     }
   }
 
-  registerCliEntrypoint(cliAdapterName: string, command: CommandCliEntrypoint) {
+  registerCliEntrypoint(
+    cliAdapterName: string,
+    command: CommandCliEntrypoint
+  ): void {
     if (this.cliAdaptersByName[cliAdapterName] == null) {
       this.cliAdaptersByName[cliAdapterName] = { cliEntrypoints: {} };
     }
@@ -85,6 +102,23 @@ export class CliContext {
           (this.cliAdaptersByName[cliAdapterName].cliEntrypoints[token] =
             command)
       );
+  }
+
+  updateCliEntrypointClassInstance(
+    originalInstance: any,
+    newInstance: any
+  ): void {
+    for (const cliAdapter in this.cliAdapters) {
+      for (const cliEntrypoint in this.cliAdapters[cliAdapter].cliEntrypoints) {
+        if (
+          this.cliAdapters[cliAdapter].cliEntrypoints[cliEntrypoint].this ===
+          originalInstance
+        ) {
+          this.cliAdapters[cliAdapter].cliEntrypoints[cliEntrypoint].this =
+            newInstance;
+        }
+      }
+    }
   }
 
   async interpretCommand(tokens: string[]) {
