@@ -217,23 +217,3 @@ export async function execute() {
   );
   console.log(orderBookResponse);
 }
-
-/*export async function execute() {
-
-    const specPath = 'server/resources/exchanges/open_api_schemas/kraken.json';
-    const specContentText = await Deno.readTextFile(specPath);
-    const spec = JSON.parse(specContentText);
-    const swaggerClient : Promise<TypedSwaggerClient> = new SwaggerClient({ spec, responseInterceptor: topLevelResponseInterceptor }) as unknown as Promise<TypedSwaggerClient>;
-    await swaggerClient.then(client => {
-        const reqSignature = client.apis.default["fetchMarkets"];
-        const request = reqSignature({}, {
-            requestInterceptor: (req: unknown) => interfaceLevelRequesInterceptor(req, "fetchMarkets")
-        });
-        request.then(res => {
-            console.log(res);
-        })
-
-    });
-    const i = 0;
-}
-*/

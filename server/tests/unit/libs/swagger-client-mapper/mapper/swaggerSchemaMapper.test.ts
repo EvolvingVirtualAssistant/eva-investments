@@ -1,4 +1,9 @@
-import { assertEquals, assertThrows } from "../../../../../src/deps.ts";
+import {
+  assertEquals,
+  assertThrows,
+  pathJoin,
+  ROOT_PATH,
+} from "../../../../../src/deps.ts";
 import { SwaggerClient } from "../../../../../src/deps.ts";
 import MapperNotFoundError from "../../../../../src/libs/swagger-client-mapper/mapper/errors/mapperNotFoundError.ts";
 import OpenApiSpecMissingPropertyError from "../../../../../src/libs/swagger-client-mapper/mapper/errors/openApiSpecMissingPropertyError.ts";
@@ -6,8 +11,10 @@ import SwaggerSchemaMapper from "../../../../../src/libs/swagger-client-mapper/m
 import { TypedSwaggerClient } from "../../../../../src/libs/swagger-client-mapper/swaggerClient.ts";
 
 //NOT HAPPY WITH RELATIVE PATHS
-const OPEN_API_SCHEMA_EXAMPLE_PATH =
-  "server/tests/unit/libs/swagger-client-mapper/mapper/openApiSchemaExample.json";
+const OPEN_API_SCHEMA_EXAMPLE_PATH = pathJoin(
+  ROOT_PATH,
+  "/tests/unit/libs/swagger-client-mapper/mapper/openApiSchemaExample.json",
+);
 const GET_OPERATION_ID = "fetchAssets";
 const SUCCESS_HTTP_STATUS = 200;
 

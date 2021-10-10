@@ -1,4 +1,4 @@
-import { serve } from "./deps.ts";
+import { pathJoin, ROOT_PATH, serve } from "./deps.ts";
 import { dotEnvConfig } from "./deps.ts";
 import "https://deno.land/x/dotenv/load.ts";
 import { execute } from "./libs/swagger-client-mapper/swaggerClient.ts";
@@ -8,8 +8,8 @@ console.log(
   dotEnvConfig({
     export: true,
     safe: true,
-    path: `server/resources/env/.env`,
-    example: `server/resources/env/.env.required_keys`,
+    path: pathJoin(ROOT_PATH, "/resources/env/.env"),
+    example: pathJoin(ROOT_PATH, "/resources/env/.env.required_keys"),
   }),
 );
 

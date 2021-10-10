@@ -399,6 +399,10 @@ class SwaggerSchemaMapper implements SwaggerSchemaMapperType {
       throw new OpenApiSpecMissingPropertyError(this.specJson, "paths");
     }
 
+    if (Object.keys(source).length === 0) {
+      return undefined;
+    }
+
     const sourceTargetRefs = Object.keys(this.specJson.paths)
       .map((path) => this.specJson.paths[path])
       .flatMap((operations) =>
