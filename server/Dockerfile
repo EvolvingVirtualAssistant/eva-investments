@@ -6,7 +6,7 @@ FROM debian:buster-slim as build
 
 ARG DEFAULT_BUILD_MODE
 
-ENV DENO_VERSION=1.10.1
+ENV DENO_VERSION=1.13.1
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
@@ -36,21 +36,23 @@ RUN useradd --uid 1000 --user-group deno \
 # deno-dir is where you will place all of your deno project files
 ENV DENO_DIR /deno-dir/
 ENV DENO_INSTALL_ROOT /usr/local/
-ENV DENO_VERSION=1.10.1
+ENV DENO_VERSION=1.13.1
 
 WORKDIR /app
 
 # use deno user instead of root
 USER deno
 
+# copies required libs folder referenced in src/deps.ts file
+COPY src/libs ./src/libs
 # cache all dependencies declared in deps.ts
-COPY deps.ts .
-RUN deno cache --unstable deps.ts
+COPY src/deps.ts ./src/deps.ts
+RUN deno cache --unstable src/deps.ts
 
 ADD . .
 
 # avoids compiling the app everytime we startup the container
-RUN deno cache --unstable app.ts
+RUN deno cache --unstable src/app.ts
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -85,10 +87,10 @@ RUN ["/bin/bash", "-c", "lint_ignore=$(readarray -d '' array < <(find . -print |
 # yet to be decided what to use
 
 # compile deno app
-RUN deno compile --unstable --allow-net app.ts
+RUN deno compile --unstable --allow-net src/app.ts
 
 # tests - commented for now since we do not yet have tests
-#RUN deno test
+RUN deno test --unstable --allow-read --location https://example.com tests/
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -99,7 +101,7 @@ ARG DEFAULT_BUILD_MODE
 USER root
 
 # compile deno app
-RUN deno compile --unstable --allow-net app.ts
+RUN deno compile --unstable --allow-net src/app.ts
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -129,6 +131,6 @@ ENV BUILD_MODE=$DEFAULT_BUILD_MODE
 EXPOSE 1993
 
 ENTRYPOINT ["entrypoint.sh"]
-CMD ["run", "--allow-net", "--unstable", "app.ts"]
+CMD ["run", "--allow-net", "--unstable", "src/app.ts"]
 
 # --------------------------------------------------------------------------------------------------------
