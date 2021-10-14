@@ -39,6 +39,8 @@ const MOCK_CLI_ENTRYPOINT_COMMAND_2: CommandCliEntrypoint = {
 const MOCK_CLI_ADAPTER_NAME_1 = 'EXISTENT_CLI_ADAPTER_NAME_1';
 const MOCK_CLI_ADAPTER_NAME_2 = 'EXISTENT_CLI_ADAPTER_NAME_2';
 
+const MOCK_CLI_ADAPTER_INSTANCE = {};
+
 // --------------------------------- MOCKS -----------------------------------
 
 Deno.test(
@@ -46,6 +48,7 @@ Deno.test(
   () => {
     const cliContext = new CliContext();
     cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
       'NON_EXISTENT_CLI_ADAPTER_NAME',
       MOCK_CLI_ADAPTER_COMMAND
     );
@@ -75,7 +78,10 @@ Deno.test(
       MOCK_CLI_ENTRYPOINT_COMMAND_1
     );
 
-    cliContext.registerCliAdapter(MOCK_CLI_ADAPTER_NAME_1);
+    cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
+      MOCK_CLI_ADAPTER_NAME_1
+    );
 
     assertDefaultCliAdapter(cliContext);
   }
@@ -91,6 +97,7 @@ Deno.test(
     );
 
     cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
       MOCK_CLI_ADAPTER_NAME_1,
       MOCK_CLI_ADAPTER_NO_TOKENS_COMMAND
     );
@@ -114,10 +121,12 @@ Deno.test(
     );
 
     cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
       MOCK_CLI_ADAPTER_NAME_1,
       MOCK_CLI_ADAPTER_COMMAND
     );
     cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
       MOCK_CLI_ADAPTER_NAME_2,
       MOCK_CLI_ADAPTER_COMMAND
     );
@@ -160,6 +169,7 @@ Deno.test(
     );
 
     cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
       MOCK_CLI_ADAPTER_NAME_1,
       MOCK_CLI_ADAPTER_COMMAND
     );
@@ -180,16 +190,460 @@ Deno.test('Should register cli entrypoint', () => {
     MOCK_CLI_ADAPTER_NAME_1,
     MOCK_CLI_ENTRYPOINT_COMMAND_1
   );
+
+  cliContext.registerCliAdapter(
+    MOCK_CLI_ADAPTER_INSTANCE,
+    MOCK_CLI_ADAPTER_NAME_1,
+    MOCK_CLI_ADAPTER_COMMAND
+  );
+
+  const cliEntrypoints = cliContext.getAllCliEntrypointsByCliAdapter(
+    MOCK_CLI_ADAPTER_COMMAND.tokens[0]
+  );
+
+  assertEquals(cliEntrypoints.length, 1);
+  assertEquals(
+    cliEntrypoints[0].tokens.length,
+    MOCK_CLI_ENTRYPOINT_COMMAND_1.tokens.length
+  );
+  assertEquals(
+    cliEntrypoints[0].tokens.every((t1) =>
+      MOCK_CLI_ENTRYPOINT_COMMAND_1.tokens.includes(t1)
+    ),
+    true
+  );
 });
 
-Deno.test('Should interpret commands', () => {
-  //cliContext.interpretCommand();
+Deno.test('Should update cli entrypoint class instance', () => {
+  const cliContext = new CliContext();
+  cliContext.updateCliEntrypointClassInstance(MOCK_CLI_ADAPTER_INSTANCE, {});
 });
+
+Deno.test(
+  'Should interpret commands using registered adapter and entrypoints',
+  () => {
+    let mockFnFallbackCalled = false;
+    let mockFnCalled = false;
+
+    // Mock function
+    const mockFnFallback = function () {
+      mockFnFallbackCalled = true;
+    };
+    const mockFn = function (_arg1: string, _arg2: string) {
+      mockFnCalled = true;
+    };
+
+    // Register default adapter and default entrypoint
+    const cliContext = new CliContext();
+    cliContext.registerCliEntrypoint(MOCK_CLI_ADAPTER_NAME_1, {
+      ...MOCK_CLI_ENTRYPOINT_COMMAND_1,
+      fn: mockFnFallback,
+      isFallback: true,
+    });
+
+    cliContext.registerCliEntrypoint(MOCK_CLI_ADAPTER_NAME_1, {
+      ...MOCK_CLI_ENTRYPOINT_COMMAND_2,
+      fn: mockFn,
+      isFallback: false,
+      argsSize: 2,
+    });
+
+    cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
+      MOCK_CLI_ADAPTER_NAME_1,
+      MOCK_CLI_ADAPTER_COMMAND
+    );
+
+    cliContext.interpretCommand([
+      MOCK_CLI_ADAPTER_COMMAND.tokens[0],
+      MOCK_CLI_ENTRYPOINT_COMMAND_2.tokens[0],
+      'arg1',
+      'arg2',
+    ]);
+
+    assertEquals(mockFnFallbackCalled, false);
+    assertEquals(mockFnCalled, true);
+  }
+);
+
+Deno.test(
+  'Should not interpret commands if no cli adapter was registered',
+  () => {
+    let mockFnCalled = false;
+
+    // Mock function
+    const mockFn = function () {
+      mockFnCalled = true;
+    };
+
+    // Register default entrypoint
+    const cliContext = new CliContext();
+    cliContext.registerCliEntrypoint(MOCK_CLI_ADAPTER_NAME_1, {
+      ...MOCK_CLI_ENTRYPOINT_COMMAND_1,
+      fn: mockFn,
+      isFallback: true,
+    });
+
+    cliContext.interpretCommand(MOCK_CLI_ENTRYPOINT_COMMAND_1.tokens);
+
+    assertEquals(mockFnCalled, false);
+  }
+);
+
+Deno.test(
+  'Should not interpret commands if no cli entrypoint was registered',
+  () => {
+    const cliContext = new CliContext();
+    cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
+      MOCK_CLI_ADAPTER_NAME_1,
+      MOCK_CLI_ADAPTER_COMMAND
+    );
+
+    cliContext.interpretCommand(MOCK_CLI_ADAPTER_COMMAND.tokens);
+    // There's nothing to assert has there is no function being called
+    // The only thing we can ensure is that no exception is thrown
+  }
+);
+
+Deno.test(
+  'Should not interpret commands if no default cli adapter was registered',
+  () => {
+    let mockFnCalled = false;
+
+    // Mock function
+    const mockFn = function () {
+      mockFnCalled = true;
+    };
+
+    // Register default entrypoint
+    const cliContext = new CliContext();
+    cliContext.registerCliEntrypoint(MOCK_CLI_ADAPTER_NAME_1, {
+      ...MOCK_CLI_ENTRYPOINT_COMMAND_1,
+      fn: mockFn,
+      isFallback: true,
+    });
+
+    cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
+      MOCK_CLI_ADAPTER_NAME_1,
+      MOCK_CLI_ADAPTER_COMMAND
+    );
+
+    cliContext.interpretCommand([
+      'some_other_cli_adapter_token_diff_from_the_one_registered',
+      MOCK_CLI_ENTRYPOINT_COMMAND_1.tokens[0],
+    ]);
+
+    assertEquals(mockFnCalled, false);
+  }
+);
+
+Deno.test(
+  'Should not interpret commands if no fallback cli entrypoint was registered',
+  () => {
+    let mockFnCalled = false;
+
+    // Mock function
+    const mockFn = function () {
+      mockFnCalled = true;
+    };
+
+    // Register default entrypoint
+    const cliContext = new CliContext();
+    cliContext.registerCliEntrypoint(MOCK_CLI_ADAPTER_NAME_1, {
+      ...MOCK_CLI_ENTRYPOINT_COMMAND_1,
+      fn: mockFn,
+      isFallback: false,
+    });
+
+    cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
+      MOCK_CLI_ADAPTER_NAME_1,
+      MOCK_CLI_ADAPTER_COMMAND
+    );
+
+    cliContext.interpretCommand([
+      MOCK_CLI_ADAPTER_COMMAND.tokens[0],
+      'some_other_cli_entrypoint_token_diff_from_the_one_registered',
+    ]);
+
+    assertEquals(mockFnCalled, false);
+  }
+);
+
+Deno.test(
+  'Should interpret commands, calling fallback entrypoint of default adapter on invalid token',
+  () => {
+    let mockFnCalled = false;
+
+    // Mock function
+    const mockFn = function (errMsg?: string) {
+      mockFnCalled = true;
+      assertEquals(errMsg, CliConstants.CLI_TOKEN_NOT_FOUND('invalid_token'));
+    };
+
+    // Register default adapter and default entrypoint
+    const cliContext = new CliContext();
+    cliContext.registerCliEntrypoint(MOCK_CLI_ADAPTER_NAME_1, {
+      ...MOCK_CLI_ENTRYPOINT_COMMAND_1,
+      fn: mockFn,
+      isFallback: true,
+    });
+
+    cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
+      MOCK_CLI_ADAPTER_NAME_1
+    );
+
+    cliContext.interpretCommand(['invalid_token']);
+
+    assertEquals(mockFnCalled, true);
+  }
+);
+
+Deno.test(
+  'Should interpret commands, calling fallback entrypoint of default adapter on missing entrypoint token for default adapter',
+  () => {
+    let mockFnCalled = false;
+
+    // Mock function
+    const mockFn = function (errMsg?: string) {
+      mockFnCalled = true;
+      assertEquals(errMsg, CliConstants.CLI_TOKEN_NOT_FOUND('missing_token'));
+    };
+
+    // Register default adapter and default entrypoint
+    const cliContext = new CliContext();
+    cliContext.registerCliEntrypoint(MOCK_CLI_ADAPTER_NAME_1, {
+      ...MOCK_CLI_ENTRYPOINT_COMMAND_1,
+      fn: mockFn,
+      isFallback: true,
+    });
+
+    cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
+      MOCK_CLI_ADAPTER_NAME_1
+    );
+
+    cliContext.interpretCommand(['', 'missing_token']);
+
+    assertEquals(mockFnCalled, true);
+  }
+);
+
+Deno.test(
+  'Should interpret commands, calling fallback entrypoint of adapter on missing entrypoint token',
+  () => {
+    let mockFnCalled = false;
+
+    // Mock function
+    const mockFn = function (errMsg?: string) {
+      mockFnCalled = true;
+      assertEquals(errMsg, CliConstants.CLI_TOKEN_NOT_FOUND('missing_token'));
+    };
+
+    // Register default adapter and default entrypoint
+    const cliContext = new CliContext();
+    cliContext.registerCliEntrypoint(MOCK_CLI_ADAPTER_NAME_1, {
+      ...MOCK_CLI_ENTRYPOINT_COMMAND_1,
+      fn: mockFn,
+      isFallback: true,
+    });
+
+    cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
+      MOCK_CLI_ADAPTER_NAME_1,
+      MOCK_CLI_ADAPTER_COMMAND
+    );
+
+    cliContext.interpretCommand([
+      MOCK_CLI_ADAPTER_COMMAND.tokens[0],
+      'missing_token',
+    ]);
+
+    assertEquals(mockFnCalled, true);
+  }
+);
+
+Deno.test(
+  'Should interpret commands, calling fallback entrypoint of adapter by specifying fallback token',
+  () => {
+    let mockFnCalled = false;
+
+    // Mock function
+    const mockFn = function (errMsg?: string) {
+      mockFnCalled = true;
+      assertEquals(errMsg, undefined);
+    };
+
+    // Register default adapter and default entrypoint
+    const cliContext = new CliContext();
+    cliContext.registerCliEntrypoint(MOCK_CLI_ADAPTER_NAME_1, {
+      ...MOCK_CLI_ENTRYPOINT_COMMAND_1,
+      fn: mockFn,
+      isFallback: true,
+    });
+
+    cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
+      MOCK_CLI_ADAPTER_NAME_1,
+      MOCK_CLI_ADAPTER_COMMAND
+    );
+
+    cliContext.interpretCommand([
+      MOCK_CLI_ADAPTER_COMMAND.tokens[0],
+      MOCK_CLI_ENTRYPOINT_COMMAND_1.tokens[0],
+    ]);
+
+    assertEquals(mockFnCalled, true);
+  }
+);
+
+Deno.test(
+  'Should interpret commands, calling fallback entrypoint of adapter on missing entrypoint args',
+  () => {
+    let mockFnFallbackCalled = false;
+    let mockFnCalled = false;
+
+    // Mock function
+    const mockFnFallback = function (errMsg?: string) {
+      mockFnFallbackCalled = true;
+      assertEquals(
+        errMsg,
+        CliConstants.CLI_MISSING_ARGS(
+          MOCK_CLI_ENTRYPOINT_COMMAND_2.tokens[0],
+          '2',
+          '1'
+        )
+      );
+    };
+    const mockFn = function (_arg1: string, _arg2: string) {
+      mockFnCalled = true;
+    };
+
+    // Register default adapter and default entrypoint
+    const cliContext = new CliContext();
+    cliContext.registerCliEntrypoint(MOCK_CLI_ADAPTER_NAME_1, {
+      ...MOCK_CLI_ENTRYPOINT_COMMAND_1,
+      fn: mockFnFallback,
+      isFallback: true,
+    });
+
+    cliContext.registerCliEntrypoint(MOCK_CLI_ADAPTER_NAME_1, {
+      ...MOCK_CLI_ENTRYPOINT_COMMAND_2,
+      fn: mockFn,
+      isFallback: false,
+      argsSize: 2,
+    });
+
+    cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
+      MOCK_CLI_ADAPTER_NAME_1,
+      MOCK_CLI_ADAPTER_COMMAND
+    );
+
+    cliContext.interpretCommand([
+      MOCK_CLI_ADAPTER_COMMAND.tokens[0],
+      MOCK_CLI_ENTRYPOINT_COMMAND_2.tokens[0],
+      'arg1',
+    ]);
+
+    assertEquals(mockFnFallbackCalled, true);
+    assertEquals(mockFnCalled, false);
+  }
+);
+
+Deno.test('Should get no cli entrypoints on wrong token', () => {
+  const cliContext = new CliContext();
+  cliContext.registerCliEntrypoint(
+    MOCK_CLI_ADAPTER_NAME_1,
+    MOCK_CLI_ENTRYPOINT_COMMAND_1
+  );
+
+  cliContext.registerCliAdapter(
+    MOCK_CLI_ADAPTER_INSTANCE,
+    MOCK_CLI_ADAPTER_NAME_1,
+    MOCK_CLI_ADAPTER_COMMAND
+  );
+
+  const cliEntrypoints =
+    cliContext.getAllCliEntrypointsByCliAdapter('WRONG_TOKEN');
+
+  assertEquals(cliEntrypoints.length, 0);
+});
+
+Deno.test(
+  'Should get cli entrypoints from default adapter when not specifying token',
+  () => {
+    const cliContext = new CliContext();
+    cliContext.registerCliEntrypoint(
+      MOCK_CLI_ADAPTER_NAME_1,
+      MOCK_CLI_ENTRYPOINT_COMMAND_1
+    );
+
+    cliContext.registerCliAdapter(
+      MOCK_CLI_ADAPTER_INSTANCE,
+      MOCK_CLI_ADAPTER_NAME_1
+    );
+
+    const cliEntrypoints = cliContext.getAllCliEntrypointsByCliAdapter();
+
+    assertEquals(cliEntrypoints.length, 1);
+    assertArrayIncludes(
+      cliEntrypoints[0].tokens,
+      MOCK_CLI_ENTRYPOINT_COMMAND_1.tokens
+    );
+  }
+);
 
 Deno.test('Should get all cli entrypoints by cli adapter', () => {
-  //cliContext.getAllCliEntrypointsByCliAdapter();
+  const cliContext = new CliContext();
+  cliContext.registerCliEntrypoint(
+    MOCK_CLI_ADAPTER_NAME_1,
+    MOCK_CLI_ENTRYPOINT_COMMAND_1
+  );
+
+  cliContext.registerCliAdapter(
+    MOCK_CLI_ADAPTER_INSTANCE,
+    MOCK_CLI_ADAPTER_NAME_1,
+    MOCK_CLI_ADAPTER_COMMAND
+  );
+
+  const cliEntrypoints = cliContext.getAllCliEntrypointsByCliAdapter(
+    MOCK_CLI_ADAPTER_COMMAND.tokens[0]
+  );
+
+  assertEquals(cliEntrypoints.length, 1);
+  assertEquals(
+    cliEntrypoints[0].description,
+    MOCK_CLI_ENTRYPOINT_COMMAND_1.description
+  );
+  assertArrayIncludes(
+    cliEntrypoints[0].tokens,
+    MOCK_CLI_ENTRYPOINT_COMMAND_1.tokens
+  );
 });
 
 Deno.test('Should get all cli adapters', () => {
-  //cliContext.getAllCliAdapters();
+  const cliContext = new CliContext();
+  cliContext.registerCliEntrypoint(
+    MOCK_CLI_ADAPTER_NAME_1,
+    MOCK_CLI_ENTRYPOINT_COMMAND_1
+  );
+
+  cliContext.registerCliAdapter(
+    MOCK_CLI_ADAPTER_INSTANCE,
+    MOCK_CLI_ADAPTER_NAME_1,
+    MOCK_CLI_ADAPTER_COMMAND
+  );
+
+  const cliAdapters = cliContext.getAllCliAdapters();
+
+  assertEquals(cliAdapters.length, 1);
+  assertEquals(
+    cliAdapters[0].description,
+    MOCK_CLI_ADAPTER_COMMAND.description
+  );
+  assertArrayIncludes(cliAdapters[0].tokens, MOCK_CLI_ADAPTER_COMMAND.tokens);
 });
