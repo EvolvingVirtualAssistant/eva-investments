@@ -21,6 +21,11 @@ export class CliContext {
     this.cliAdaptersByName = {};
   }
 
+  clearContext(): void {
+    this.cliAdapters = {};
+    this.cliAdaptersByName = {};
+  }
+
   registerCliAdapter(
     classInstance: any,
     cliAdapterName: string,

@@ -18,7 +18,7 @@ export function cliAdapter(command?: Command): ClassDecorator {
 
     var initialized = false;
 
-    target.prototype.constructor = function (...args: any[]) {
+    const res: typeof target.prototype.constructor = function (...args: any[]) {
       if (!initialized) {
         const newInstance = new originalConstructor(...args);
         cliContext.updateCliEntrypointClassInstance(singleton, newInstance);
@@ -30,6 +30,6 @@ export function cliAdapter(command?: Command): ClassDecorator {
       return singleton;
     };
 
-    return target.prototype.constructor;
+    return res;
   };
 }
