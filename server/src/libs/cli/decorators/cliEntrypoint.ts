@@ -82,5 +82,5 @@ function isNumber(arg: any): boolean {
 }
 
 function isBoolean(arg: any): boolean {
-  return arg in ['true', 'True', 'false', 'False'];
+  return ['true', 'True', 'false', 'False'].includes(arg);
 }
