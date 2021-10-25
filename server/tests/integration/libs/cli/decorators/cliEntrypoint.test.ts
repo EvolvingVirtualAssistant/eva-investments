@@ -7,84 +7,17 @@ import { CliConstants } from '../../../../../src/libs/cli/constants/cliConstants
 import { cliAdapter } from '../../../../../src/libs/cli/decorators/cliAdapter.ts';
 import { cliEntrypoint } from '../../../../../src/libs/cli/decorators/cliEntrypoint.ts';
 import { CliError } from '../../../../../src/libs/cli/errors/cliError.ts';
-import { Command } from '../../../../../src/libs/cli/types/cli.types.ts';
 import { cliContext } from '../../../../../src/libs/cli/worker/cliContext.ts';
 import { terminateCliWorker } from '../../../../../src/libs/cli/worker/cliWorker.ts';
-
-// --------------------------------- MOCKS -----------------------------------
-
-const MOCK_CLI_ADAPTER_COMMAND: Command = {
-  tokens: ['mock_cli_adapter'],
-  description: 'MOCK CLI ADAPTER',
-};
-
-const MOCK_CLI_ENTRYPOINT_COMMAND: Command = {
-  tokens: ['mock_cli_entrypoint'],
-  description: 'MOCK CLI ENTRYPOINT',
-};
-
-const MOCK_CLI_ENTRYPOINT_FALLBACK_COMMAND: Command = {
-  tokens: ['help'],
-  description: 'MOCK CLI ENTRYPOINT FALLBACK',
-};
-
-class MockClass {
-  private field1: string;
-  private parsedArgs: any[];
-  private fallbackCalled: boolean;
-  private fallbackErrMsg: string;
-
-  constructor(arg1: string) {
-    this.field1 = arg1;
-    this.parsedArgs = [];
-    this.fallbackCalled = false;
-    this.fallbackErrMsg = '';
-  }
-
-  getField1() {
-    return this.field1;
-  }
-
-  fallback(errMsg: string) {
-    this.fallbackCalled = true;
-    this.fallbackErrMsg = errMsg;
-  }
-
-  receiveParsedArgs(arg1: any, arg2: any, arg3: any, arg4: any, arg5: any) {
-    this.parsedArgs = [arg1, arg2, arg3, arg4, arg5];
-  }
-
-  getParsedArgs(): any[] {
-    return this.parsedArgs;
-  }
-
-  varArgs(...args: any[]) {}
-
-  optionalArgs(arg1: string, arg2?: string) {}
-
-  defaultArgs(arg1: string, arg2 = 'default_value') {}
-
-  getFallbackCalled(): boolean {
-    return this.fallbackCalled;
-  }
-
-  getFallbackErrMsg(): string {
-    return this.fallbackErrMsg;
-  }
-}
-
-const MOCK_CLASS_ARG_MOCK = 'mockString';
-
-const MOCK_CLASS_INSTANCE = new MockClass(MOCK_CLASS_ARG_MOCK);
-
-const MOCK_PROPERTY_DESCRIPTOR: PropertyDescriptor = {
-  configurable: true,
-  enumerable: false,
-  value: MOCK_CLASS_INSTANCE.getField1,
-  writable: true,
-};
-
-// --------------------------------- MOCKS -----------------------------------
+import {
+  MOCK_CLI_ADAPTER_COMMAND,
+  MOCK_CLI_ENTRYPOINT_COMMAND,
+  MOCK_CLASS_ARG_MOCK,
+  MOCK_CLASS_INSTANCE,
+  MOCK_PROPERTY_DESCRIPTOR,
+  MOCK_CLI_ENTRYPOINT_FALLBACK_COMMAND,
+} from '../mocks/command.ts';
+import { MockClass } from '../mocks/mockClass.ts';
 
 function clearTestContext(): void {
   cliContext.clearContext();
@@ -106,20 +39,13 @@ Deno.test('Should get method decorator', () => {
 Deno.test(
   'Should throw error while registering cli entrypoint, because no tokens were specified',
   () => {
-    const cliEntrypoint1 = cliEntrypoint(
-      { ...MOCK_CLI_ENTRYPOINT_COMMAND, tokens: [] },
-      false
-    );
+    const cliEntrypoint1 = callDecoratorFactory({
+      ...MOCK_CLI_ENTRYPOINT_COMMAND,
+      tokens: [],
+    });
 
     assertThrows(
-      () =>
-        cliEntrypoint1(
-          MOCK_CLASS_INSTANCE,
-          MOCK_CLASS_INSTANCE.getField1.name,
-          {
-            ...MOCK_PROPERTY_DESCRIPTOR,
-          }
-        ),
+      () => callCliEntrypoint(cliEntrypoint1, MOCK_CLASS_INSTANCE.getField1),
       CliError,
       CliConstants.NO_TOKENS_SPECIFIED(
         MOCK_CLASS_INSTANCE.getField1.name,
@@ -137,14 +63,7 @@ Deno.test(
     const cliEntrypoint1 = cliEntrypoint(MOCK_CLI_ENTRYPOINT_COMMAND, true);
 
     assertThrows(
-      () =>
-        cliEntrypoint1(
-          MOCK_CLASS_INSTANCE,
-          MOCK_CLASS_INSTANCE.getField1.name,
-          {
-            ...MOCK_PROPERTY_DESCRIPTOR,
-          }
-        ),
+      () => callCliEntrypoint(cliEntrypoint1, MOCK_CLASS_INSTANCE.getField1),
       CliError,
       CliConstants.FALLBACK_MISSING_ARG(
         MOCK_CLASS_INSTANCE.getField1.name,
@@ -158,15 +77,9 @@ Deno.test(
 
 Deno.test('Should register cli entrypoint as fallback', () => {
   const cliAdapter1 = cliAdapter(MOCK_CLI_ADAPTER_COMMAND);
-  const cliEntrypoint1 = cliEntrypoint(
-    MOCK_CLI_ENTRYPOINT_FALLBACK_COMMAND,
-    true
-  );
+  const cliEntrypoint1 = callDecoratorFactoryFallback();
 
-  cliEntrypoint1(MOCK_CLASS_INSTANCE, MOCK_CLASS_INSTANCE.fallback.name, {
-    ...MOCK_PROPERTY_DESCRIPTOR,
-    value: MOCK_CLASS_INSTANCE.fallback,
-  });
+  callCliEntrypoint(cliEntrypoint1);
 
   cliAdapter1(MockClass);
   const cliEntrypoints = cliContext.getAllCliEntrypointsByCliAdapter(
@@ -185,16 +98,9 @@ Deno.test('Should register cli entrypoint as fallback', () => {
 
 Deno.test('Should parse specific types when interpreting command', async () => {
   const cliAdapter1 = cliAdapter(MOCK_CLI_ADAPTER_COMMAND);
-  const cliEntrypoint1 = cliEntrypoint(MOCK_CLI_ENTRYPOINT_COMMAND, false);
+  const cliEntrypoint1 = callDecoratorFactory();
 
-  cliEntrypoint1(
-    MOCK_CLASS_INSTANCE,
-    MOCK_CLASS_INSTANCE.receiveParsedArgs.name,
-    {
-      ...MOCK_PROPERTY_DESCRIPTOR,
-      value: MOCK_CLASS_INSTANCE.receiveParsedArgs,
-    }
-  );
+  callCliEntrypoint(cliEntrypoint1, MOCK_CLASS_INSTANCE.receiveParsedArgs);
 
   const newMockClass = cliAdapter1(MockClass) as typeof MockClass;
 
@@ -226,21 +132,11 @@ Deno.test(
   'Should register cli entrypoint with varargs, as not having any arguments',
   async () => {
     const defaultCliAdapter = cliAdapter();
-    const cliEntrypoint1 = cliEntrypoint(MOCK_CLI_ENTRYPOINT_COMMAND, false);
-    const cliEntrypoint2 = cliEntrypoint(
-      MOCK_CLI_ENTRYPOINT_FALLBACK_COMMAND,
-      true
-    );
+    const cliEntrypoint1 = callDecoratorFactory();
+    const cliEntrypoint2 = callDecoratorFactoryFallback();
 
-    cliEntrypoint1(MOCK_CLASS_INSTANCE, MOCK_CLASS_INSTANCE.varArgs.name, {
-      ...MOCK_PROPERTY_DESCRIPTOR,
-      value: MOCK_CLASS_INSTANCE.varArgs,
-    });
-
-    cliEntrypoint2(MOCK_CLASS_INSTANCE, MOCK_CLASS_INSTANCE.fallback.name, {
-      ...MOCK_PROPERTY_DESCRIPTOR,
-      value: MOCK_CLASS_INSTANCE.fallback,
-    });
+    callCliEntrypoint(cliEntrypoint1, MOCK_CLASS_INSTANCE.varArgs);
+    callCliEntrypoint(cliEntrypoint2);
 
     const newMockClass = defaultCliAdapter(MockClass) as typeof MockClass;
 
@@ -269,21 +165,11 @@ Deno.test(
   'Should register cli entrypoint with default argument, as having one less arg per default arg',
   async () => {
     const defaultCliAdapter = cliAdapter();
-    const cliEntrypoint1 = cliEntrypoint(MOCK_CLI_ENTRYPOINT_COMMAND, false);
-    const cliEntrypoint2 = cliEntrypoint(
-      MOCK_CLI_ENTRYPOINT_FALLBACK_COMMAND,
-      true
-    );
+    const cliEntrypoint1 = callDecoratorFactory();
+    const cliEntrypoint2 = callDecoratorFactoryFallback();
 
-    cliEntrypoint1(MOCK_CLASS_INSTANCE, MOCK_CLASS_INSTANCE.defaultArgs.name, {
-      ...MOCK_PROPERTY_DESCRIPTOR,
-      value: MOCK_CLASS_INSTANCE.defaultArgs,
-    });
-
-    cliEntrypoint2(MOCK_CLASS_INSTANCE, MOCK_CLASS_INSTANCE.fallback.name, {
-      ...MOCK_PROPERTY_DESCRIPTOR,
-      value: MOCK_CLASS_INSTANCE.fallback,
-    });
+    callCliEntrypoint(cliEntrypoint1, MOCK_CLASS_INSTANCE.defaultArgs);
+    callCliEntrypoint(cliEntrypoint2);
 
     const newMockClass = defaultCliAdapter(MockClass) as typeof MockClass;
 
@@ -313,21 +199,11 @@ Deno.test(
   'Should register cli entrypoint with optional argument, as requiring all args to be specified',
   async () => {
     const defaultCliAdapter = cliAdapter();
-    const cliEntrypoint1 = cliEntrypoint(MOCK_CLI_ENTRYPOINT_COMMAND, false);
-    const cliEntrypoint2 = cliEntrypoint(
-      MOCK_CLI_ENTRYPOINT_FALLBACK_COMMAND,
-      true
-    );
+    const cliEntrypoint1 = callDecoratorFactory();
+    const cliEntrypoint2 = callDecoratorFactoryFallback();
 
-    cliEntrypoint1(MOCK_CLASS_INSTANCE, MOCK_CLASS_INSTANCE.optionalArgs.name, {
-      ...MOCK_PROPERTY_DESCRIPTOR,
-      value: MOCK_CLASS_INSTANCE.optionalArgs,
-    });
-
-    cliEntrypoint2(MOCK_CLASS_INSTANCE, MOCK_CLASS_INSTANCE.fallback.name, {
-      ...MOCK_PROPERTY_DESCRIPTOR,
-      value: MOCK_CLASS_INSTANCE.fallback,
-    });
+    callCliEntrypoint(cliEntrypoint1, MOCK_CLASS_INSTANCE.optionalArgs);
+    callCliEntrypoint(cliEntrypoint2);
 
     const newMockClass = defaultCliAdapter(MockClass) as typeof MockClass;
 
@@ -353,3 +229,32 @@ Deno.test(
     clearTestContext();
   }
 );
+
+function callDecoratorFactory(
+  command = MOCK_CLI_ENTRYPOINT_COMMAND,
+  isFallback = false
+): MethodDecorator {
+  return cliEntrypoint(command, isFallback);
+}
+
+function callDecoratorFactoryFallback(
+  command = MOCK_CLI_ENTRYPOINT_FALLBACK_COMMAND,
+  isFallback = true
+): MethodDecorator {
+  return cliEntrypoint(command, isFallback);
+}
+
+function callCliEntrypoint(
+  cliEntrypoint = (
+    _target: any,
+    _key: string | symbol,
+    _descriptor: PropertyDescriptor
+  ) => {},
+  mockClassEntrypoint: (...args: any[]) => void = MOCK_CLASS_INSTANCE.fallback,
+  mockClassInstance = MOCK_CLASS_INSTANCE
+) {
+  cliEntrypoint(mockClassInstance, mockClassEntrypoint.name, {
+    ...MOCK_PROPERTY_DESCRIPTOR,
+    value: mockClassEntrypoint,
+  });
+}

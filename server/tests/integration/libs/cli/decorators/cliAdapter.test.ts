@@ -1,46 +1,16 @@
 import { assertEquals } from 'https://deno.land/std/testing/asserts.ts';
 import { cliAdapter } from '../../../../../src/libs/cli/decorators/cliAdapter.ts';
 import { cliEntrypoint } from '../../../../../src/libs/cli/decorators/cliEntrypoint.ts';
-import { Command } from '../../../../../src/libs/cli/types/cli.types.ts';
 import { cliContext } from '../../../../../src/libs/cli/worker/cliContext.ts';
 import { terminateCliWorker } from '../../../../../src/libs/cli/worker/cliWorker.ts';
-
-// --------------------------------- MOCKS -----------------------------------
-
-const MOCK_CLI_ADAPTER_COMMAND: Command = {
-  tokens: ['mock_cli_adapter'],
-  description: 'MOCK CLI ADAPTER',
-};
-
-const MOCK_CLI_ENTRYPOINT_COMMAND: Command = {
-  tokens: ['mock_cli_entrypoint'],
-  description: 'MOCK CLI ENTRYPOINT',
-};
-
-class MockClass {
-  private field1: string;
-
-  constructor(arg1: string) {
-    this.field1 = arg1;
-  }
-
-  getField1() {
-    return this.field1;
-  }
-}
-
-const MOCK_CLASS_ARG_MOCK = 'mockString';
-
-const MOCK_CLASS_INSTANCE = new MockClass(MOCK_CLASS_ARG_MOCK);
-
-const MOCK_PROPERTY_DESCRIPTOR: PropertyDescriptor = {
-  configurable: true,
-  enumerable: false,
-  value: MOCK_CLASS_INSTANCE.getField1,
-  writable: true,
-};
-
-// --------------------------------- MOCKS -----------------------------------
+import {
+  MOCK_CLI_ADAPTER_COMMAND,
+  MOCK_CLI_ENTRYPOINT_COMMAND,
+  MOCK_CLASS_ARG_MOCK,
+  MOCK_CLASS_INSTANCE,
+  MOCK_PROPERTY_DESCRIPTOR,
+} from '../mocks/command.ts';
+import { MockClass } from '../mocks/mockClass.ts';
 
 function clearTestContext(): void {
   cliContext.clearContext();
