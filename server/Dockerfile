@@ -18,6 +18,28 @@ RUN apt-get -qq update \
 
 # --------------------------------------------------------------------------------------------------------
 
+FROM debian:buster-slim as blockchain
+
+ARG DEFAULT_BUILD_MODE
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends curl ca-certificates \
+    && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
+    && apt-get -qq install -y --no-install-recommends nodejs
+
+# install ethereum blockchain
+RUN npm install -g ganache-cli
+
+# expose port 8545 (default ganache port)
+EXPOSE 8545
+
+CMD ganache-cli -v -h 0.0.0.0 \ 
+    --account=\"$(cat run/secrets/test_acc1_priv_key),100000000000000000000\" \
+    --account=\"$(cat run/secrets/test_acc2_priv_key),100000000000000000000\"
+
+# --------------------------------------------------------------------------------------------------------
+
 FROM debian:buster-slim as base
 
 ARG DEFAULT_BUILD_MODE
@@ -56,6 +78,28 @@ RUN deno cache --unstable src/app.ts
 
 # --------------------------------------------------------------------------------------------------------
 
+FROM base as base-blockchain
+
+ARG DEFAULT_BUILD_MODE
+ARG DEBIAN_FRONTEND=noninteractive
+
+USER root
+
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends curl ca-certificates \
+    && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
+    && apt-get -qq install -y --no-install-recommends nodejs
+
+# install ethereum blockchain
+RUN npm install -g ganache-cli
+
+USER deno
+
+# expose port 8545 (default ganache port)
+EXPOSE 8545
+
+# --------------------------------------------------------------------------------------------------------
+
 FROM base as development
 
 ARG DEFAULT_BUILD_MODE
@@ -72,7 +116,7 @@ USER deno
 
 # --------------------------------------------------------------------------------------------------------
 
-FROM base as continuous-integration
+FROM base-blockchain as continuous-integration
 
 ARG DEFAULT_BUILD_MODE
 
@@ -87,10 +131,13 @@ RUN ["/bin/bash", "-c", "lint_ignore=$(readarray -d '' array < <(find . -print |
 # yet to be decided what to use
 
 # compile deno app
-RUN deno compile --unstable --allow-net src/app.ts
+RUN deno compile --unstable --allow-net --allow-read src/app.ts
 
 # tests - commented for now since we do not yet have tests
 RUN deno test --unstable --allow-read --location https://example.com tests/
+
+# integration tests using ganache as a blockchain
+# nothing for now
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -101,7 +148,7 @@ ARG DEFAULT_BUILD_MODE
 USER root
 
 # compile deno app
-RUN deno compile --unstable --allow-net src/app.ts
+RUN deno compile --unstable --allow-net --allow-read src/app.ts
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -112,7 +159,10 @@ ARG DEFAULT_BUILD_MODE
 # add deno user
 RUN useradd --uid 1000 --user-group deno
 
-USER deno
+# When possible revert back to deno user, but for now we're having this issue
+# error: Could not create TypeScript compiler cache location: "/home/deno/.cache/deno/gen"
+# Check the permission of the directory.
+USER root
 
 COPY --from=compile-for-production /app/app /app/app
 COPY --from=compile-for-production /app/entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -131,6 +181,6 @@ ENV BUILD_MODE=$DEFAULT_BUILD_MODE
 EXPOSE 1993
 
 ENTRYPOINT ["entrypoint.sh"]
-CMD ["run", "--allow-net", "--unstable", "src/app.ts"]
+CMD ["run", "--allow-net", "--allow-read", "--unstable", "src/app.ts"]
 
 # --------------------------------------------------------------------------------------------------------

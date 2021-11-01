@@ -1,0 +1,18 @@
+version: '3.9'
+services:
+  blockchain:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: blockchain
+    ports:
+      - 8545:8545
+    secrets:
+      - test_acc1_priv_key
+      - test_acc2_priv_key
+
+secrets:
+  test_acc1_priv_key:
+    file: '.secrets/test_acc1_priv_key'
+  test_acc2_priv_key:
+    file: '.secrets/test_acc2_priv_key'
