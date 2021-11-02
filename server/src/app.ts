@@ -5,6 +5,7 @@ import { execute } from './libs/swagger-client-mapper/swaggerClient.ts';
 import { sleep } from './utils/async.ts';
 import { RootCliAdapter } from './rootCliAdapter.ts';
 import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter.ts';
+import { Provider } from './libs/blockchain-communication/json-rpc/provider.ts';
 
 console.log('Loading env file...');
 console.log(
@@ -37,6 +38,7 @@ function initCliAdapters() {
 }
 
 async function main() {
+  const a = new Provider();
   // deno-lint-ignore no-unused-vars
   const cliAdapters = initCliAdapters();
 
