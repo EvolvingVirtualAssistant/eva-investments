@@ -1,5 +1,5 @@
 import { CliConstants } from '../constants/cliConstants.ts';
-import { cliContext } from './cliContext.ts';
+import { CliContext } from './cliContext.ts';
 
 export function initCliWorker(): void {
   if (cliWorker != null) {
@@ -19,7 +19,7 @@ export function initCliWorker(): void {
       cliWorker!.terminate();
       Deno.exit();
     } else if (event.data.msg === CliConstants.INTERPRET_COMMAND) {
-      await cliContext.interpretCommand(event.data.tokens);
+      await CliContext.getInstance().interpretCommand(event.data.tokens);
       cliWorker!.postMessage(CliConstants.FININSHED_PROCESSING_COMMAND);
     }
   });

@@ -1,5 +1,5 @@
 import { initCliWorker } from '../worker/cliWorker.ts';
-import { cliContext } from '../worker/cliContext.ts';
+import { CliContext } from '../worker/cliContext.ts';
 import { Command } from '../types/cli.types.ts';
 import { CliError } from '../errors/cliError.ts';
 import { CliConstants } from '../constants/cliConstants.ts';
@@ -43,7 +43,7 @@ export function cliEntrypoint(
       };
     }
 
-    cliContext.registerCliEntrypoint(
+    CliContext.getInstance().registerCliEntrypoint(
       CliConstants.CLI_ADAPTER_PATH_AND_CLASS(
         getCurrentPath(),
         target.constructor.name

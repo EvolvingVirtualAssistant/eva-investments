@@ -1,7 +1,7 @@
 import { assertEquals } from 'https://deno.land/std/testing/asserts.ts';
 import { cliAdapter } from '../../../../../src/libs/cli/decorators/cliAdapter.ts';
 import { cliEntrypoint } from '../../../../../src/libs/cli/decorators/cliEntrypoint.ts';
-import { cliContext } from '../../../../../src/libs/cli/worker/cliContext.ts';
+import { CliContext } from '../../../../../src/libs/cli/worker/cliContext.ts';
 import { terminateCliWorker } from '../../../../../src/libs/cli/worker/cliWorker.ts';
 import {
   MOCK_CLI_ADAPTER_COMMAND,
@@ -13,7 +13,7 @@ import {
 import { MockClass } from '../mocks/mockClass.ts';
 
 function clearTestContext(): void {
-  cliContext.clearContext();
+  CliContext.getInstance().clearContext();
   terminateCliWorker();
 }
 
@@ -21,7 +21,7 @@ Deno.test('Should get class decorator without Command', () => {
   const cliAdapter1 = cliAdapter();
 
   assertEquals(typeof cliAdapter1, 'function');
-  assertEquals(cliContext.getAllCliAdapters().length, 0);
+  assertEquals(CliContext.getInstance().getAllCliAdapters().length, 0);
 
   clearTestContext();
 });
@@ -30,7 +30,7 @@ Deno.test('Should get class decorator with Command', () => {
   const cliAdapter1 = cliAdapter(MOCK_CLI_ADAPTER_COMMAND);
 
   assertEquals(typeof cliAdapter1, 'function');
-  assertEquals(cliContext.getAllCliAdapters().length, 0);
+  assertEquals(CliContext.getInstance().getAllCliAdapters().length, 0);
 
   clearTestContext();
 });
@@ -46,7 +46,7 @@ Deno.test(
     });
     const newMockClass = cliAdapter1(MockClass);
 
-    const cliAdapters = cliContext.getAllCliAdapters();
+    const cliAdapters = CliContext.getInstance().getAllCliAdapters();
 
     assertEquals(newMockClass !== MockClass, true);
     assertEquals(cliAdapters.length, 1);
@@ -67,10 +67,10 @@ Deno.test(
     });
     const newMockClass = cliAdapter1(MockClass);
 
-    const cliAdapters = cliContext.getAllCliAdapters();
+    const cliAdapters = CliContext.getInstance().getAllCliAdapters();
 
     assertEquals(newMockClass !== MockClass, true);
-    assertEquals(cliContext.getAllCliAdapters().length, 1);
+    assertEquals(CliContext.getInstance().getAllCliAdapters().length, 1);
     assertEquals(cliAdapters[0].tokens[0], MOCK_CLI_ADAPTER_COMMAND.tokens[0]);
 
     clearTestContext();
