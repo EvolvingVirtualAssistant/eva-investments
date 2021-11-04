@@ -7,7 +7,7 @@ import { CliConstants } from '../../../../../src/libs/cli/constants/cliConstants
 import { cliAdapter } from '../../../../../src/libs/cli/decorators/cliAdapter.ts';
 import { cliEntrypoint } from '../../../../../src/libs/cli/decorators/cliEntrypoint.ts';
 import { CliError } from '../../../../../src/libs/cli/errors/cliError.ts';
-import { cliContext } from '../../../../../src/libs/cli/worker/cliContext.ts';
+import { CliContext } from '../../../../../src/libs/cli/worker/cliContext.ts';
 import { terminateCliWorker } from '../../../../../src/libs/cli/worker/cliWorker.ts';
 import {
   MOCK_CLI_ADAPTER_COMMAND,
@@ -20,7 +20,7 @@ import {
 import { MockClass } from '../mocks/mockClass.ts';
 
 function clearTestContext(): void {
-  cliContext.clearContext();
+  CliContext.getInstance().clearContext();
   terminateCliWorker();
 }
 
@@ -31,7 +31,7 @@ Deno.test('Should get method decorator', () => {
   cliAdapter1(MockClass);
 
   assertEquals(typeof cliEntrypoint1, 'function');
-  assertEquals(cliContext.getAllCliAdapters().length, 0);
+  assertEquals(CliContext.getInstance().getAllCliAdapters().length, 0);
 
   clearTestContext();
 });
@@ -82,11 +82,12 @@ Deno.test('Should register cli entrypoint as fallback', () => {
   callCliEntrypoint(cliEntrypoint1);
 
   cliAdapter1(MockClass);
-  const cliEntrypoints = cliContext.getAllCliEntrypointsByCliAdapter(
-    MOCK_CLI_ADAPTER_COMMAND.tokens[0]
-  );
+  const cliEntrypoints =
+    CliContext.getInstance().getAllCliEntrypointsByCliAdapter(
+      MOCK_CLI_ADAPTER_COMMAND.tokens[0]
+    );
 
-  assertEquals(cliContext.getAllCliAdapters().length, 1);
+  assertEquals(CliContext.getInstance().getAllCliAdapters().length, 1);
   assertEquals(cliEntrypoints.length, 1);
   assertArrayIncludes(
     cliEntrypoints[0].tokens,
@@ -106,7 +107,7 @@ Deno.test('Should parse specific types when interpreting command', async () => {
 
   const mockClassInstance = new newMockClass(MOCK_CLASS_ARG_MOCK);
 
-  await cliContext.interpretCommand([
+  await CliContext.getInstance().interpretCommand([
     MOCK_CLI_ADAPTER_COMMAND.tokens[0],
     MOCK_CLI_ENTRYPOINT_COMMAND.tokens[0],
     'true',
@@ -146,7 +147,7 @@ Deno.test(
 
     const invalidToken =
       'argument_that_will_cause_fallback_fn_to_be_called_afterwards';
-    await cliContext.interpretCommand([
+    await CliContext.getInstance().interpretCommand([
       MOCK_CLI_ENTRYPOINT_COMMAND.tokens[0],
       invalidToken,
     ]);
@@ -179,7 +180,7 @@ Deno.test(
 
     const notArg2 =
       'argument_that_will_cause_fallback_fn_to_be_called_afterwards';
-    await cliContext.interpretCommand([
+    await CliContext.getInstance().interpretCommand([
       MOCK_CLI_ENTRYPOINT_COMMAND.tokens[0],
       'arg1',
       notArg2,
@@ -211,7 +212,7 @@ Deno.test(
 
     assertEquals(mockClassInstance.getFallbackCalled(), false);
 
-    await cliContext.interpretCommand([
+    await CliContext.getInstance().interpretCommand([
       MOCK_CLI_ENTRYPOINT_COMMAND.tokens[0],
       'arg1',
     ]);

@@ -9,6 +9,8 @@ import { CliConstants } from '../constants/cliConstants.ts';
 import { isAsync } from '../utils/async.ts';
 
 export class CliContext {
+  private static instance: CliContext;
+
   private cliAdapters: Dictionary<CliAdapter>; // CHANGE THIS CLIADAPTER NAME TO SOMETHING ELSE
 
   // Used as a temp collection.
@@ -19,6 +21,14 @@ export class CliContext {
   constructor() {
     this.cliAdapters = {};
     this.cliAdaptersByName = {};
+  }
+
+  public static getInstance(): CliContext {
+    if (!CliContext.instance) {
+      CliContext.instance = new CliContext();
+    }
+
+    return CliContext.instance;
   }
 
   clearContext(): void {
@@ -313,12 +323,10 @@ export class CliContext {
   }
 }
 
-export const cliContext: CliContext = new CliContext();
-
 export function getAllCliEntrypointsByCliAdapter(token?: string) {
-  return cliContext.getAllCliEntrypointsByCliAdapter(token);
+  return CliContext.getInstance().getAllCliEntrypointsByCliAdapter(token);
 }
 
 export function getAllCliAdapters() {
-  return cliContext.getAllCliAdapters();
+  return CliContext.getInstance().getAllCliAdapters();
 }
