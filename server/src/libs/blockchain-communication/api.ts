@@ -3,6 +3,6 @@
 // This will receive what is necessary through the constructor or even builder pattern
 // and pass it to the jsonRpcWrapper
 
-export class EthApi {
+export class BlockchainApi {
   constructor() {}
 }
