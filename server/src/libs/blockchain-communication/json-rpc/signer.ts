@@ -9,7 +9,7 @@ export class Signer {
 
   constructor() {}
 
-  static getInstance() {
+  static getInstance(): Signer {
     if (!Signer.instance) {
       Signer.instance = new Signer();
     }

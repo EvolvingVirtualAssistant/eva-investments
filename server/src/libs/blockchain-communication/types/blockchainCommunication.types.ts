@@ -5,3 +5,7 @@ export enum ProviderType {
 }
 
 export type NodeType = keyof typeof ProviderType;
+
+export interface Dictionary<T> {
+  [key: string]: T;
+}

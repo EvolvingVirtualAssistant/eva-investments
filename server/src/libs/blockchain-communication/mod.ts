@@ -1,1 +1,1 @@
-export { EthApi } from './api.ts';
+export { BlockchainApi } from './api.ts';

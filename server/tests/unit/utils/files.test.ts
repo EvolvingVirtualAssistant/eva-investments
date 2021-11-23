@@ -5,7 +5,7 @@ import {
 import { pathJoin, ROOT_PATH } from '../../../src/deps.ts';
 import { readJsonFile, readTextFile } from '../../../src/utils/files.ts';
 
-const currentDirPath = pathJoin(ROOT_PATH, 'tests/unit/utils');
+const currentDirPath = pathJoin(ROOT_PATH, 'tests/resources/utils');
 const sampleTextFile = pathJoin(currentDirPath, 'sample.txt');
 const sampleJsonFile = pathJoin(currentDirPath, 'sample.json');
 

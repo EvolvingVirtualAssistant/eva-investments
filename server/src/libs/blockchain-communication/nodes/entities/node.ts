@@ -3,16 +3,16 @@ import { BuildNodeError } from '../../errors/buildNodeError.ts';
 import { NodeType } from '../../types/blockchainCommunication.types.ts';
 
 export class BaseNode {
-  protected id: number;
-  protected host: string;
-  protected type: NodeType;
+  id: number;
+  host: string;
+  type: NodeType;
 
   // Http, Ws (clientConfig), Ipc (server listener connections -> sockets)
-  protected keepAlive?: boolean;
+  keepAlive?: boolean;
   // Http, Ws, Ipc (server listener connections -> sockets)
-  protected timeout?: number;
+  timeout?: number;
 
-  constructor(id: number, host: string, type: NodeType) {
+  protected constructor(id: number, host: string, type: NodeType) {
     this.id = id;
     this.host = host;
     this.type = type;
@@ -25,60 +25,14 @@ export class BaseNode {
 
     const castObj = obj as BaseNode;
     const node = new BaseNode(castObj.id, castObj.host, castObj.type);
-
-    if (castObj.keepAlive !== undefined) {
-      node.setKeepAlive(castObj.keepAlive);
-    }
-
-    if (castObj.timeout !== undefined) {
-      node.setTimeout(castObj.timeout);
-    }
+    node.keepAlive = castObj.keepAlive;
+    node.timeout = castObj.timeout;
 
     return node;
   }
 
   static isBaseNode(obj: any): boolean {
     return isType(obj, ['id', 'host', 'type'], ['keepAlive', 'timeout']);
-  }
-
-  getId(): number {
-    return this.id;
-  }
-
-  setId(id: number): void {
-    this.id = id;
-  }
-
-  getHost(): string {
-    return this.host;
-  }
-
-  setHost(host: string): void {
-    this.host = host;
-  }
-
-  getType(): NodeType {
-    return this.type;
-  }
-
-  setType(type: NodeType): void {
-    this.type = type;
-  }
-
-  getKeepAlive(): boolean | undefined {
-    return this.keepAlive;
-  }
-
-  setKeepAlive(keepAlive: boolean): void {
-    this.keepAlive = keepAlive;
-  }
-
-  getTimeout(): number | undefined {
-    return this.timeout;
-  }
-
-  setTimeout(timeout: number): void {
-    this.timeout = timeout;
   }
 }
 
@@ -101,9 +55,9 @@ export class HttpNode extends BaseNode {
   // If deno supports this at some point, look into it (this is an HttpAgent on web3js lib, that contains http.Agent objects from node)
   // private agent;
 
-  private withCredentials?: boolean;
+  withCredentials?: boolean;
 
-  private headers?: Header[];
+  headers?: Header[];
 
   constructor(id: number, host: string) {
     super(id, host, 'HTTP');
@@ -116,22 +70,10 @@ export class HttpNode extends BaseNode {
 
     const castObj = obj as HttpNode;
     const node = new HttpNode(castObj.id, castObj.host);
-
-    if (castObj.keepAlive !== undefined) {
-      node.setKeepAlive(castObj.keepAlive);
-    }
-
-    if (castObj.timeout !== undefined) {
-      node.setTimeout(castObj.timeout);
-    }
-
-    if (castObj.withCredentials !== undefined) {
-      node.setWithCredentials(castObj.withCredentials);
-    }
-
-    if (castObj.headers !== undefined) {
-      node.setHeaders(castObj.headers);
-    }
+    node.keepAlive = castObj.keepAlive;
+    node.timeout = castObj.timeout;
+    node.withCredentials = castObj.withCredentials;
+    node.headers = castObj.headers;
 
     return node;
   }
@@ -148,42 +90,26 @@ export class HttpNode extends BaseNode {
       (obj as unknown as HttpNode).type === 'HTTP'
     );
   }
-
-  getWithCredentials(): boolean | undefined {
-    return this.withCredentials;
-  }
-
-  setWithCredentials(withCredentials: boolean): void {
-    this.withCredentials = withCredentials;
-  }
-
-  getHeaders(): Header[] | undefined {
-    return this.headers;
-  }
-
-  setHeaders(headers: Header[]): void {
-    this.headers = headers;
-  }
 }
 
 // --------------------------------- Websocket --------------------------------
 
 export class WsNode extends BaseNode {
-  private headers?: Header[];
+  headers?: Header[];
 
-  private protocol?: string;
-
-  // If in the future we use any of the values inside the object
-  // on our code, then maybe consider giving it a proper type,
-  // but for now we'll be passing it directly to the underlying libs
-  private config?: object;
+  protocol?: string;
 
   // If in the future we use any of the values inside the object
   // on our code, then maybe consider giving it a proper type,
   // but for now we'll be passing it directly to the underlying libs
-  private requestOptions?: any;
+  config?: object;
 
-  private reconnectOptions?: ReconnectOptions;
+  // If in the future we use any of the values inside the object
+  // on our code, then maybe consider giving it a proper type,
+  // but for now we'll be passing it directly to the underlying libs
+  requestOptions?: any;
+
+  reconnectOptions?: ReconnectOptions;
 
   constructor(id: number, host: string) {
     super(id, host, 'WS');
@@ -196,34 +122,13 @@ export class WsNode extends BaseNode {
 
     const castObj = obj as WsNode;
     const node = new WsNode(castObj.id, castObj.host);
-
-    if (castObj.keepAlive !== undefined) {
-      node.setKeepAlive(castObj.keepAlive);
-    }
-
-    if (castObj.timeout !== undefined) {
-      node.setTimeout(castObj.timeout);
-    }
-
-    if (castObj.headers !== undefined) {
-      node.setHeaders(castObj.headers);
-    }
-
-    if (castObj.protocol !== undefined) {
-      node.setProtocol(castObj.protocol);
-    }
-
-    if (castObj.config !== undefined) {
-      node.setConfig(castObj.config);
-    }
-
-    if (castObj.reconnectOptions !== undefined) {
-      node.setReconnectOptions(castObj.reconnectOptions);
-    }
-
-    if (castObj.requestOptions !== undefined) {
-      node.setRequestOptions(castObj.requestOptions);
-    }
+    node.keepAlive = castObj.keepAlive;
+    node.timeout = castObj.timeout;
+    node.headers = castObj.headers;
+    node.protocol = castObj.protocol;
+    node.config = castObj.config;
+    node.reconnectOptions = castObj.reconnectOptions;
+    node.requestOptions = castObj.requestOptions;
 
     return node;
   }
@@ -249,46 +154,6 @@ export class WsNode extends BaseNode {
         isReconnectOptions((obj as unknown as WsNode).reconnectOptions)) &&
       (obj as unknown as WsNode).type === 'WS'
     );
-  }
-
-  getHeaders(): Header[] | undefined {
-    return this.headers;
-  }
-
-  setHeaders(headers: Header[]): void {
-    this.headers = headers;
-  }
-
-  getProtocol(): string | undefined {
-    return this.protocol;
-  }
-
-  setProtocol(protocol: string): void {
-    this.protocol = protocol;
-  }
-
-  getConfig(): object | undefined {
-    return this.config;
-  }
-
-  setConfig(config: object): void {
-    this.config = config;
-  }
-
-  getRequestOptions(): any | undefined {
-    return this.requestOptions;
-  }
-
-  setRequestOptions(requestOptions: any): void {
-    this.requestOptions = requestOptions;
-  }
-
-  getReconnectOptions(): ReconnectOptions | undefined {
-    return this.reconnectOptions;
-  }
-
-  setReconnectOptions(reconnectOptions: ReconnectOptions): void {
-    this.reconnectOptions = reconnectOptions;
   }
 }
 
@@ -323,14 +188,8 @@ export class IpcNode extends BaseNode {
 
     const castObj = obj as IpcNode;
     const node = new IpcNode(castObj.id, castObj.host);
-
-    if (castObj.keepAlive !== undefined) {
-      node.setKeepAlive(castObj.keepAlive);
-    }
-
-    if (castObj.timeout !== undefined) {
-      node.setTimeout(castObj.timeout);
-    }
+    node.keepAlive = castObj.keepAlive;
+    node.timeout = castObj.timeout;
 
     return node;
   }

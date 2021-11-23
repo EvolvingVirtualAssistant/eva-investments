@@ -6,8 +6,18 @@ import { Web3 } from '../deps.ts';
 import { Provider } from './provider.ts';
 import { Signer } from './signer.ts';
 
+import { ConfigNodesRepository } from '../nodes/repositories/configNodesRepository.ts';
+import { NodesRepository } from '../nodes/repositories/nodesRepository.ts';
+import { ConfigNodesFileAdapter } from '../nodes/data-sources/configNodesFileAdapter.ts';
+import { NodesMemoryAdapter } from '../nodes/data-sources/nodesMemoryAdapter.ts';
+
 export class JsonRpcWrapper {
   private static instance: JsonRpcWrapper;
+
+  // Initialize nodes config data source
+  private configNodesRepository: ConfigNodesRepository;
+  // Nodes data source
+  private nodesRepository: NodesRepository;
 
   // Blockchain client libs
   private web3: typeof Web3;
@@ -16,7 +26,14 @@ export class JsonRpcWrapper {
   private provider: Provider;
   private signer: Signer;
 
-  constructor() {
+  private constructor(
+    configNodesRepository: ConfigNodesRepository,
+    nodesRepository: NodesRepository
+  ) {
+    this.configNodesRepository = configNodesRepository;
+    this.nodesRepository = nodesRepository;
+    this.loadConfigNodes();
+
     this.web3 = new Web3();
     this.provider = Provider.getInstance();
     this.provider.setBlockchainClientLib(this.web3);
@@ -24,11 +41,21 @@ export class JsonRpcWrapper {
     this.signer.setBlockchainClientLib(this.web3);
   }
 
-  static getInstance() {
+  static getInstance(): JsonRpcWrapper {
     if (!JsonRpcWrapper.instance) {
-      JsonRpcWrapper.instance = new JsonRpcWrapper();
+      JsonRpcWrapper.instance = new JsonRpcWrapper(
+        ConfigNodesFileAdapter.getInstance(),
+        NodesMemoryAdapter.getInstance()
+      );
     }
 
     return JsonRpcWrapper.instance;
+  }
+
+  private loadConfigNodes() {
+    const nodes = this.configNodesRepository.getConfigNodes();
+
+    // load config nodes in database
+    this.nodesRepository.saveAll(nodes);
   }
 }

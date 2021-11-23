@@ -1,5 +1,5 @@
 *.vscode
 *.bundle.js
-resources
+server/resources
 server/src/libs/ccxt-test
 .secrets/
