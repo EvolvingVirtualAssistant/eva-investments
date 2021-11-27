@@ -1,8 +1,8 @@
 import { assertEquals } from 'https://deno.land/std/testing/asserts.ts';
-import { BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY } from '../../../../../src/libs/blockchain-communication/constants/blockchainCommunicationConstants.ts';
-import { JsonRpcWrapper } from '../../../../../src/libs/blockchain-communication/json-rpc/jsonRpcWrapper.ts';
-import { ConfigNodesFileAdapter } from '../../../../../src/libs/blockchain-communication/nodes/data-sources/configNodesFileAdapter.ts';
-import { NodesMemoryAdapter } from '../../../../../src/libs/blockchain-communication/nodes/data-sources/nodesMemoryAdapter.ts';
+import { BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY } from '../../../../../../src/libs/blockchain-communication/constants/blockchainCommunicationConstants.ts';
+import { JsonRpcWrapper } from '../../../../../../src/libs/blockchain-communication/domain/services/jsonRpcWrapper.ts';
+import { ConfigNodesFileAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/configNodesFileAdapter.ts';
+import { NodesMemoryAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/nodesMemoryAdapter.ts';
 
 const nodesFileRepository = NodesMemoryAdapter.getInstance();
 const configNodesFileRepository = ConfigNodesFileAdapter.getInstance();

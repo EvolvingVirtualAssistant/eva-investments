@@ -1,5 +1,5 @@
 import { Dictionary } from '../../types/blockchainCommunication.types.ts';
-import { BaseNode } from '../entities/node.ts';
+import { BaseNode } from '../../domain/entities/node.ts';
 import { NodesRepository } from '../repositories/nodesRepository.ts';
 
 export class NodesMemoryAdapter implements NodesRepository {

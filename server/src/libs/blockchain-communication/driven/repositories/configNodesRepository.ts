@@ -1,4 +1,4 @@
-import { BaseNode } from '../entities/node.ts';
+import { BaseNode } from '../../domain/entities/node.ts';
 
 export interface ConfigNodesRepository {
   getConfigNodes(): BaseNode[];

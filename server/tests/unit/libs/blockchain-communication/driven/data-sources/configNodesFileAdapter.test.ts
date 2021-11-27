@@ -1,6 +1,6 @@
 import { assertEquals } from 'https://deno.land/std/testing/asserts.ts';
 import { BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY } from '../../../../../../src/libs/blockchain-communication/constants/blockchainCommunicationConstants.ts';
-import { ConfigNodesFileAdapter } from '../../../../../../src/libs/blockchain-communication/nodes/data-sources/configNodesFileAdapter.ts';
+import { ConfigNodesFileAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/configNodesFileAdapter.ts';
 
 const nodesFileAdapter = ConfigNodesFileAdapter.getInstance();
 const currentDirPath = '/tests/resources/libs/blockchain-communication';

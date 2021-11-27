@@ -24,6 +24,15 @@ const currentWorkingDir = Deno.cwd();
 export const ROOT_PATH = findRootFolder(currentWorkingDir);
 console.log('ROOT_PATH', ROOT_PATH);
 
+console.log('Loading env file...');
+const envConfig = dotEnvConfig({
+  export: true,
+  safe: true,
+  path: pathJoin(ROOT_PATH, '/resources/env/.env'),
+  example: pathJoin(ROOT_PATH, '/resources/env/.env.required_keys'),
+});
+console.log(envConfig);
+
 function findRootFolder(path: string): string {
   let foldersMatched = 0;
   for (const dirEntry of Deno.readDirSync(path)) {

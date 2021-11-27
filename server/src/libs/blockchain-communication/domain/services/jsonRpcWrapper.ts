@@ -2,25 +2,25 @@
 // This will initialize the provider and signer
 // This will maintain singletons for web3/ethers and maybe for providers and signers
 
-import { Web3 } from '../deps.ts';
+import { Web3 } from '../../deps.ts';
 import { Provider } from './provider.ts';
 import { Signer } from './signer.ts';
 
-import { ConfigNodesRepository } from '../nodes/repositories/configNodesRepository.ts';
-import { NodesRepository } from '../nodes/repositories/nodesRepository.ts';
-import { ConfigNodesFileAdapter } from '../nodes/data-sources/configNodesFileAdapter.ts';
-import { NodesMemoryAdapter } from '../nodes/data-sources/nodesMemoryAdapter.ts';
+import { ConfigNodesRepository } from '../../driven/repositories/configNodesRepository.ts';
+import { NodesRepository } from '../../driven/repositories/nodesRepository.ts';
+import { ConfigNodesFileAdapter } from '../../driven/data-sources/configNodesFileAdapter.ts';
+import { NodesMemoryAdapter } from '../../driven/data-sources/nodesMemoryAdapter.ts';
 
 export class JsonRpcWrapper {
   private static instance: JsonRpcWrapper;
 
-  // Initialize nodes config data source
+  // Nodes configuration data source
   private configNodesRepository: ConfigNodesRepository;
   // Nodes data source
   private nodesRepository: NodesRepository;
 
   // Blockchain client libs
-  private web3: typeof Web3;
+  private web3: Web3;
 
   // Provider and Signer
   private provider: Provider;
@@ -55,7 +55,11 @@ export class JsonRpcWrapper {
   private loadConfigNodes() {
     const nodes = this.configNodesRepository.getConfigNodes();
 
-    // load config nodes in database
+    // load config nodes in data source
     this.nodesRepository.saveAll(nodes);
+  }
+
+  subscribe() {
+    //this.provider.subscribe();
   }
 }

@@ -7,7 +7,7 @@ import {
   HttpNode,
   IpcNode,
   WsNode,
-} from '../../../../../../src/libs/blockchain-communication/nodes/entities/node.ts';
+} from '../../../../../../src/libs/blockchain-communication/domain/entities/node.ts';
 import { BuildNodeError } from '../../../../../../src/libs/blockchain-communication/errors/buildNodeError.ts';
 
 Deno.test('Should be Base Node', () => {

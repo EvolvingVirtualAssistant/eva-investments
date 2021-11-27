@@ -1,2 +1,6 @@
-import Web3 from 'https://cdn.esm.sh/v55/web3@1.6.0/deno/web3.js'; // 'https://cdn.skypack.dev/-/web3@v1.6.0-GpfciYNfDLlYbXKjiDaK/dist=es2020,mode=imports,min/optimized/web3.js?dts';
+// @deno-types="./coolLib.d.ts"
+//import Web3 from 'https://cdn.esm.sh/v55/web3@1.6.0/deno/web3.js'; // 'https://cdn.skypack.dev/-/web3@v1.6.0-GpfciYNfDLlYbXKjiDaK/dist=es2020,mode=imports,min/optimized/web3.js?dts';
+//export { Web3 };
+
+import Web3 from 'https://cdn.esm.sh/web3@1.6.0?target=deno'; // 'https://cdn.skypack.dev/-/web3@v1.6.0-GpfciYNfDLlYbXKjiDaK/dist=es2020,mode=imports,min/optimized/web3.js?dts';
 export { Web3 };

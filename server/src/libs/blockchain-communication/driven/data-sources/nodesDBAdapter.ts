@@ -1,4 +1,4 @@
-import { BaseNode } from '../entities/node.ts';
+import { BaseNode } from '../../domain/entities/node.ts';
 import { NodesRepository } from '../repositories/nodesRepository.ts';
 
 export class NodesDBAdapter implements NodesRepository {

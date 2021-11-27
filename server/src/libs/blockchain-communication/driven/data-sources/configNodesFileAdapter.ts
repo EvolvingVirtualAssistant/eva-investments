@@ -1,7 +1,12 @@
 import { pathJoin, ROOT_PATH } from '../../../../deps.ts';
 import { readJsonFile } from '../../../../utils/files.ts';
 import { BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY } from '../../constants/blockchainCommunicationConstants.ts';
-import { BaseNode, HttpNode, IpcNode, WsNode } from '../entities/node.ts';
+import {
+  BaseNode,
+  HttpNode,
+  IpcNode,
+  WsNode,
+} from '../../domain/entities/node.ts';
 import { ConfigNodesRepository } from '../repositories/configNodesRepository.ts';
 
 export class ConfigNodesFileAdapter implements ConfigNodesRepository {

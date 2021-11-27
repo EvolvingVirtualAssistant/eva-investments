@@ -1,1 +1,1 @@
-export { BlockchainApi } from './api.ts';
+export { BlockchainApi } from './drivers/api.ts';
