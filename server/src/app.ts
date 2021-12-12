@@ -3,7 +3,7 @@ import { execute } from './libs/swagger-client-mapper/swaggerClient.ts';
 import { sleep } from './utils/async.ts';
 import { RootCliAdapter } from './rootCliAdapter.ts';
 import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter.ts';
-import { BlockchainApi } from './libs/blockchain-communication/mod.ts';
+import { web3 } from './libs/blockchain-communication/mod.ts';
 
 /*await execute();
 
@@ -26,7 +26,19 @@ function initCliAdapters() {
 }
 
 async function main() {
-  const a = new BlockchainApi();
+  /*web3.eth.getAccounts().then(console.log);
+  web3.eth.subscribe(
+    'pendingTransactions',
+    (error: Error, transactionHash: string) => {
+      console.log("I'm subscribing");
+    }
+  );*/
+  /*web3.eth.subscribe(
+    'pendingTransactions',
+    (error: Error, transactionHash: string) => {
+      console.log("I'm subscribing");
+    }
+  );*/
   // deno-lint-ignore no-unused-vars
   const cliAdapters = initCliAdapters();
 

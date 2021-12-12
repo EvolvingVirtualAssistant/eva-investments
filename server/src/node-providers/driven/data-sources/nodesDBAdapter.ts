@@ -1,5 +1,7 @@
-import { BaseNode } from '../../domain/entities/node.ts';
-import { NodesRepository } from '../repositories/nodesRepository.ts';
+import {
+  NodesRepository,
+  BaseNode,
+} from '../../../libs/blockchain-communication/mod.ts';
 
 export class NodesDBAdapter implements NodesRepository {
   private static instance: NodesDBAdapter;

@@ -1,13 +1,13 @@
-import { pathJoin, ROOT_PATH } from '../../../../deps.ts';
-import { readJsonFile } from '../../../../utils/files.ts';
+import { pathJoin, ROOT_PATH } from '../../../deps.ts';
+import { readJsonFile } from '../../../utils/files.ts';
 import { BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY } from '../../constants/blockchainCommunicationConstants.ts';
 import {
+  ConfigNodesRepository,
   BaseNode,
   HttpNode,
   IpcNode,
   WsNode,
-} from '../../domain/entities/node.ts';
-import { ConfigNodesRepository } from '../repositories/configNodesRepository.ts';
+} from '../../../libs/blockchain-communication/mod.ts';
 
 export class ConfigNodesFileAdapter implements ConfigNodesRepository {
   private static instance: ConfigNodesFileAdapter;

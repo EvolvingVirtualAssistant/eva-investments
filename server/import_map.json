@@ -1,11 +1,11 @@
 {
     "imports": {
-        "https://cdn.skypack.dev/-/ethereumjs-util@v7.1.3-cMhiy8OAKCfSTigHtgEn/dist=es2020,mode=imports,min/optimized/ethereumjs-util.js": "https://cdn.esm.sh/v55/ethereumjs-util@7.1.3/deno/ethereumjs-util.js",
-        "https://cdn.skypack.dev/-/web3-providers-ws@v1.6.0-PLUqS53ErVHnkEgcAWUu/dist=es2020,mode=imports,min/optimized/web3-providers-ws.js": "https://cdn.esm.sh/v55/web3-providers-ws@1.6.0/deno/web3-providers-ws.js",
-        "https://cdn.skypack.dev/-/web3-providers-http@v1.6.0-CrJfyRJ6hi6G5NuCZEds/dist=es2020,mode=imports,min/optimized/web3-providers-http.js": "https://cdn.esm.sh/v55/web3-providers-http@1.6.0/deno/web3-providers-http.js",
-        "https://cdn.skypack.dev/-/cids@v0.7.5-GzlPl1GCbJVZnEvBw4eI/dist=es2020,mode=imports,min/optimized/cids.js": "https://cdn.esm.sh/v55/cids@0.5.7/deno/cids.js",
-        "https://cdn.skypack.dev/-/safer-buffer@v2.1.2-Djsa36x9gcnWFsoW39YK/dist=es2020,mode=imports,min/optimized/safer-buffer.js": "https://cdn.esm.sh/v55/safer-buffer@2.1.2/deno/safer-buffer.js",
-        "https://cdn.skypack.dev/-/safe-buffer@v5.2.1-OgEPW96IPMOriINgMQEk/dist=es2020,mode=imports,min/optimized/safe-buffer.js": "https://cdn.esm.sh/v55/safe-buffer@5.2.1/deno/safe-buffer.js",
-        "https://cdn.skypack.dev/-/web3-eth-accounts@v1.6.0-8DJ2uuQTWnM2u8J0SRpM/dist=es2020,mode=imports,min/optimized/web3-eth-accounts.js": "https://cdn.esm.sh/v55/web3-eth-accounts@1.6.0/deno/web3-eth-accounts.js"
+        "https://deno.land/x/denon@2.4.10/src/watcher.ts": "./src/libs/custom-imports/denon/watcher.ts",
+        "https://deno.land/std@0.113.0/node/global.ts": "./src/libs/custom-imports/deno-std@0.113.0/global.ts",
+        "https://cdn.esm.sh/v58/@types/node/buffer.d.ts": "./src/libs/custom-imports/@types-node/buffer.d.ts",
+        "https://cdn.esm.sh/v58/web3-core@1.6.1/types/index.d.ts": "./src/libs/custom-imports/web3-core/index.d.ts",
+        "https://cdn.esm.sh/v58/web3-utils@1.6.1/types/index.d.ts": "./src/libs/custom-imports/web3-utils/index.d.ts",
+        "https://cdn.esm.sh/v58/web3-eth-contract@1.6.1/types/index.d.ts": "./src/libs/custom-imports/web3-eth-contract/index.d.ts",
+        "https://cdn.esm.sh/v58/web3-eth@1.6.1/types/index.d.ts": "./src/libs/custom-imports/web3-eth/index.d.ts"
     }
 }

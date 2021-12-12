@@ -1,6 +1,6 @@
 import { assertEquals } from 'https://deno.land/std/testing/asserts.ts';
-import { NodesMemoryAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/nodesMemoryAdapter.ts';
-import { BaseNode } from '../../../../../../src/libs/blockchain-communication/domain/entities/node.ts';
+import { NodesMemoryAdapter } from '../../../../../src/node-providers/driven/data-sources/nodesMemoryAdapter.ts';
+import { BaseNode } from '../../../../../src/libs/blockchain-communication/mod.ts';
 
 const nodesMemoryAdapter = NodesMemoryAdapter.getInstance();
 
