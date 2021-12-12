@@ -1,14 +1,13 @@
-export { serve } from 'https://deno.land/std@0.77.0/http/server.ts';
 import { join as pathJoin } from 'https://deno.land/std@0.108.0/path/mod.ts';
 export { pathJoin };
 
 // config
-export type { DenonConfig } from 'https://deno.land/x/denon@2.4.7/mod.ts';
+export type { DenonConfig } from 'https://deno.land/x/denon@2.4.10/mod.ts';
 import { config as dotEnvConfig } from 'https://deno.land/x/dotenv/mod.ts';
 export { dotEnvConfig };
 
 // libs
-import SwaggerClient from '../src/libs/swagger-client-v3_15_0.js'; //v3.15.0 -> "https://cdn.skypack.dev/swagger-client";
+import SwaggerClient from '../src/libs/swagger-client-v3_17_0.js'; //v3.15.0 -> "https://cdn.skypack.dev/swagger-client";
 export { SwaggerClient };
 export { getApiSignature } from '../src/libs/api-signature/mod.ts';
 export type { Sign } from '../src/libs/api-signature/mod.ts';
@@ -23,6 +22,15 @@ export {
 const currentWorkingDir = Deno.cwd();
 export const ROOT_PATH = findRootFolder(currentWorkingDir);
 console.log('ROOT_PATH', ROOT_PATH);
+
+console.log('Loading env file...');
+const envConfig = dotEnvConfig({
+  export: true,
+  safe: true,
+  path: pathJoin(ROOT_PATH, '/resources/env/.env'),
+  example: pathJoin(ROOT_PATH, '/resources/env/.env.required_keys'),
+});
+console.log(envConfig);
 
 function findRootFolder(path: string): string {
   let foldersMatched = 0;

@@ -1,20 +1,9 @@
-import { pathJoin, ROOT_PATH, serve } from './deps.ts';
-import { dotEnvConfig } from './deps.ts';
 import 'https://deno.land/x/dotenv/load.ts';
 import { execute } from './libs/swagger-client-mapper/swaggerClient.ts';
 import { sleep } from './utils/async.ts';
 import { RootCliAdapter } from './rootCliAdapter.ts';
 import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter.ts';
-
-console.log('Loading env file...');
-console.log(
-  dotEnvConfig({
-    export: true,
-    safe: true,
-    path: pathJoin(ROOT_PATH, '/resources/env/.env'),
-    example: pathJoin(ROOT_PATH, '/resources/env/.env.required_keys'),
-  })
-);
+import { web3 } from './libs/blockchain-communication/mod.ts';
 
 /*await execute();
 
@@ -37,6 +26,19 @@ function initCliAdapters() {
 }
 
 async function main() {
+  /*web3.eth.getAccounts().then(console.log);
+  web3.eth.subscribe(
+    'pendingTransactions',
+    (error: Error, transactionHash: string) => {
+      console.log("I'm subscribing");
+    }
+  );*/
+  /*web3.eth.subscribe(
+    'pendingTransactions',
+    (error: Error, transactionHash: string) => {
+      console.log("I'm subscribing");
+    }
+  );*/
   // deno-lint-ignore no-unused-vars
   const cliAdapters = initCliAdapters();
 

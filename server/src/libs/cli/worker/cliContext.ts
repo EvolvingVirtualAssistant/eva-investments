@@ -23,7 +23,7 @@ export class CliContext {
     this.cliAdaptersByName = {};
   }
 
-  public static getInstance(): CliContext {
+  static getInstance(): CliContext {
     if (!CliContext.instance) {
       CliContext.instance = new CliContext();
     }

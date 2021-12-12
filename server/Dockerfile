@@ -6,7 +6,7 @@ FROM debian:buster-slim as build
 
 ARG DEFAULT_BUILD_MODE
 
-ENV DENO_VERSION=1.13.1
+ENV DENO_VERSION=1.16.2
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
@@ -58,7 +58,7 @@ RUN useradd --uid 1000 --user-group deno \
 # deno-dir is where you will place all of your deno project files
 ENV DENO_DIR /deno-dir/
 ENV DENO_INSTALL_ROOT /usr/local/
-ENV DENO_VERSION=1.13.1
+ENV DENO_VERSION=1.16.2
 
 WORKDIR /app
 
@@ -69,12 +69,13 @@ USER deno
 COPY src/libs ./src/libs
 # cache all dependencies declared in deps.ts
 COPY src/deps.ts ./src/deps.ts
-RUN deno cache --unstable src/deps.ts
+COPY import_map.json ./import_map.json
+RUN deno cache --import-map=import_map.json --unstable src/deps.ts
 
 ADD . .
 
 # avoids compiling the app everytime we startup the container
-RUN deno cache --unstable src/app.ts
+RUN deno cache --import-map=import_map.json --unstable src/app.ts
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -107,7 +108,7 @@ ARG DEFAULT_BUILD_MODE
 USER root
 
 # install denon
-RUN deno install -qAf --unstable https://deno.land/x/denon/denon.ts
+RUN deno install -qAf --unstable https://deno.land/x/denon@2.4.10/denon.ts
 
 # clean WORKDIR as it will be mounted instead
 RUN rm -rf /app/
@@ -131,10 +132,10 @@ RUN ["/bin/bash", "-c", "lint_ignore=$(readarray -d '' array < <(find . -print |
 # yet to be decided what to use
 
 # compile deno app
-RUN deno compile --unstable --allow-net --allow-read src/app.ts
+RUN deno compile --import-map=import_map.json --unstable --allow-net --allow-read src/app.ts
 
 # tests - commented for now since we do not yet have tests
-RUN deno test --unstable --allow-read --location https://example.com tests/
+RUN deno test --import-map=import_map.json --unstable --allow-read --location https://example.com tests/
 
 # integration tests using ganache as a blockchain
 # nothing for now
@@ -148,7 +149,7 @@ ARG DEFAULT_BUILD_MODE
 USER root
 
 # compile deno app
-RUN deno compile --unstable --allow-net --allow-read src/app.ts
+RUN deno compile --import-map=import_map.json --unstable --allow-net --allow-read src/app.ts
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -181,6 +182,6 @@ ENV BUILD_MODE=$DEFAULT_BUILD_MODE
 EXPOSE 1993
 
 ENTRYPOINT ["entrypoint.sh"]
-CMD ["run", "--allow-net", "--allow-read", "--unstable", "src/app.ts"]
+CMD ["run", "--import-map=import_map.json", "--allow-net", "--allow-read", "--unstable", "src/app.ts"]
 
 # --------------------------------------------------------------------------------------------------------
