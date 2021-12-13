@@ -54,12 +54,4 @@ export class RootCliAdapter {
         )
     );
   }
-
-  @cliEntrypoint({
-    tokens: ['test'],
-    description: CliConstants.OPTION_HELP_DESCRIPTION,
-  })
-  async testEndpoint(arg1: string): Promise<void> {
-    console.log(arg1);
-  }
 }
