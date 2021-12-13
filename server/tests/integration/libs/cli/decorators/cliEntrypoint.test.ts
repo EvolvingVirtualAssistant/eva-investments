@@ -130,6 +130,43 @@ Deno.test('Should parse specific types when interpreting command', async () => {
 });
 
 Deno.test(
+  'Should trim string types, enclosed in special characters (", \') when interpreting command',
+  async () => {
+    const cliAdapter1 = cliAdapter(MOCK_CLI_ADAPTER_COMMAND);
+    const cliEntrypoint1 = callDecoratorFactory();
+
+    callCliEntrypoint(cliEntrypoint1, MOCK_CLASS_INSTANCE.receiveTrimmedArgs);
+
+    const newMockClass = cliAdapter1(MockClass) as typeof MockClass;
+
+    const mockClassInstance = new newMockClass(MOCK_CLASS_ARG_MOCK);
+
+    await CliContext.getInstance().interpretCommand([
+      MOCK_CLI_ADAPTER_COMMAND.tokens[0],
+      MOCK_CLI_ENTRYPOINT_COMMAND.tokens[0],
+      '"string1"',
+      "'string2'",
+      '""string3""',
+      '\'"string4"\'',
+      '"\'string5\'"',
+      "''string6''",
+    ]);
+
+    const parsedArgs = mockClassInstance.getTrimmedArgs();
+
+    assertEquals(parsedArgs.length, 6);
+    assertEquals(parsedArgs[0], 'string1');
+    assertEquals(parsedArgs[1], 'string2');
+    assertEquals(parsedArgs[2], '"string3"');
+    assertEquals(parsedArgs[3], '"string4"');
+    assertEquals(parsedArgs[4], "'string5'");
+    assertEquals(parsedArgs[5], "'string6'");
+
+    clearTestContext();
+  }
+);
+
+Deno.test(
   'Should register cli entrypoint with varargs, as not having any arguments',
   async () => {
     const defaultCliAdapter = cliAdapter();

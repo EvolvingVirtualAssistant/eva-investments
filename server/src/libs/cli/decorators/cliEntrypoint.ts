@@ -68,6 +68,10 @@ function parseType(arg: any): any {
     return Number(arg).valueOf();
   } else if (argIsString && isBoolean(arg)) {
     return Boolean(arg).valueOf();
+  } else if (argIsString && wrappedInStringChars(arg)) {
+    return (arg as string).length === 2
+      ? ''
+      : (arg as string).substring(1, (arg as string).length - 1);
   }
 
   return arg;
@@ -83,4 +87,10 @@ function isNumber(arg: any): boolean {
 
 function isBoolean(arg: any): boolean {
   return ['true', 'True', 'false', 'False'].includes(arg);
+}
+
+function wrappedInStringChars(arg: string) {
+  return ["'", '"'].some(
+    (delimiter) => arg.startsWith(delimiter) && arg.endsWith(delimiter)
+  );
 }

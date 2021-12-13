@@ -1,12 +1,14 @@
 export class MockClass {
   private field1: string;
   private parsedArgs: any[];
+  private trimmedArgs: any[];
   private fallbackCalled: boolean;
   private fallbackErrMsg: string;
 
   constructor(arg1: string) {
     this.field1 = arg1;
     this.parsedArgs = [];
+    this.trimmedArgs = [];
     this.fallbackCalled = false;
     this.fallbackErrMsg = '';
   }
@@ -26,6 +28,21 @@ export class MockClass {
 
   getParsedArgs(): any[] {
     return this.parsedArgs;
+  }
+
+  receiveTrimmedArgs(
+    arg1: any,
+    arg2: any,
+    arg3: any,
+    arg4: any,
+    arg5: any,
+    arg6: any
+  ) {
+    this.trimmedArgs = [arg1, arg2, arg3, arg4, arg5, arg6];
+  }
+
+  getTrimmedArgs(): any[] {
+    return this.trimmedArgs;
   }
 
   varArgs(...args: any[]) {}
