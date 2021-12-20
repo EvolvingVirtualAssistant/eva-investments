@@ -56,3 +56,13 @@ export const ExperimentalCliConstants = {
   QUANTITY_TOKEN_2: 'QUANTITY_TOKEN_2',
   COMPOUND_LONG_PROFIT_GREATER_THAN_BOUGHT_QUANTITY: taggedTemplate`Profit cannot be greater than the amount of token 1 bought (considering buying fees). profit (${0}) > buy_quantity (${1}) * buy_fee_reduction (${2})`
 } as const;
+
+export const ContractsCliConstants = {
+  USAGE: 'contracts [COMMAND]',
+  HELP_COMMAND_TEMPLATE: taggedTemplate`\nUsage:\n\t${0}\n\nOptions:\n${1}\n\nRun 'contracts --help' for more information on the contracts command.\n`,
+  ADAPTER_TOKEN: 'contracts',
+  ADAPTER_DESCRIPTION: 'Contracts related operations',
+  CONTRACTS_DEPLOY_TOKEN: 'deploy',
+  CONTRACTS_DEPLOY_DESCRIPTION:
+    'Deploys contract given contractPath(1) contractName(2) compiledContractPath(3) deployerAccountAddress(4) host(5) gas(6) gasPrice(7) ethereUnit(8)'
+} as const;

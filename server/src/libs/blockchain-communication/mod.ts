@@ -12,3 +12,4 @@ export {
 } from './domain/entities/nodeOptions';
 export { NodeAuth } from './domain/entities/nodeAuth';
 export { Node } from './domain/entities/node';
+export type { Unit, TransactionReceipt } from './deps';
