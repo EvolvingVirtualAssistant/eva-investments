@@ -10,6 +10,8 @@ import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter';
 import { NodesConfigFileAdapter } from './node-providers/driven/data-sources/nodesConfigFileAdapter';
 import { NodesMemoryAdapter } from './node-providers/driven/data-sources/nodesMemoryAdapter';
 import { Web3 } from 'blockchain-communication/deps';
+import { ContractsCliAdapter } from './contracts/drivers/contractsCliAdapter';
+import { DeployContractService } from './contracts/domain/services/deployContractService';
 
 /*await execute();
 
@@ -28,7 +30,8 @@ function initCliAdapters() {
   initCli();
   return {
     rootCliAdapter: new RootCliAdapter(),
-    walletsCliAdapter: new WalletsCliAdapter()
+    walletsCliAdapter: new WalletsCliAdapter(),
+    contractsCliAdapter: new ContractsCliAdapter(new DeployContractService())
   };
 }
 

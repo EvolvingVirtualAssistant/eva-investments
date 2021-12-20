@@ -38,6 +38,8 @@ export {
   buildHttpNodeOptions,
   buildIpcNodeOptions,
   buildWsNodeOptions
+  Unit,
+  TransactionReceipt
 } from 'blockchain-communication';
 
 export {
@@ -60,7 +62,7 @@ export const ROOT_PATH = findRootFolder(currentWorkingDir);
 console.log('ROOT_PATH', ROOT_PATH);
 
 console.log('Loading env file...');
-const envConfig = dotEnvConfig({
+export const envConfig = dotEnvConfig({
   path: pathJoin(ROOT_PATH, '/resources/env/.env')
 });
 console.log(envConfig);

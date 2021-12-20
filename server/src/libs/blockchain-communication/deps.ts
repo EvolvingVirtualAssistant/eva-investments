@@ -1,10 +1,11 @@
 import { join as pathJoin } from 'path';
 import { readdirSync, readFileSync } from 'fs';
 import Web3 from 'web3';
-import { provider } from 'web3-core';
+import { provider, TransactionReceipt } from 'web3-core';
 import HttpProvider from 'web3-providers-http';
 import WebsocketProvider from 'web3-providers-ws';
 import IpcProvider from 'web3-providers-ipc';
+import { Unit } from 'web3-utils';
 
 function findRootFolder(path: string): string {
   let foldersMatched = 0;
@@ -46,5 +47,7 @@ export {
   provider,
   HttpProvider,
   IpcProvider,
-  WebsocketProvider
+  WebsocketProvider,
+  Unit,
+  TransactionReceipt
 };
