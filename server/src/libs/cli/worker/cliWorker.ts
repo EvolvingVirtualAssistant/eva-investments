@@ -1,30 +1,27 @@
-import { CliConstants } from '../constants/cliConstants.ts';
-import { CliContext } from './cliContext.ts';
+import { CliConstants } from '../constants/cliConstants';
+import { Worker } from '../deps';
+import { CliContext } from './cliContext';
 
 export function initCliWorker(): void {
   if (cliWorker != null) {
     return;
   }
 
-  cliWorker = new Worker(new URL('./cliTask.ts', import.meta.url).href, {
-    type: 'module',
-    deno: {
-      namespace: true,
-      permissions: 'none',
-    },
-  });
+  cliWorker = new Worker('./cliTask.ts');
 
-  cliWorker.addEventListener('message', async (event) => {
+  cliWorker.addListener('message', async (event: any) => {
     if (event.data === CliConstants.STOP_CLI_COMMAND) {
-      cliWorker!.terminate();
-      Deno.exit();
+      cliWorker?.terminate();
+      process.exit(0);
     } else if (event.data.msg === CliConstants.INTERPRET_COMMAND) {
       await CliContext.getInstance().interpretCommand(event.data.tokens);
-      cliWorker!.postMessage(CliConstants.FININSHED_PROCESSING_COMMAND);
+      cliWorker?.postMessage({
+        data: CliConstants.FININSHED_PROCESSING_COMMAND
+      });
     }
   });
 
-  cliWorker.postMessage(CliConstants.START_CLI_COMMAND);
+  cliWorker.postMessage({ data: CliConstants.START_CLI_COMMAND });
 }
 
 export function terminateCliWorker() {
@@ -34,4 +31,4 @@ export function terminateCliWorker() {
   }
 }
 
-var cliWorker: Worker | null;
+let cliWorker: Worker | null;

@@ -1,26 +1,22 @@
-import { stringify } from "./deps.ts";
-import Sign from "./sign.ts";
-import { BASE64, BINARY, SHA256, SHA512 } from "./constants.ts";
-import { CryptoJS } from "./deps.ts";
+import { CryptoJS, stringify } from './deps';
+import Sign from './sign';
+import { BASE64, BINARY, SHA256, SHA512 } from './constants';
 
 class KrakenSignature implements Sign {
   buildRESTApiSignature(
     uriPath: string,
     nonce: number,
     secret: string,
-    // deno-lint-ignore no-unused-vars
     httpMethod?: string | undefined,
-    // deno-lint-ignore no-explicit-any
     requestBody?: any,
-    // deno-lint-ignore no-unused-vars no-explicit-any
-    requestParameters?: any,
+    requestParameters?: any
   ): string {
-    const toStartSubsIdx = uriPath.indexOf(".com");
+    const toStartSubsIdx = uriPath.indexOf('.com');
     let url = uriPath;
     if (toStartSubsIdx !== -1) {
       url = uriPath.substring(toStartSubsIdx + 4);
     }
-    const msg = requestBody ? stringify(requestBody) : "";
+    const msg = requestBody ? stringify(requestBody) : '';
     const hashDigest = this.hash(nonce + msg, SHA256, BINARY);
     const uriBinary = this.stringToBinary(url);
     const hmacData = this.binaryConcat(uriBinary, hashDigest);
@@ -37,33 +33,29 @@ class KrakenSignature implements Sign {
 
   stringToBase64 = (value: string) => CryptoJS.enc.Base64.parse(value);
 
-  hash = (request: string, hash = "md5", digest = "hex") => {
-    // deno-lint-ignore no-explicit-any
+  hash = (request: string, hash = 'md5', digest = 'hex') => {
     const options: any = {};
-    if (hash === "keccak") {
-      hash = "SHA3";
-      options["outputLength"] = 256;
+    if (hash === 'keccak') {
+      hash = 'SHA3';
+      options['outputLength'] = 256;
     }
     const result = CryptoJS[hash.toUpperCase()](request, options);
-    return (digest === "binary")
+    return digest === 'binary'
       ? result
       : result.toString(CryptoJS.enc[this.capitalize(digest)]);
   };
 
-  // deno-lint-ignore no-explicit-any
-  hmac = (request: any, secret: string, hash = "sha256", digest = "hex") => {
-    const result = CryptoJS["Hmac" + hash.toUpperCase()](request, secret);
+  hmac = (request: any, secret: string, hash = 'sha256', digest = 'hex') => {
+    const result = CryptoJS['Hmac' + hash.toUpperCase()](request, secret);
     if (digest) {
-      const encoding = (digest === "binary")
-        ? "Latin1"
-        : this.capitalize(digest);
+      const encoding = digest === 'binary' ? 'Latin1' : this.capitalize(digest);
       return result.toString(CryptoJS.enc[this.capitalize(encoding)]);
     }
     return result;
   };
 
   capitalize = (s: string) =>
-    s.length ? (s.charAt(0).toUpperCase() + s.slice(1)) : s;
+    s.length ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
 export default KrakenSignature;

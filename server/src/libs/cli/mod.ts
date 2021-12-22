@@ -1,13 +1,13 @@
-import { CliConstants } from './constants/cliConstants.ts';
+import { CliConstants } from './constants/cliConstants';
 
-export { cliAdapter } from './decorators/cliAdapter.ts';
-export { cliEntrypoint } from './decorators/cliEntrypoint.ts';
-export { CliError } from './errors/cliError.ts';
-export type { Command } from './types/cli.types.ts';
-export { print, println } from './utils/io.ts';
+export { cliAdapter } from './decorators/cliAdapter';
+export { cliEntrypoint } from './decorators/cliEntrypoint';
+export { CliError } from './errors/cliError';
+export type { Command } from './types/cli.types';
+export { print, println } from './utils/io';
 export {
   getAllCliEntrypointsByCliAdapter,
-  getAllCliAdapters,
-} from './worker/cliContext.ts';
+  getAllCliAdapters
+} from './worker/cliContext';
 
 export const CLI_ADAPTER_DEFAULT_TOKEN = CliConstants.CLI_ADAPTER_DEFAULT_TOKEN;

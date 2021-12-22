@@ -1,18 +1,16 @@
-import { pathJoin, ROOT_PATH } from '../../../deps.ts';
-import { readJsonFile } from '../../../utils/files.ts';
-import { BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY } from '../../constants/blockchainCommunicationConstants.ts';
+import { pathJoin, ROOT_PATH } from '../../../deps';
+import { readJsonFile } from '../../../utils/files';
+import { BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY } from '../../constants/blockchainCommunicationConstants';
 import {
   ConfigNodesRepository,
   BaseNode,
   HttpNode,
   IpcNode,
-  WsNode,
-} from '../../../libs/blockchain-communication/mod.ts';
+  WsNode
+} from '../../../deps';
 
 export class ConfigNodesFileAdapter implements ConfigNodesRepository {
   private static instance: ConfigNodesFileAdapter;
-
-  public constructor() {}
 
   static getInstance(): ConfigNodesFileAdapter {
     if (!ConfigNodesFileAdapter.instance) {
@@ -26,7 +24,7 @@ export class ConfigNodesFileAdapter implements ConfigNodesRepository {
   private getConfigNodesJson(): BaseNode[] {
     const nodesFilePath: string = pathJoin(
       ROOT_PATH,
-      Deno.env.get(BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY) || ''
+      process.env[BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY] || ''
     );
 
     const nodes: BaseNode[] = readJsonFile(nodesFilePath);

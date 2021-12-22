@@ -1,10 +1,10 @@
-import { initCliWorker } from '../worker/cliWorker.ts';
-import { CliContext } from '../worker/cliContext.ts';
-import { Command } from '../types/cli.types.ts';
-import { CliError } from '../errors/cliError.ts';
-import { CliConstants } from '../constants/cliConstants.ts';
-import { getCurrentPath } from '../utils/paths.ts';
-import { isAsync } from '../utils/async.ts';
+import { initCliWorker } from '../worker/cliWorker';
+import { CliContext } from '../worker/cliContext';
+import { Command } from '../types/cli.types';
+import { CliError } from '../errors/cliError';
+import { CliConstants } from '../constants/cliConstants';
+import { getCurrentPath } from '../utils/paths';
+import { isAsync } from '../utils/async';
 
 export function cliEntrypoint(
   command: Command,
@@ -53,7 +53,7 @@ export function cliEntrypoint(
         this: target,
         fn: descriptor.value,
         argsSize: original.length,
-        isFallback,
+        isFallback
       }
     );
   };

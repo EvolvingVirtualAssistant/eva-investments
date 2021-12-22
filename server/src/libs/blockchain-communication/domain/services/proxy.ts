@@ -1,6 +1,7 @@
-import { Dictionary } from '../../types/blockchainCommunication.types.ts';
+import { Dictionary } from '../../types/blockchainCommunication.types';
 
 export type FnCallbacks = ((
+  // eslint-disable-next-line @typescript-eslint/ban-types
   targetObj: Function,
   thisArg: any,
   argumentsList: any[]
@@ -74,7 +75,7 @@ function getHandler<T extends object>(
       } else {
         return Reflect.get(obj, prop);
       }
-    },
+    }
   };
 }
 
@@ -82,14 +83,16 @@ function applyHandler(
   callbacks: ((targetObj: object, thisArg: any, argumentsList: any[]) => any)[]
 ) {
   return {
+    // eslint-disable-next-line @typescript-eslint/ban-types
     apply: (targetObj: Function, thisArg: any, argumentsList: any[]) => {
       processCallbacks(targetObj, thisArg, argumentsList, callbacks);
       return Reflect.apply(targetObj, thisArg, argumentsList);
-    },
+    }
   };
 }
 
 async function processCallbacks(
+  // eslint-disable-next-line @typescript-eslint/ban-types
   targetObj: Function,
   thisArg: any,
   argumentsList: any[],

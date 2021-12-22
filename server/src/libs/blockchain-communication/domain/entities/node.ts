@@ -1,6 +1,6 @@
-import { isType } from '../../../../utils/typeGuards.ts';
-import { BuildNodeError } from '../../errors/buildNodeError.ts';
-import { NodeType } from '../../types/blockchainCommunication.types.ts';
+import { isType } from '../../../../utils/typeGuards';
+import { BuildNodeError } from '../../errors/buildNodeError';
+import { NodeType } from '../../types/blockchainCommunication.types';
 
 export class BaseNode {
   id: number;
@@ -145,7 +145,7 @@ export class WsNode extends BaseNode {
           'protocol',
           'config',
           'requestOptions',
-          'reconnectOptions',
+          'reconnectOptions'
         ]
       ) &&
       ((obj as unknown as WsNode).headers === undefined ||

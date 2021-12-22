@@ -4,21 +4,19 @@ import {
   getAllCliEntrypointsByCliAdapter,
   getAllCliAdapters,
   println,
-  CLI_ADAPTER_DEFAULT_TOKEN,
-} from './libs/cli/mod.ts';
-import { CliConstants, RootCliConstants } from './constants/cliConstants.ts';
+  CLI_ADAPTER_DEFAULT_TOKEN
+} from './deps';
+import { CliConstants, RootCliConstants } from './constants/cliConstants';
 
 @cliAdapter()
 export class RootCliAdapter {
-  constructor() {}
-
   @cliEntrypoint(
     {
       tokens: [
         CliConstants.OPTION_HELP_TOKEN_1,
-        CliConstants.OPTION_HELP_TOKEN_2,
+        CliConstants.OPTION_HELP_TOKEN_2
       ],
-      description: CliConstants.OPTION_HELP_DESCRIPTION,
+      description: CliConstants.OPTION_HELP_DESCRIPTION
     },
     true
   )
@@ -38,7 +36,7 @@ export class RootCliAdapter {
                   ...entry.tokens.map((t) => [t])
                 ),
                 entry.description
-              ),
+              )
             ])
           ),
           CliConstants.LIST_TEMPLATE(
@@ -48,7 +46,7 @@ export class RootCliAdapter {
                   ...adapter.tokens.map((t) => [t])
                 ),
                 adapter.description
-              ),
+              )
             ])
           )
         )

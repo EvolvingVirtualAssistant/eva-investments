@@ -1,55 +1,63 @@
-import { join as pathJoin } from 'https://deno.land/std@0.108.0/path/mod.ts';
+import { join as pathJoin } from 'path';
 export { pathJoin };
+import { readdirSync, readFileSync } from 'fs';
+export { readFileSync };
 
 // config
-export type { DenonConfig } from 'https://deno.land/x/denon@2.4.10/mod.ts';
-import { config as dotEnvConfig } from 'https://deno.land/x/dotenv/mod.ts';
-export { dotEnvConfig };
+import { config as dotEnvConfig } from 'dotenv';
 
 // libs
-import SwaggerClient from '../src/libs/swagger-client-v3_17_0.js'; //v3.15.0 -> "https://cdn.skypack.dev/swagger-client";
-export { SwaggerClient };
-export { getApiSignature } from '../src/libs/api-signature/mod.ts';
-export type { Sign } from '../src/libs/api-signature/mod.ts';
-
-// tests
+export { getApiSignature } from 'api-signature';
+export type { Sign } from 'api-signature';
 export {
-  assertEquals,
-  assertThrows,
-} from 'https://deno.land/std@0.106.0/testing/asserts.ts';
+  cliAdapter,
+  cliEntrypoint,
+  getAllCliEntrypointsByCliAdapter,
+  getAllCliAdapters,
+  println,
+  CLI_ADAPTER_DEFAULT_TOKEN,
+  Command
+} from 'cli';
+export { execute } from 'swagger-client-mapper';
+export {
+  web3,
+  ConfigNodesRepository,
+  NodesRepository,
+  BaseNode,
+  HttpNode,
+  IpcNode,
+  WsNode
+} from 'blockchain-communication';
 
 // path config
-const currentWorkingDir = Deno.cwd();
+const currentWorkingDir = process.cwd();
 export const ROOT_PATH = findRootFolder(currentWorkingDir);
 console.log('ROOT_PATH', ROOT_PATH);
 
 console.log('Loading env file...');
 const envConfig = dotEnvConfig({
-  export: true,
-  safe: true,
-  path: pathJoin(ROOT_PATH, '/resources/env/.env'),
-  example: pathJoin(ROOT_PATH, '/resources/env/.env.required_keys'),
+  path: pathJoin(ROOT_PATH, '/resources/env/.env')
 });
 console.log(envConfig);
 
 function findRootFolder(path: string): string {
   let foldersMatched = 0;
-  for (const dirEntry of Deno.readDirSync(path)) {
+  for (const dirEntry of readdirSync(path)) {
     if (foldersMatched === 2) {
       //root folder found
       return path;
     }
 
-    if (dirEntry.name === 'src' || dirEntry.name === 'tests') {
+    if (dirEntry === 'src' || dirEntry === 'tests') {
       foldersMatched++;
     } else if (
-      dirEntry.name === 'libs' ||
-      dirEntry.name === 'unit' ||
-      dirEntry.name === 'integration'
+      dirEntry === 'libs' ||
+      dirEntry === 'unit' ||
+      dirEntry === 'integration'
     ) {
       return findRootFolder(path.substr(0, path.lastIndexOf('/')));
-    } else if (dirEntry.name === 'server' || dirEntry.name === 'app') {
-      return findRootFolder(pathJoin(path, dirEntry.name));
+    } else if (dirEntry === 'server' || dirEntry === 'app') {
+      return findRootFolder(pathJoin(path, dirEntry));
     }
   }
 

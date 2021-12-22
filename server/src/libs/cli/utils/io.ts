@@ -1,19 +1,26 @@
-import { readLines } from "https://deno.land/std/io/mod.ts";
+import { TextEncoder, readline } from '../deps';
 
-export async function print(message = ""): Promise<void> {
-    await Deno.stdout.write(new TextEncoder().encode(message))
+export async function print(message = ''): Promise<void> {
+  await process.stdout.write(new TextEncoder().encode(message));
 }
 
-export async function println(message = ""): Promise<void> {
-    await print(message+"\n");
+export async function println(message = ''): Promise<void> {
+  await print(message + '\n');
 }
 
 export async function readln(): Promise<string> {
-    for await(const line of readLines(Deno.stdin)) {
-        return line.trim();
-    }
+  const rl = readline.createInterface({ input: process.stdin });
+  rl.on('SIGINT', () => {
+    rl.close();
+  });
 
-    return "";
+  for await (const line of rl) {
+    return line.trim();
+  }
+
+  rl.close();
+
+  return '';
 }
 
 /*async function readMessage(): Promise<string> {

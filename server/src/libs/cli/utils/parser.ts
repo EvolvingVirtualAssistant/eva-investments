@@ -1,5 +1,5 @@
-import { ParserConstants } from '../constants/cliConstants.ts';
-import { CliError } from '../errors/cliError.ts';
+import { ParserConstants } from '../constants/cliConstants';
+import { CliError } from '../errors/cliError';
 
 // - Split by spaces
 // - Identify starting and matching end indexes for single and double quotes (anything inside quotes should be the same token)
@@ -10,7 +10,7 @@ export function tokenizer(args: string): string[] {
     return [];
   }
 
-  // deno-lint-ignore prefer-const
+  // eslint-disable-next-line prefer-const
   let tokens = args.split(' ');
 
   ParserConstants.TOKEN_DELIMITERS.forEach((pairDelimiter) =>

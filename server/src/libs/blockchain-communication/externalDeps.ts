@@ -1,11 +1,11 @@
-import { pathJoin, ROOT_PATH } from '../../deps.ts';
-import { attemptImport } from '../../utils/import.ts';
+import { pathJoin, ROOT_PATH } from '../../deps';
+import { attemptImport } from '../../utils/import';
 
 export interface ExternalDeps {
   field1: () => boolean;
 }
 
-const externalDepsPath = Deno.env.get('EXTERNAL_DEPS_PATH');
+const externalDepsPath = process.env['EXTERNAL_DEPS_PATH'];
 const externalImports = await attemptImport(
   externalDepsPath ? pathJoin('file://', ROOT_PATH, externalDepsPath) : '',
   [],
@@ -13,5 +13,5 @@ const externalImports = await attemptImport(
 );
 
 export const externalDeps: ExternalDeps = {
-  field1: externalImports[0],
+  field1: externalImports[0]
 };

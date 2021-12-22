@@ -3,10 +3,10 @@ import {
   CommandCliEntrypoint,
   CommandCliAdapter,
   Dictionary,
-  Command,
-} from '../types/cli.types.ts';
-import { CliConstants } from '../constants/cliConstants.ts';
-import { isAsync } from '../utils/async.ts';
+  Command
+} from '../types/cli.types';
+import { CliConstants } from '../constants/cliConstants';
+import { isAsync } from '../utils/async';
 
 export class CliContext {
   private static instance: CliContext;
@@ -54,7 +54,7 @@ export class CliContext {
         CliConstants.CLI_ADAPTER_DEFAULT_TOKEN,
         {
           tokens: [CliConstants.CLI_ADAPTER_DEFAULT_TOKEN],
-          description: '',
+          description: ''
         },
         classInstance
       );
@@ -78,7 +78,7 @@ export class CliContext {
     for (const key in this.cliAdaptersByName[cliAdapterName]?.cliEntrypoints) {
       this.cliAdaptersByName[cliAdapterName].cliEntrypoints[key] = {
         ...this.cliAdaptersByName[cliAdapterName].cliEntrypoints[key],
-        this: classInstance,
+        this: classInstance
       };
     }
 
@@ -86,7 +86,7 @@ export class CliContext {
       this.cliAdapters[token] = {
         command,
         cliEntrypoints:
-          this.cliAdaptersByName[cliAdapterName]?.cliEntrypoints || {},
+          this.cliAdaptersByName[cliAdapterName]?.cliEntrypoints || {}
       };
     } else {
       for (const key in this.cliAdaptersByName[cliAdapterName]
@@ -265,7 +265,7 @@ export class CliContext {
   }
 
   getAllCliEntrypointsByCliAdapter(token?: string): Command[] {
-    var entrypoints: Command[] = [];
+    const entrypoints: Command[] = [];
     const cliAdapter: CliAdapter | undefined =
       this.cliAdapters[token || CliConstants.CLI_ADAPTER_DEFAULT_TOKEN];
 
@@ -280,7 +280,7 @@ export class CliContext {
     for (const key in uniqueCliEntrypoints) {
       entrypoints.push({
         tokens: uniqueCliEntrypoints[key].tokens,
-        description: uniqueCliEntrypoints[key].description,
+        description: uniqueCliEntrypoints[key].description
       });
     }
 
@@ -291,8 +291,8 @@ export class CliContext {
     cliEntrypoints: Dictionary<CommandCliEntrypoint>
   ) {
     const res: Dictionary<CommandCliEntrypoint> = {};
-    var val: CommandCliEntrypoint;
-    var duplicated: boolean;
+    let val: CommandCliEntrypoint;
+    let duplicated: boolean;
     for (const keyOuter in cliEntrypoints) {
       val = cliEntrypoints[keyOuter];
       duplicated = false;
@@ -311,11 +311,11 @@ export class CliContext {
   }
 
   getAllCliAdapters(): Command[] {
-    var adapters: Command[] = [];
+    const adapters: Command[] = [];
     for (const key in this.cliAdapters) {
       adapters.push({
         tokens: this.cliAdapters[key].command?.tokens || [],
-        description: this.cliAdapters[key].command?.description || '',
+        description: this.cliAdapters[key].command?.description || ''
       });
     }
 

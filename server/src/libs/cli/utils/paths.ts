@@ -1,9 +1,12 @@
-import { CliConstants } from "../constants/cliConstants.ts";
+import { CliConstants } from '../constants/cliConstants';
 
 export function getCurrentPath() {
-    var myError = new Error();
-    var trace = myError?.stack?.split('\n');
-    var lastLine = trace?.[trace.length - 1] || "";
+  const myError = new Error();
+  const trace = myError?.stack?.split('\n');
+  const lastLine = trace?.[trace.length - 1] || '';
 
-    return lastLine.substring(lastLine.indexOf("/") + 1, lastLine.search(CliConstants.REGEX_COLON_DIGITS));
+  return lastLine.substring(
+    lastLine.indexOf('/') + 1,
+    lastLine.search(CliConstants.REGEX_COLON_DIGITS)
+  );
 }
