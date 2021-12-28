@@ -6,12 +6,23 @@ export interface ExternalDeps {
 }
 
 const externalDepsPath = process.env['EXTERNAL_DEPS_PATH'];
-const externalImports = await attemptImport(
-  externalDepsPath ? pathJoin('file://', ROOT_PATH, externalDepsPath) : '',
-  [],
-  {}
-);
 
-export const externalDeps: ExternalDeps = {
-  field1: externalImports[0]
-};
+let externalDeps: ExternalDeps | undefined;
+
+export async function getExternalImports() {
+  if (externalDeps) {
+    return externalDeps;
+  }
+
+  const externalImports = await attemptImport(
+    externalDepsPath ? pathJoin('file://', ROOT_PATH, externalDepsPath) : '',
+    [],
+    {}
+  );
+
+  externalDeps = {
+    field1: externalImports[0]
+  };
+
+  return externalDeps;
+}

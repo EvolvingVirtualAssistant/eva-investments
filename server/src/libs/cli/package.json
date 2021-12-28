@@ -2,10 +2,12 @@
   "name": "cli",
   "version": "1.0.0",
   "description": "",
-  "main": "mod.js",
+  "main": "dist/mod.js",
+  "types": "dist/mod.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rimraf ./dist && tsc",
+    "build": "rimraf ./dist && tsc && npm run build:types",
+    "build:types": "tsc --declaration --outDir ./dist --emitDeclarationOnly",
     "lint": "eslint . --ext .ts",
     "fix": "eslint . --ext .ts --fix",
     "prettier-format": "prettier --config .prettierrc './**/*.ts' --write"

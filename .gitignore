@@ -4,5 +4,7 @@ server/resources
 server/src/libs/ccxt-test
 .secrets/
 
+# npm
 node_modules
 dist
+package-lock.json

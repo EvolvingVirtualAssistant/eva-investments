@@ -7,7 +7,7 @@ export function initCliWorker(): void {
     return;
   }
 
-  cliWorker = new Worker('./cliTask.ts');
+  cliWorker = new Worker(process.cwd() + '/src/libs/cli/worker/cliTask.ts');
 
   cliWorker.addListener('message', async (event: any) => {
     if (event.data === CliConstants.STOP_CLI_COMMAND) {

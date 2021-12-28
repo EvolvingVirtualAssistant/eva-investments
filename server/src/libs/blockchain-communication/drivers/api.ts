@@ -3,7 +3,6 @@
 // This will receive what is necessary through the constructor or even builder pattern
 // and pass it to the jsonRpcWrapper
 
-import { externalDeps } from '../externalDeps';
 import { setupProxy } from '../domain/services/proxy';
 import { Web3 } from '../deps';
 import { sleep } from '../../../utils/async';
