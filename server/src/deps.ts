@@ -7,18 +7,14 @@ export { readFileSync };
 import { config as dotEnvConfig } from 'dotenv';
 
 // libs
+
+// Preferred when ESM is actually supported by Node
 export { getApiSignature } from 'api-signature';
-export type { Sign } from 'api-signature';
-export {
-  cliAdapter,
-  cliEntrypoint,
-  getAllCliEntrypointsByCliAdapter,
-  getAllCliAdapters,
-  println,
-  CLI_ADAPTER_DEFAULT_TOKEN,
-  Command
-} from 'cli';
-export { execute } from 'swagger-client-mapper';
+//import apiSignature from 'api-signature';
+//export const { getApiSignature } = apiSignature;
+//export type { Sign } from 'api-signature';
+
+// Preferred when ESM is actually supported by Node
 export {
   web3,
   ConfigNodesRepository,
@@ -28,6 +24,39 @@ export {
   IpcNode,
   WsNode
 } from 'blockchain-communication';
+/*import blockchainCommunication from 'blockchain-communication';
+export const { web3, BaseNode, HttpNode, IpcNode, WsNode } =
+  blockchainCommunication;
+export {
+  ConfigNodesRepository,
+  NodesRepository
+} from 'blockchain-communication';*/
+
+// Preferred when ESM is actually supported by Node
+export {
+  cliAdapter,
+  cliEntrypoint,
+  getAllCliEntrypointsByCliAdapter,
+  getAllCliAdapters,
+  println,
+  CLI_ADAPTER_DEFAULT_TOKEN,
+  Command
+} from 'cli';
+/*import cli from 'cli';
+export const {
+  cliAdapter,
+  cliEntrypoint,
+  getAllCliEntrypointsByCliAdapter,
+  getAllCliAdapters,
+  println,
+  CLI_ADAPTER_DEFAULT_TOKEN
+} = cli;
+export { Command } from 'cli';*/
+
+// Preferred when ESM is actually supported by Node
+export { execute } from 'swagger-client-mapper';
+/*import swaggerClientMapper from 'swagger-client-mapper';
+export const { execute } = swaggerClientMapper;*/
 
 // path config
 const currentWorkingDir = process.cwd();

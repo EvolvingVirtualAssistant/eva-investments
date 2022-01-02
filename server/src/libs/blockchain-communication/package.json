@@ -2,15 +2,17 @@
   "name": "blockchain-communication",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/libs/blockchain-communication/mod.js",
-  "types": "dist/libs/blockchain-communication/mod.d.ts",
+  "main": "dist/mod.js",
+  "types": "dist/mod.d.ts",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./dist && tsc && npm run build:types",
     "build:types": "tsc --declaration --outDir ./dist --emitDeclarationOnly",
     "lint": "eslint . --ext .ts",
     "fix": "eslint . --ext .ts --fix",
-    "prettier-format": "prettier --config .prettierrc './**/*.ts' --write"
+    "prettier-format": "prettier --config .prettierrc './**/*.ts' --write",
+    "ts-node-show-config": "ts-node --show-config"
   },
   "keywords": [],
   "author": "",

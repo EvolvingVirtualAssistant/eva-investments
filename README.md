@@ -25,6 +25,17 @@ Environments description
   docker build -t eva-investments-server-debian . && docker run -it --init -p 8080:1993 eva-investments-server-debian
   ```
 
+## Node configs
+
+### package.json
+```
+"start": "node --loader ts-node/esm --experimental-specifier-resolution=node src/app.ts"
+
+* node --loader ts-node/esm equivalent to ts-node, however it is required to be able to specify the next option
+* --experimental-specifier-resolution=node allows to import local files, without having to specify the .js extension in the end
+  (i.e., instead of import x from 'localFolder/localFile.js, we can just to import x from 'localFolder/localFile')
+```
+
 ## IDEs configuration
 
 ### Deno code editor configs

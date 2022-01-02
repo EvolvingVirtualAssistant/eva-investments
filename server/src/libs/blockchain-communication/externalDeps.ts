@@ -1,5 +1,5 @@
-import { pathJoin, ROOT_PATH } from '../../deps';
-import { attemptImport } from '../../utils/import';
+import { pathJoin, ROOT_PATH } from './deps';
+import { attemptImport } from './utils/import';
 
 export interface ExternalDeps {
   field1: () => boolean;

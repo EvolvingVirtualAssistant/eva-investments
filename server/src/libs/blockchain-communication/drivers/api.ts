@@ -5,7 +5,7 @@
 
 import { setupProxy } from '../domain/services/proxy';
 import { Web3 } from '../deps';
-import { sleep } from '../../../utils/async';
+import { sleep } from '../utils/async';
 
 /*var options = {
       keepAlive: true,

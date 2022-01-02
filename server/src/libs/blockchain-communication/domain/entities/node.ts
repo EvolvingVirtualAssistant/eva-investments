@@ -1,4 +1,4 @@
-import { isType } from '../../../../utils/typeGuards';
+import { isType } from '../../utils/typeGuards';
 import { BuildNodeError } from '../../errors/buildNodeError';
 import { NodeType } from '../../types/blockchainCommunication.types';
 
