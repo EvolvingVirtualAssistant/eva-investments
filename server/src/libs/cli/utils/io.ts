@@ -1,7 +1,8 @@
 import { TextEncoder, readline } from '../deps';
 
 export async function print(message = ''): Promise<void> {
-  await process.stdout.write(new TextEncoder().encode(message));
+  const msg = new TextEncoder().encode(message);
+  await process.stdout.write(msg);
 }
 
 export async function println(message = ''): Promise<void> {
@@ -9,17 +10,6 @@ export async function println(message = ''): Promise<void> {
 }
 
 export async function readln(): Promise<string> {
-  const rl = readline.createInterface({ input: process.stdin });
-  rl.on('SIGINT', () => {
-    rl.close();
-  });
-
-  for await (const line of rl) {
-    return line.trim();
-  }
-
-  rl.close();
-
   return '';
 }
 

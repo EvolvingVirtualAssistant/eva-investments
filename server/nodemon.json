@@ -4,5 +4,5 @@
     ],
     "ext": ".ts",
     "ignore": [],
-    "exec": "ts-node ./src/app.ts"
+    "exec": "node --loader ts-node/esm --experimental-specifier-resolution=node ./src/app.ts"
 }

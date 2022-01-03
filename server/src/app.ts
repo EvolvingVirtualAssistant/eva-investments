@@ -39,7 +39,6 @@ async function main() {
     }
   );*/
   const cliAdapters = initCliAdapters();
-
   // eslint-disable-next-line no-constant-condition
   while (true) {
     await sleep(10000);

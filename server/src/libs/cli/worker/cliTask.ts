@@ -8,7 +8,7 @@ class CliTask {
   private workerRef: MessagePort;
 
   constructor(workerRef: MessagePort) {
-    this.running = false;
+    this.running = true; // Set to true in order to prevent this from being executed
     this.workerRef = workerRef;
   }
 
