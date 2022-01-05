@@ -13,10 +13,11 @@ import {
   MOCK_CLI_ADAPTER_COMMAND,
   MOCK_CLI_ADAPTER_NO_TOKENS_COMMAND,
   MOCK_CLI_ADAPTER_INSTANCE,
-  MOCK_CLI_ADAPTER_NAME_1,
-  MOCK_CLI_ADAPTER_NAME_2,
   MOCK_CLI_ENTRYPOINT_COMMAND_1,
-  MOCK_CLI_ENTRYPOINT_COMMAND_2
+  MOCK_CLI_ENTRYPOINT_COMMAND_2,
+  MockNonExistentAdapterClass,
+  MockAdapterClass2,
+  MockAdapterClass1
 } from '../mocks/commandCli';
 
 test('Should not register cli adapter, if no entrypoint was registered for it', () => {
@@ -25,7 +26,7 @@ test('Should not register cli adapter, if no entrypoint was registered for it', 
     cliContext,
     MOCK_CLI_ADAPTER_COMMAND,
     MOCK_CLI_ADAPTER_INSTANCE,
-    'NON_EXISTENT_CLI_ADAPTER_NAME'
+    MockNonExistentAdapterClass
   );
 
   const cliAdapters = cliContext.getAllCliAdapters();
@@ -65,7 +66,7 @@ test('Should register cli adapter based on token, grouping all classes with the 
   registerEntrypoint(
     cliContext,
     MOCK_CLI_ENTRYPOINT_COMMAND_2,
-    MOCK_CLI_ADAPTER_NAME_2
+    MockAdapterClass2
   );
 
   registerAdapter(cliContext);
@@ -73,7 +74,7 @@ test('Should register cli adapter based on token, grouping all classes with the 
     cliContext,
     MOCK_CLI_ADAPTER_COMMAND,
     MOCK_CLI_ADAPTER_INSTANCE,
-    MOCK_CLI_ADAPTER_NAME_2
+    MockAdapterClass2
   );
 
   const cliAdapters = cliContext.getAllCliAdapters();
@@ -461,11 +462,11 @@ function registerAdapter(
     | undefined
     | null = MOCK_CLI_ADAPTER_COMMAND,
   adapterInstance = MOCK_CLI_ADAPTER_INSTANCE,
-  adapterName = MOCK_CLI_ADAPTER_NAME_1
+  adapterConstructor: new (...args: any[]) => unknown = MockAdapterClass1
 ) {
   cliContext.registerCliAdapter(
     adapterInstance,
-    adapterName,
+    adapterConstructor,
     adapterCommand === null ? undefined : adapterCommand
   );
 }
@@ -473,7 +474,7 @@ function registerAdapter(
 function registerEntrypoint(
   cliContext: CliContext,
   entrypointCommand = MOCK_CLI_ENTRYPOINT_COMMAND_1,
-  adapterName = MOCK_CLI_ADAPTER_NAME_1
+  adapterConstructor: new (...args: any[]) => unknown = MockAdapterClass1
 ) {
-  cliContext.registerCliEntrypoint(adapterName, entrypointCommand);
+  cliContext.registerCliEntrypoint(adapterConstructor, entrypointCommand);
 }

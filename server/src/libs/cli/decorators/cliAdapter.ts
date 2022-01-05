@@ -1,8 +1,6 @@
 import { initCliWorker } from '../worker/cliWorker';
 import { CliContext } from '../worker/cliContext';
 import { Command } from '../types/cli.types';
-import { CliConstants } from '../constants/cliConstants';
-import { getCurrentPath } from '../utils/paths';
 
 export function cliAdapter(command?: Command): ClassDecorator {
   initCliWorker();
@@ -13,7 +11,7 @@ export function cliAdapter(command?: Command): ClassDecorator {
     const cliContext = CliContext.getInstance();
     cliContext.registerCliAdapter(
       singleton,
-      CliConstants.CLI_ADAPTER_PATH_AND_CLASS(getCurrentPath(), target.name),
+      target.prototype.constructor,
       command
     );
 

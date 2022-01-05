@@ -1,5 +1,5 @@
-import { test, assertEquals } from '../../wrap/testWrapper';
-import { isType } from '../../../src/utils/typeGuards';
+import { test, assertEquals } from '../../../../wrap/testWrapper';
+import { isType } from '../../../../../src/libs/blockchain-communication/utils/typeGuards';
 
 class MockClass {
   private field1: string | null = null;

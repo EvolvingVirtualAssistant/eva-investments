@@ -28,7 +28,16 @@ export const MOCK_CLI_ENTRYPOINT_COMMAND_2: CommandCliEntrypoint = {
   isFallback: false
 };
 
-export const MOCK_CLI_ADAPTER_NAME_1 = 'EXISTENT_CLI_ADAPTER_NAME_1';
-export const MOCK_CLI_ADAPTER_NAME_2 = 'EXISTENT_CLI_ADAPTER_NAME_2';
+export class MockAdapterClass1 {
+  field1 = '';
+}
 
-export const MOCK_CLI_ADAPTER_INSTANCE = {};
+export class MockAdapterClass2 {
+  field1 = '';
+}
+
+export class MockNonExistentAdapterClass {
+  field1 = '';
+}
+
+export const MOCK_CLI_ADAPTER_INSTANCE = new MockAdapterClass1();

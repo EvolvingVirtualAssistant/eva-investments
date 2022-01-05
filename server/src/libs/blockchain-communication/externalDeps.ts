@@ -15,7 +15,9 @@ export async function getExternalImports() {
   }
 
   const externalImports = await attemptImport(
-    externalDepsPath ? pathJoin('file://', ROOT_PATH, externalDepsPath) : '',
+    externalDepsPath
+      ? pathJoin(/*'file://', */ ROOT_PATH, externalDepsPath)
+      : '',
     [],
     {}
   );

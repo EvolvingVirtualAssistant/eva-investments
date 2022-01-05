@@ -6,7 +6,6 @@ export const CliConstants = {
   FININSHED_PROCESSING_COMMAND: 'Finished Processing Command',
   NO_TOKENS_SPECIFIED: taggedTemplate`No tokens were specified for method ${0} of class ${1}`,
   FALLBACK_MISSING_ARG: taggedTemplate`Fallback method ${0} of class ${1}, must have at least 1 argument declared in order to handle error messages`,
-  CLI_ADAPTER_PATH_AND_CLASS: taggedTemplate`${0}.${1}`,
   REGEX_COLON_DIGITS: ':(([0-9])+)',
   CLI_ADAPTER_DEFAULT_TOKEN: '',
   CLI_TOKEN_NOT_FOUND: taggedTemplate`\nCommand not found: '${0}'\n`,

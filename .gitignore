@@ -8,3 +8,5 @@ server/src/libs/ccxt-test
 node_modules
 dist
 package-lock.json
+# jest
+coverage
