@@ -1,8 +1,5 @@
-import { Dictionary } from '../../../types/types.ts';
-import {
-  NodesRepository,
-  BaseNode,
-} from '../../../libs/blockchain-communication/mod.ts';
+import { Dictionary } from '../../../types/types';
+import { NodesRepository, BaseNode } from '../../../deps';
 
 export class NodesMemoryAdapter implements NodesRepository {
   private static instance: NodesMemoryAdapter;

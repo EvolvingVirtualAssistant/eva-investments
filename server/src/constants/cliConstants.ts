@@ -1,14 +1,10 @@
-// deno-lint-ignore no-explicit-any
 function taggedTemplate(strings: TemplateStringsArray, ..._keys: any[]) {
-  // deno-lint-ignore no-explicit-any
   return function (...values: any[]) {
     return strings.map((elem, i) => `${elem}${values[i] || ''}`).join('');
   };
 }
 
-// deno-lint-ignore no-explicit-any
 function arrayTaggedTemplate(strings: TemplateStringsArray, ..._keys: any[]) {
-  // deno-lint-ignore no-explicit-any
   return function (...values: any[][]) {
     const splitElem = strings[strings.length - 1];
     return values
@@ -30,19 +26,19 @@ export const CliConstants = {
 
   OPTION_HELP_TOKEN_1: '-h',
   OPTION_HELP_TOKEN_2: '--help',
-  OPTION_HELP_DESCRIPTION: 'Prints help information',
+  OPTION_HELP_DESCRIPTION: 'Prints help information'
 } as const;
 
 export const RootCliConstants = {
   USAGE: '[OPTIONS] [COMMAND]',
-  HELP_COMMAND_TEMPLATE: taggedTemplate`\nUsage:\n\t${0}\n\nOptions:\n${1}\n\nCommands:\n${2}\n\nRun 'COMMAND --help' for more information on a command.\n`,
+  HELP_COMMAND_TEMPLATE: taggedTemplate`\nUsage:\n\t${0}\n\nOptions:\n${1}\n\nCommands:\n${2}\n\nRun 'COMMAND --help' for more information on a command.\n`
 } as const;
 
 export const WalletsCliConstants = {
   USAGE: 'wallets [COMMAND]',
   HELP_COMMAND_TEMPLATE: taggedTemplate`\nUsage:\n\t${0}\n\nOptions:\n${1}\n\nRun 'wallets --help' for more information on the wallets command.\n`,
   ADAPTER_TOKEN: 'wallets',
-  ADAPTER_DESCRIPTION: 'Wallets related operations',
+  ADAPTER_DESCRIPTION: 'Wallets related operations'
 } as const;
 
 export const ExperimentalCliConstants = {
@@ -58,5 +54,5 @@ export const ExperimentalCliConstants = {
   SELL_PRICE: 'SELL_PRICE',
   BUY_PRICE: 'BUY_PRICE',
   QUANTITY_TOKEN_2: 'QUANTITY_TOKEN_2',
-  COMPOUND_LONG_PROFIT_GREATER_THAN_BOUGHT_QUANTITY: taggedTemplate`Profit cannot be greater than the amount of token 1 bought (considering buying fees). profit (${0}) > buy_quantity (${1}) * buy_fee_reduction (${2})`,
+  COMPOUND_LONG_PROFIT_GREATER_THAN_BOUGHT_QUANTITY: taggedTemplate`Profit cannot be greater than the amount of token 1 bought (considering buying fees). profit (${0}) > buy_quantity (${1}) * buy_fee_reduction (${2})`
 } as const;

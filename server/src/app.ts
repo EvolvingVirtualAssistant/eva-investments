@@ -1,9 +1,7 @@
-import 'https://deno.land/x/dotenv/load.ts';
-import { execute } from './libs/swagger-client-mapper/swaggerClient.ts';
-import { sleep } from './utils/async.ts';
-import { RootCliAdapter } from './rootCliAdapter.ts';
-import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter.ts';
-import { web3 } from './libs/blockchain-communication/mod.ts';
+import { execute, web3, initCli, terminateCli } from './deps';
+import { sleep } from './utils/async';
+import { RootCliAdapter } from './rootCliAdapter';
+import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter';
 
 /*await execute();
 
@@ -19,9 +17,10 @@ for await (const req of s) {
 
 // Init all cliAdapters
 function initCliAdapters() {
+  initCli();
   return {
     rootCliAdapter: new RootCliAdapter(),
-    walletsCliAdapter: new WalletsCliAdapter(),
+    walletsCliAdapter: new WalletsCliAdapter()
   };
 }
 
@@ -39,12 +38,16 @@ async function main() {
       console.log("I'm subscribing");
     }
   );*/
-  // deno-lint-ignore no-unused-vars
   const cliAdapters = initCliAdapters();
-
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     await sleep(10000);
   }
 }
 
-await main();
+(async () => {
+  await main();
+})().catch((e) => {
+  console.log(e);
+  terminateCli();
+});

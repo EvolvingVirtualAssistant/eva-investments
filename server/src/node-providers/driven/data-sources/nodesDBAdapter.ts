@@ -1,11 +1,9 @@
-import {
-  NodesRepository,
-  BaseNode,
-} from '../../../libs/blockchain-communication/mod.ts';
+import { NodesRepository, BaseNode } from '../../../deps';
 
 export class NodesDBAdapter implements NodesRepository {
   private static instance: NodesDBAdapter;
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {}
 
   static getInstance(): NodesDBAdapter {

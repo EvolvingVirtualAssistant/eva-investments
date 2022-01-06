@@ -1,1 +1,1 @@
-export * from "./swaggerClient.ts";
+export * from './swaggerClient';

@@ -3,3 +3,5 @@ Dockerfile
 *.sh
 !entrypoint.sh
 .secrets/
+node_modules/
+dist/

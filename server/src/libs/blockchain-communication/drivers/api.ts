@@ -3,10 +3,9 @@
 // This will receive what is necessary through the constructor or even builder pattern
 // and pass it to the jsonRpcWrapper
 
-import { externalDeps } from '../externalDeps.ts';
-import { setupProxy } from '../domain/services/proxy.ts';
-import { Web3 } from '../deps.ts';
-import { sleep } from '../../../utils/async.ts';
+import { setupProxy } from '../domain/services/proxy';
+import { Web3 } from '../deps';
+import { sleep } from '../utils/async';
 
 /*var options = {
       keepAlive: true,
@@ -39,11 +38,11 @@ private loadConfigNodes() {
   }
 
 // Tests
-import { assertEquals } from 'https://deno.land/std/testing/asserts.ts';
-import { BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY } from '../../../../../../src/libs/blockchain-communication/constants/blockchainCommunicationConstants.ts';
-import { JsonRpcWrapper } from '../../../../../../src/libs/blockchain-communication/domain/services/jsonRpcWrapper.ts';
-import { ConfigNodesFileAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/configNodesFileAdapter.ts';
-import { NodesMemoryAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/nodesMemoryAdapter.ts';
+import { assertEquals } from 'https://deno.land/std/testing/asserts';
+import { BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY } from '../../../../../../src/libs/blockchain-communication/constants/blockchainCommunicationConstants';
+import { JsonRpcWrapper } from '../../../../../../src/libs/blockchain-communication/domain/services/jsonRpcWrapper';
+import { ConfigNodesFileAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/configNodesFileAdapter';
+import { NodesMemoryAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/nodesMemoryAdapter';
 
 const nodesFileRepository = NodesMemoryAdapter.getInstance();
 const configNodesFileRepository = ConfigNodesFileAdapter.getInstance();
@@ -99,9 +98,9 @@ const callbacks: [
       (arg1: object, arg2: any, arg3: any[]) => {
         const b = 0;
         console.log('Throw Error Async');
-      },
-    ],
-  ],
+      }
+    ]
+  ]
 ];
 // const web3Provider = new Web3(
 //  new Web3.providers.HttpProvider('http://localhost:8545')

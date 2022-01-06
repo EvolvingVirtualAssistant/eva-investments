@@ -1,7 +1,7 @@
 export enum ProviderType {
   HTTP = 'HTTP', // Http
   WS = 'WS', // Websockets
-  IPC = 'IPC', // Inter-process communication
+  IPC = 'IPC' // Inter-process communication
 }
 
 export type NodeType = keyof typeof ProviderType;

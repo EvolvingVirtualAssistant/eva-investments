@@ -1,31 +1,29 @@
+import { pathJoin, ROOT_PATH } from '../../../../../src/deps';
+import { test, assertEquals, assertThrows } from '../../../../wrap/testWrapper';
+import MapperNotFoundError from '../../../../../src/libs/swagger-client-mapper/mapper/errors/mapperNotFoundError';
+import OpenApiSpecMissingPropertyError from '../../../../../src/libs/swagger-client-mapper/mapper/errors/openApiSpecMissingPropertyError';
+import SwaggerSchemaMapper from '../../../../../src/libs/swagger-client-mapper/mapper/swaggerSchemaMapper';
+import { TypedSwaggerClient } from '../../../../../src/libs/swagger-client-mapper/swaggerClient';
 import {
-  assertEquals,
-  assertThrows,
-  pathJoin,
-  ROOT_PATH,
-} from "../../../../../src/deps.ts";
-import { SwaggerClient } from "../../../../../src/deps.ts";
-import MapperNotFoundError from "../../../../../src/libs/swagger-client-mapper/mapper/errors/mapperNotFoundError.ts";
-import OpenApiSpecMissingPropertyError from "../../../../../src/libs/swagger-client-mapper/mapper/errors/openApiSpecMissingPropertyError.ts";
-import SwaggerSchemaMapper from "../../../../../src/libs/swagger-client-mapper/mapper/swaggerSchemaMapper.ts";
-import { TypedSwaggerClient } from "../../../../../src/libs/swagger-client-mapper/swaggerClient.ts";
+  readFile,
+  SwaggerClient
+} from '../../../../../src/libs/swagger-client-mapper/deps';
 
 //NOT HAPPY WITH RELATIVE PATHS
 const OPEN_API_SCHEMA_EXAMPLE_PATH = pathJoin(
   ROOT_PATH,
-  "/tests/unit/libs/swagger-client-mapper/mapper/openApiSchemaExample.json",
+  '/tests/unit/libs/swagger-client-mapper/mapper/openApiSchemaExample.json'
 );
-const GET_OPERATION_ID = "fetchAssets";
+const GET_OPERATION_ID = 'fetchAssets';
 const SUCCESS_HTTP_STATUS = 200;
 
 async function readSpecAndParseToJSON(openApiSpecPath: string) {
-  const specContentText = await Deno.readTextFile(openApiSpecPath);
-  return JSON.parse(specContentText);
+  const specContentText = await readFile(openApiSpecPath);
+  return JSON.parse(specContentText.toString());
 }
 
 function createSwaggerClient(
-  // deno-lint-ignore no-explicit-any
-  spec: Record<string, any>,
+  spec: Record<string, any>
 ): Promise<TypedSwaggerClient> {
   return new SwaggerClient({ spec }) as unknown as Promise<TypedSwaggerClient>;
 }
@@ -36,76 +34,75 @@ async function initSwaggerSchemaMapper() {
 }
 
 function initSwaggerSchemaMapperWithSpecifiedSpecJson(
-  // deno-lint-ignore no-explicit-any
-  specJson: Record<string, any>,
+  specJson: Record<string, any>
 ) {
   const swaggerSchemaMapper = new SwaggerSchemaMapper(specJson);
   //needed because it alters the specJson slightly
-  // deno-lint-ignore no-unused-vars
+
   const swaggerClient = createSwaggerClient(specJson);
   return swaggerSchemaMapper;
 }
 
-Deno.test("Should map array to object and fixed value to target", async () => {
+test('Should map array to object and fixed value to target', async () => {
   const swaggerSchemaMapper = await initSwaggerSchemaMapper();
 
   const sourceMock = {
     result: {
-      assetA: {},
-    },
+      assetA: {}
+    }
   };
 
   const mappedResult = swaggerSchemaMapper.mapResponse(
     GET_OPERATION_ID,
     SUCCESS_HTTP_STATUS,
-    sourceMock,
+    sourceMock
   );
 
   assertEquals(mappedResult, {
     result: [
       {
-        id: "assetA",
-        active: true,
-      },
-    ],
+        id: 'assetA',
+        active: true
+      }
+    ]
   });
 });
 
-Deno.test("Should map source to nested property target", async () => {
+test('Should map source to nested property target', async () => {
   const swaggerSchemaMapper = await initSwaggerSchemaMapper();
 
   const sourceMock = {
     result: {
       assetA: {
         orderMin: 4,
-        orderMax: 20,
-      },
-    },
+        orderMax: 20
+      }
+    }
   };
 
   const mappedResult = swaggerSchemaMapper.mapResponse(
     GET_OPERATION_ID,
     SUCCESS_HTTP_STATUS,
-    sourceMock,
+    sourceMock
   );
 
   assertEquals(mappedResult, {
     result: [
       {
-        id: "assetA",
+        id: 'assetA',
         active: true,
         limits: {
           amount: {
             min: 4,
-            max: 20,
-          },
-        },
-      },
-    ],
+            max: 20
+          }
+        }
+      }
+    ]
   });
 });
 
-Deno.test("Should map source array to object target", async () => {
+test('Should map source array to object target', async () => {
   const swaggerSchemaMapper = await initSwaggerSchemaMapper();
 
   const sourceMock = {
@@ -114,146 +111,143 @@ Deno.test("Should map source array to object target", async () => {
         fees: [
           [1000, 0.24],
           [5000, 0.18],
-          [10000, 0.16],
-        ],
-      },
-    },
+          [10000, 0.16]
+        ]
+      }
+    }
   };
 
   const mappedResult = swaggerSchemaMapper.mapResponse(
     GET_OPERATION_ID,
     SUCCESS_HTTP_STATUS,
-    sourceMock,
+    sourceMock
   );
 
   assertEquals(mappedResult, {
     result: [
       {
-        id: "assetA",
+        id: 'assetA',
         active: true,
         marketFees: [
           {
             volume: 1000,
-            fee: 0.24,
+            fee: 0.24
           },
           {
             volume: 5000,
-            fee: 0.18,
+            fee: 0.18
           },
           {
             volume: 10000,
-            fee: 0.16,
-          },
-        ],
-      },
-    ],
+            fee: 0.16
+          }
+        ]
+      }
+    ]
   });
 });
 
-Deno.test("Should map source array value to value in object", async () => {
+test('Should map source array value to value in object', async () => {
   const swaggerSchemaMapper = await initSwaggerSchemaMapper();
 
   const sourceMock = {
     result: {
       assetA: {
-        txid: [
-          "txid1",
-        ],
-      },
-    },
+        txid: ['txid1']
+      }
+    }
   };
 
   const mappedResult = swaggerSchemaMapper.mapResponse(
     GET_OPERATION_ID,
     SUCCESS_HTTP_STATUS,
-    sourceMock,
+    sourceMock
   );
 
   assertEquals(mappedResult, {
     result: [
       {
-        id: "assetA",
+        id: 'assetA',
         active: true,
-        txid: "txid1",
-      },
-    ],
+        txid: 'txid1'
+      }
+    ]
   });
 });
 
-Deno.test("Should map source null value to target null value", async () => {
+test('Should map source null value to target null value', async () => {
   const swaggerSchemaMapper = await initSwaggerSchemaMapper();
 
   const sourceMock = {
     result: {
       assetA: {
-        baseName: null,
-      },
-    },
+        baseName: null
+      }
+    }
   };
 
   const mappedResult = swaggerSchemaMapper.mapResponse(
     GET_OPERATION_ID,
     SUCCESS_HTTP_STATUS,
-    sourceMock,
+    sourceMock
   );
 
   assertEquals(mappedResult, {
     result: [
       {
-        id: "assetA",
+        id: 'assetA',
         active: true,
-        baseId: null,
-      },
-    ],
+        baseId: null
+      }
+    ]
   });
 });
 
-Deno.test("Should not map source undefined value to target", async () => {
+test('Should not map source undefined value to target', async () => {
   const swaggerSchemaMapper = await initSwaggerSchemaMapper();
 
   const sourceMock = {
     result: {
       assetA: {
-        baseName: undefined,
-      },
-    },
+        baseName: undefined
+      }
+    }
   };
 
   const mappedResult = swaggerSchemaMapper.mapResponse(
     GET_OPERATION_ID,
     SUCCESS_HTTP_STATUS,
-    sourceMock,
+    sourceMock
   );
 
   assertEquals(mappedResult, {
     result: [
       {
-        id: "assetA",
-        active: true,
-      },
-    ],
+        id: 'assetA',
+        active: true
+      }
+    ]
   });
 });
 
-Deno.test("Should receive OpenApiSpecMissingPropertyError when spec is missing 'paths' property", () => {
+test("Should receive OpenApiSpecMissingPropertyError when spec is missing 'paths' property", () => {
   const specJson = {
-    "openapi": "3.0.0",
-    "info": {
-      "title": "REST API",
-      "version": "1.0.0",
-      "description": "Open Api Example",
-    },
+    openapi: '3.0.0',
+    info: {
+      title: 'REST API',
+      version: '1.0.0',
+      description: 'Open Api Example'
+    }
   };
-  const swaggerSchemaMapper = initSwaggerSchemaMapperWithSpecifiedSpecJson(
-    specJson,
-  );
+  const swaggerSchemaMapper =
+    initSwaggerSchemaMapperWithSpecifiedSpecJson(specJson);
 
   const sourceMock = {
     result: {
       assetA: {
-        baseName: "ASSET_A",
-      },
-    },
+        baseName: 'ASSET_A'
+      }
+    }
   };
 
   assertThrows(
@@ -261,34 +255,34 @@ Deno.test("Should receive OpenApiSpecMissingPropertyError when spec is missing '
       swaggerSchemaMapper.mapResponse(
         GET_OPERATION_ID,
         SUCCESS_HTTP_STATUS,
-        sourceMock,
+        sourceMock
       ),
     OpenApiSpecMissingPropertyError,
-    `Missing property "paths" on Open Api Schema: ${specJson} .`,
+    `Missing property "paths" on Open Api Schema: ${specJson} .`
   );
 });
 
-Deno.test("Should receive MapperNotFoundError when operationId is not correct", async () => {
+test('Should receive MapperNotFoundError when operationId is not correct', async () => {
   const swaggerSchemaMapper = await initSwaggerSchemaMapper();
 
   const sourceMock = {
     result: {
       assetA: {
-        baseName: "ASSET_A",
-      },
-    },
+        baseName: 'ASSET_A'
+      }
+    }
   };
 
-  const operationId = "wrong operation id";
+  const operationId = 'wrong operation id';
 
   assertThrows(
     () =>
       swaggerSchemaMapper.mapResponse(
         operationId,
         SUCCESS_HTTP_STATUS,
-        sourceMock,
+        sourceMock
       ),
     MapperNotFoundError,
-    `Could not find mapper for operationId: ${operationId}.`,
+    `Could not find mapper for operationId: ${operationId}.`
   );
 });

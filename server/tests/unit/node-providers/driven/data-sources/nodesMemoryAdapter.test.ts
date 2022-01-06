@@ -1,6 +1,6 @@
-import { assertEquals } from 'https://deno.land/std/testing/asserts.ts';
-import { NodesMemoryAdapter } from '../../../../../src/node-providers/driven/data-sources/nodesMemoryAdapter.ts';
-import { BaseNode } from '../../../../../src/libs/blockchain-communication/mod.ts';
+import { test, assertEquals } from '../../../../wrap/testWrapper';
+import { NodesMemoryAdapter } from '../../../../../src/node-providers/driven/data-sources/nodesMemoryAdapter';
+import { BaseNode } from '../../../../../src/libs/blockchain-communication/mod';
 
 const nodesMemoryAdapter = NodesMemoryAdapter.getInstance();
 
@@ -8,11 +8,11 @@ const mockNodes: BaseNode[] = [
   {
     id: 1,
     type: 'HTTP',
-    host: 'localhost',
-  },
+    host: 'localhost'
+  }
 ];
 
-Deno.test('Should get nodes', () => {
+test('Should get nodes', () => {
   nodesMemoryAdapter.deleteAll();
   nodesMemoryAdapter.saveAll(mockNodes);
 
@@ -22,7 +22,7 @@ Deno.test('Should get nodes', () => {
   nodesMemoryAdapter.deleteAll();
 });
 
-Deno.test('Should save node', () => {
+test('Should save node', () => {
   nodesMemoryAdapter.deleteAll();
 
   let nodes = nodesMemoryAdapter.getNodes();
@@ -36,7 +36,7 @@ Deno.test('Should save node', () => {
   nodesMemoryAdapter.deleteAll();
 });
 
-Deno.test('Should save all nodes', () => {
+test('Should save all nodes', () => {
   nodesMemoryAdapter.deleteAll();
 
   let nodes = nodesMemoryAdapter.getNodes();
@@ -50,7 +50,7 @@ Deno.test('Should save all nodes', () => {
   nodesMemoryAdapter.deleteAll();
 });
 
-Deno.test('Should delete nodes by id', () => {
+test('Should delete nodes by id', () => {
   nodesMemoryAdapter.deleteAll();
   nodesMemoryAdapter.saveAll(mockNodes);
 
@@ -68,7 +68,7 @@ Deno.test('Should delete nodes by id', () => {
   nodesMemoryAdapter.deleteAll();
 });
 
-Deno.test('Should delete all nodes', () => {
+test('Should delete all nodes', () => {
   nodesMemoryAdapter.deleteAll();
   nodesMemoryAdapter.saveAll(mockNodes);
 

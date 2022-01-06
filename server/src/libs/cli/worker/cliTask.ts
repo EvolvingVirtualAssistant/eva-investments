@@ -1,13 +1,14 @@
-import { CliConstants } from '../constants/cliConstants.ts';
-import { tokenizer } from '../utils/parser.ts';
-import { print, println, readln } from '../utils/io.ts';
+import { CliConstants } from '../constants/cliConstants';
+import { tokenizer } from '../utils/parser';
+import { print, println, readln } from '../utils/io';
+import { MessagePort, parentPort } from '../deps';
 
 class CliTask {
   private running: boolean;
-  private workerRef: Worker;
+  private workerRef: MessagePort;
 
-  constructor(workerRef: Worker) {
-    this.running = false;
+  constructor(workerRef: MessagePort) {
+    this.running = true; // Set to true in order to prevent this from being executed
     this.workerRef = workerRef;
   }
 
@@ -29,8 +30,10 @@ class CliTask {
 
         if (tokens.length > 0) {
           this.workerRef.postMessage({
-            msg: CliConstants.INTERPRET_COMMAND,
-            tokens,
+            data: {
+              msg: CliConstants.INTERPRET_COMMAND,
+              tokens
+            }
           });
         } else {
           print(CliConstants.LINE_PREFIX);
@@ -38,8 +41,16 @@ class CliTask {
       } while (this.running);
     } catch (err) {
       this.terminate();
-      println(err);
-      this.workerRef.postMessage(CliConstants.STOP_CLI_COMMAND);
+
+      if (typeof err === 'string') {
+        println(err);
+      } else if (err instanceof Error) {
+        println(err.message);
+      } else {
+        println(`Error on cliTask: ${err}`);
+      }
+
+      this.workerRef.postMessage({ data: CliConstants.STOP_CLI_COMMAND });
     }
   }
 
@@ -48,15 +59,13 @@ class CliTask {
   }
 }
 
-const cliTask = new CliTask(<Worker>(<unknown>self));
+const cliTask = parentPort == null ? undefined : new CliTask(parentPort);
 
-(<Worker>(<unknown>self)).onmessage = function handleMessageFromParent(
-  event: MessageEvent
-) {
+parentPort?.on('message', (event: any) => {
   if (event.data === CliConstants.START_CLI_COMMAND) {
-    cliTask.run();
+    cliTask?.run();
   } else if (event.data === CliConstants.STOP_CLI_COMMAND) {
-    cliTask.terminate();
+    cliTask?.terminate();
   } else if (event.data === CliConstants.FININSHED_PROCESSING_COMMAND) {
     // This only seems like it blocks while it's executing what was called
     // but in reality this worker is never blocked, so there's nothing stopping the
@@ -65,4 +74,4 @@ const cliTask = new CliTask(<Worker>(<unknown>self));
     // Add next command prefix
     print(CliConstants.LINE_PREFIX);
   }
-};
+});

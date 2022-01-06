@@ -1,6 +1,6 @@
-import { assertEquals, fail } from 'https://deno.land/std/testing/asserts.ts';
-import { setupProxy } from '../../../../../../src/libs/blockchain-communication/domain/services/proxy.ts';
-import { sleep } from '../../../../../../src/utils/async.ts';
+import { test, fail, assertEquals } from '../../../../../wrap/testWrapper';
+import { setupProxy } from '../../../../../../src/libs/blockchain-communication/domain/services/proxy';
+import { sleep } from '../../../../../../src/utils/async';
 
 class MockClass {
   calledFn1Count = 0;
@@ -83,18 +83,15 @@ function assertUnmodifiedObj(obj1: MockClass, obj2: MockClass): void {
   assertEquals(obj2.prop1.calledCallbacks.length, 0);
 }
 
-Deno.test(
-  'Should not setup proxy for properties if callbacks are empty',
-  () => {
-    const mockObj = new MockClass();
-    const proxyMockObj = setupProxy(mockObj, {});
-    assertUnmodifiedObj(proxyMockObj, mockObj);
-  }
-);
+test('Should not setup proxy for properties if callbacks are empty', () => {
+  const mockObj = new MockClass();
+  const proxyMockObj = setupProxy(mockObj, {});
+  assertUnmodifiedObj(proxyMockObj, mockObj);
+});
 
-Deno.test('Should not setup proxy for missing properties', () => {
+test('Should not setup proxy for missing properties', () => {
   const callbacksByProps = {
-    missingProp: [mockSyncFn, mockSyncThrowErrorFn],
+    missingProp: [mockSyncFn, mockSyncThrowErrorFn]
   };
   const mockObj = new MockClass();
   const proxyMockObj = setupProxy(mockObj, callbacksByProps);
@@ -156,18 +153,15 @@ async function callAndAssertInnerFn1(proxyMockObj: MockClass) {
   assertEquals(proxyMockObj.prop1.calledInnerFn1Args[1], false);
 }
 
-Deno.test(
-  'Should setup proxy on existing props and call specified callbacks',
-  async () => {
-    const callbacksByProps = {
-      prop1: {
-        innerFn1: [mockSyncFn, mockSyncThrowErrorFn, lastCallback],
-      },
-      fn1: [mockAsyncFn, mockAsyncThrowErrorFn, lastCallback],
-    };
-    const mockObj = new MockClass();
-    const proxyMockObj = setupProxy(mockObj, callbacksByProps);
-    await callAndAssertFn1(proxyMockObj);
-    await callAndAssertInnerFn1(proxyMockObj);
-  }
-);
+test('Should setup proxy on existing props and call specified callbacks', async () => {
+  const callbacksByProps = {
+    prop1: {
+      innerFn1: [mockSyncFn, mockSyncThrowErrorFn, lastCallback]
+    },
+    fn1: [mockAsyncFn, mockAsyncThrowErrorFn, lastCallback]
+  };
+  const mockObj = new MockClass();
+  const proxyMockObj = setupProxy(mockObj, callbacksByProps);
+  await callAndAssertFn1(proxyMockObj);
+  await callAndAssertInnerFn1(proxyMockObj);
+});

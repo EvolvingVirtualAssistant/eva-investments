@@ -3,10 +3,13 @@ import {
   CommandCliEntrypoint,
   CommandCliAdapter,
   Dictionary,
-  Command,
-} from '../types/cli.types.ts';
-import { CliConstants } from '../constants/cliConstants.ts';
-import { isAsync } from '../utils/async.ts';
+  Command
+} from '../types/cli.types';
+import { CliConstants } from '../constants/cliConstants';
+import { isAsync } from '../utils/async';
+import { CliError } from '../mod';
+
+type Constructor = new (...args: any[]) => unknown;
 
 export class CliContext {
   private static instance: CliContext;
@@ -16,11 +19,13 @@ export class CliContext {
   // Used as a temp collection.
   // This is only used because the method decorators are registered before the class decorators
   // and I need to associate the entrypoints with a temporary adapter
-  private cliAdaptersByName: Dictionary<CliAdapter>;
+  private cliAdaptersByConstructor: CliAdapter[];
+  private cliAdaptersConstructors: Constructor[];
 
   constructor() {
     this.cliAdapters = {};
-    this.cliAdaptersByName = {};
+    this.cliAdaptersByConstructor = [];
+    this.cliAdaptersConstructors = [];
   }
 
   static getInstance(): CliContext {
@@ -31,91 +36,128 @@ export class CliContext {
     return CliContext.instance;
   }
 
+  private getIndexForConstructor(constructor: Constructor): number {
+    return this.cliAdaptersConstructors.findIndex((c) => c === constructor);
+  }
+
+  private getCliAdapterByConstructor(
+    constructor: Constructor
+  ): CliAdapter | null {
+    const idx = this.getIndexForConstructor(constructor);
+    if (idx >= this.cliAdaptersByConstructor.length) {
+      throw new CliError(
+        'Error searching for cli adapter (desynced constructors)'
+      );
+    }
+
+    if (idx < 0) {
+      return null;
+    }
+
+    return this.cliAdaptersByConstructor[idx];
+  }
+
   clearContext(): void {
     this.cliAdapters = {};
-    this.cliAdaptersByName = {};
+    this.cliAdaptersByConstructor = [];
+    this.cliAdaptersConstructors = [];
   }
 
   registerCliAdapter(
     classInstance: any,
-    cliAdapterName: string,
+    cliAdapterConstructor: Constructor,
     command?: CommandCliAdapter
   ): void {
     // If it is null then no entrypoint has been registered for this adapter,
     // which basically means this adapter has no point to exist
-    if (this.cliAdaptersByName[cliAdapterName] == null) {
+    if (this.getCliAdapterByConstructor(cliAdapterConstructor) == null) {
       return;
     }
 
     // If no command was specified or it was but no tokens were specified, meaning we will be using the default one here
     if (command == null || command.tokens.length === 0) {
       this.addTokenToCliAdapter(
-        cliAdapterName,
+        cliAdapterConstructor,
         CliConstants.CLI_ADAPTER_DEFAULT_TOKEN,
         {
           tokens: [CliConstants.CLI_ADAPTER_DEFAULT_TOKEN],
-          description: '',
+          description: ''
         },
         classInstance
       );
     } else {
       command.tokens.forEach((token) =>
-        this.addTokenToCliAdapter(cliAdapterName, token, command, classInstance)
+        this.addTokenToCliAdapter(
+          cliAdapterConstructor,
+          token,
+          command,
+          classInstance
+        )
       );
     }
   }
 
   private addTokenToCliAdapter(
-    cliAdapterName: string,
+    cliAdapterConstructor: Constructor,
     token: string,
     command: CommandCliAdapter,
     classInstance: any
   ): void {
     // this.cliAdaptersByName[cliAdapterName] -> at this point should never be null
     // as methods using this one, already validate this (at least they should have)
+    const cliAdapter = this.getCliAdapterByConstructor(cliAdapterConstructor);
+    if (cliAdapter == null) {
+      return;
+    }
 
     // Add instance to each entrypoint
-    for (const key in this.cliAdaptersByName[cliAdapterName]?.cliEntrypoints) {
-      this.cliAdaptersByName[cliAdapterName].cliEntrypoints[key] = {
-        ...this.cliAdaptersByName[cliAdapterName].cliEntrypoints[key],
-        this: classInstance,
+    for (const key in cliAdapter.cliEntrypoints) {
+      cliAdapter.cliEntrypoints[key] = {
+        ...cliAdapter.cliEntrypoints[key],
+        this: classInstance
       };
     }
 
     if (this.cliAdapters[token] == null) {
       this.cliAdapters[token] = {
         command,
-        cliEntrypoints:
-          this.cliAdaptersByName[cliAdapterName]?.cliEntrypoints || {},
+        cliEntrypoints: cliAdapter.cliEntrypoints || {}
       };
     } else {
-      for (const key in this.cliAdaptersByName[cliAdapterName]
-        ?.cliEntrypoints) {
+      for (const key in cliAdapter.cliEntrypoints) {
         if (this.cliAdapters[token].cliEntrypoints[key] == null) {
           this.cliAdapters[token].cliEntrypoints[key] =
-            this.cliAdaptersByName[cliAdapterName].cliEntrypoints[key];
+            cliAdapter.cliEntrypoints[key];
         }
       }
     }
   }
 
   registerCliEntrypoint(
-    cliAdapterName: string,
+    cliAdapterConstructor: Constructor,
     command: CommandCliEntrypoint
   ): void {
-    if (this.cliAdaptersByName[cliAdapterName] == null) {
-      this.cliAdaptersByName[cliAdapterName] = { cliEntrypoints: {} };
+    let idx = this.getIndexForConstructor(cliAdapterConstructor);
+
+    if (idx < 0) {
+      idx = this.cliAdaptersConstructors.push(cliAdapterConstructor) - 1;
+      this.cliAdaptersByConstructor.push({ cliEntrypoints: {} });
+
+      if (idx !== this.cliAdaptersByConstructor.length - 1) {
+        throw new CliError(
+          'Error registering cli endpoint (desynced constructors)'
+        );
+      }
     }
 
     command.tokens
       .filter(
         (token) =>
-          this.cliAdaptersByName[cliAdapterName].cliEntrypoints[token] == null
+          this.cliAdaptersByConstructor[idx].cliEntrypoints[token] == null
       )
       .forEach(
         (token) =>
-          (this.cliAdaptersByName[cliAdapterName].cliEntrypoints[token] =
-            command)
+          (this.cliAdaptersByConstructor[idx].cliEntrypoints[token] = command)
       );
   }
 
@@ -265,7 +307,7 @@ export class CliContext {
   }
 
   getAllCliEntrypointsByCliAdapter(token?: string): Command[] {
-    var entrypoints: Command[] = [];
+    const entrypoints: Command[] = [];
     const cliAdapter: CliAdapter | undefined =
       this.cliAdapters[token || CliConstants.CLI_ADAPTER_DEFAULT_TOKEN];
 
@@ -280,7 +322,7 @@ export class CliContext {
     for (const key in uniqueCliEntrypoints) {
       entrypoints.push({
         tokens: uniqueCliEntrypoints[key].tokens,
-        description: uniqueCliEntrypoints[key].description,
+        description: uniqueCliEntrypoints[key].description
       });
     }
 
@@ -291,8 +333,8 @@ export class CliContext {
     cliEntrypoints: Dictionary<CommandCliEntrypoint>
   ) {
     const res: Dictionary<CommandCliEntrypoint> = {};
-    var val: CommandCliEntrypoint;
-    var duplicated: boolean;
+    let val: CommandCliEntrypoint;
+    let duplicated: boolean;
     for (const keyOuter in cliEntrypoints) {
       val = cliEntrypoints[keyOuter];
       duplicated = false;
@@ -311,11 +353,11 @@ export class CliContext {
   }
 
   getAllCliAdapters(): Command[] {
-    var adapters: Command[] = [];
+    const adapters: Command[] = [];
     for (const key in this.cliAdapters) {
       adapters.push({
         tokens: this.cliAdapters[key].command?.tokens || [],
-        description: this.cliAdapters[key].command?.description || '',
+        description: this.cliAdapters[key].command?.description || ''
       });
     }
 

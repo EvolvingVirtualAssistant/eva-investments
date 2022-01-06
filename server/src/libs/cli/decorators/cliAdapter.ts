@@ -1,19 +1,14 @@
-import { initCliWorker } from '../worker/cliWorker.ts';
-import { CliContext } from '../worker/cliContext.ts';
-import { Command } from '../types/cli.types.ts';
-import { CliConstants } from '../constants/cliConstants.ts';
-import { getCurrentPath } from '../utils/paths.ts';
+import { CliContext } from '../worker/cliContext';
+import { Command } from '../types/cli.types';
 
 export function cliAdapter(command?: Command): ClassDecorator {
-  initCliWorker();
-
   return function (target: any) {
     const originalConstructor = target.prototype.constructor;
     let singleton = new target.prototype.constructor();
     const cliContext = CliContext.getInstance();
     cliContext.registerCliAdapter(
       singleton,
-      CliConstants.CLI_ADAPTER_PATH_AND_CLASS(getCurrentPath(), target.name),
+      target.prototype.constructor,
       command
     );
 

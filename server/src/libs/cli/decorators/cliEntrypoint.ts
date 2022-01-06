@@ -1,17 +1,13 @@
-import { initCliWorker } from '../worker/cliWorker.ts';
-import { CliContext } from '../worker/cliContext.ts';
-import { Command } from '../types/cli.types.ts';
-import { CliError } from '../errors/cliError.ts';
-import { CliConstants } from '../constants/cliConstants.ts';
-import { getCurrentPath } from '../utils/paths.ts';
-import { isAsync } from '../utils/async.ts';
+import { CliContext } from '../worker/cliContext';
+import { Command } from '../types/cli.types';
+import { CliError } from '../errors/cliError';
+import { CliConstants } from '../constants/cliConstants';
+import { isAsync } from '../utils/async';
 
 export function cliEntrypoint(
   command: Command,
   isFallback = false
 ): MethodDecorator {
-  initCliWorker();
-
   return function (
     target: any,
     key: string | symbol,
@@ -43,19 +39,13 @@ export function cliEntrypoint(
       };
     }
 
-    CliContext.getInstance().registerCliEntrypoint(
-      CliConstants.CLI_ADAPTER_PATH_AND_CLASS(
-        getCurrentPath(),
-        target.constructor.name
-      ),
-      {
-        ...command,
-        this: target,
-        fn: descriptor.value,
-        argsSize: original.length,
-        isFallback,
-      }
-    );
+    CliContext.getInstance().registerCliEntrypoint(target.constructor, {
+      ...command,
+      this: target,
+      fn: descriptor.value,
+      argsSize: original.length,
+      isFallback
+    });
   };
 }
 

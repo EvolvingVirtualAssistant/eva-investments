@@ -1,8 +1,7 @@
-import { SwaggerClient } from "../../deps.ts";
-import SwaggerSchemaMapper from "./mapper/swaggerSchemaMapper.ts";
+import { readdir, readFile, SwaggerClient } from './deps';
+import SwaggerSchemaMapper from './mapper/swaggerSchemaMapper';
 
 interface OperationsCallableMap {
-  // deno-lint-ignore no-explicit-any
   [key: string]: (parameters?: unknown, ...args: unknown[]) => Promise<any>;
 }
 
@@ -43,19 +42,17 @@ export interface RestResponse<T> {
 
 type preProcesseRequestType = (
   request: SwaggerClientRequest,
-  // deno-lint-ignore no-explicit-any
+
   requestParameters: any,
-  // deno-lint-ignore no-explicit-any
+
   requestBody: any,
-  requestHeaders: Record<string, string>,
+  requestHeaders: Record<string, string>
 ) => void;
 
 export class SwaggerClientWrapper {
   private swaggerClient!: Promise<TypedSwaggerClient>;
   private swaggerSchemaMapper!: SwaggerSchemaMapper;
   private openApiSpecPath!: string;
-
-  constructor() {}
 
   public async init(openApiSpecPath: string) {
     this.openApiSpecPath = openApiSpecPath;
@@ -66,15 +63,16 @@ export class SwaggerClientWrapper {
   }
 
   private async readSpecAndParseToJSON(openApiSpecPath: string) {
-    const specContentText = await Deno.readTextFile(openApiSpecPath);
-    return JSON.parse(specContentText);
+    const specContentText = await readFile(openApiSpecPath);
+    return JSON.parse(specContentText.toString());
   }
 
-  // deno-lint-ignore ban-types
-  private createSwaggerClient(spec: {}): Promise<TypedSwaggerClient> {
+  private createSwaggerClient(
+    spec: Record<string, unknown>
+  ): Promise<TypedSwaggerClient> {
     return new SwaggerClient({
       spec,
-      responseInterceptor: this.topLevelResponseInterceptor,
+      responseInterceptor: this.topLevelResponseInterceptor
     }) as unknown as Promise<TypedSwaggerClient>;
   }
 
@@ -82,11 +80,11 @@ export class SwaggerClientWrapper {
     operationId: string,
     parameters: Record<string, string | number> = {},
     requestBody: B | undefined = undefined,
-    preProcessRequest?: preProcesseRequestType,
+    preProcessRequest?: preProcesseRequestType
   ): Promise<RestResponse<R>> {
     if (!this.openApiSpecPath) {
       throw new Error(
-        "SwaggerClientWrapper.init must be called before calling unknown other method in this object",
+        'SwaggerClientWrapper.init must be called before calling unknown other method in this object'
       );
     }
 
@@ -96,14 +94,11 @@ export class SwaggerClientWrapper {
       // map parameters and request body
       const mappedParameters = this.swaggerSchemaMapper.mapRequestParameter(
         operationId,
-        parameters,
+        parameters
       );
-      // deno-lint-ignore no-explicit-any
-      const mappedRequestBody: Record<string, any> | undefined = this
-        .swaggerSchemaMapper.mapRequestBody(
-          operationId,
-          requestBody,
-        );
+
+      const mappedRequestBody: Record<string, any> | undefined =
+        this.swaggerSchemaMapper.mapRequestBody(operationId, requestBody);
 
       const request = operationSignature(mappedParameters, {
         requestInterceptor: (req: SwaggerClientRequest) =>
@@ -112,19 +107,19 @@ export class SwaggerClientWrapper {
             operationId,
             mappedParameters,
             mappedRequestBody,
-            preProcessRequest,
+            preProcessRequest
           ),
-        requestBody: mappedRequestBody,
+        requestBody: mappedRequestBody
       });
 
       const response = await request.then((res: SwaggerClientResponse) => {
         const payload = res.body || res.obj;
         const mappedPayload: R | undefined = payload
           ? this.swaggerSchemaMapper.mapResponse(
-            res.operationId,
-            res.status,
-            payload,
-          )
+              res.operationId,
+              res.status,
+              payload
+            )
           : undefined;
         return this.prepareRestResponse(res, mappedPayload);
       });
@@ -133,29 +128,29 @@ export class SwaggerClientWrapper {
   }
 
   public isSuccess<T>(response: RestResponse<T>): boolean {
-    return response.status.toString().startsWith("2");
+    return response.status.toString().startsWith('2');
   }
 
   private prepareRestResponse<T>(
     response: SwaggerClientResponse,
-    payload?: T,
+    payload?: T
   ): RestResponse<T> {
     return {
       operationId: response.operationId,
       status: response.status,
       headers: response.headers,
-      body: payload,
+      body: payload
     };
   }
 
   private interfaceLevelRequesInterceptor(
     request: SwaggerClientRequest,
     operationId: string,
-    // deno-lint-ignore no-explicit-any
+
     requestParameters: Record<string, any>,
-    // deno-lint-ignore no-explicit-any
+
     requestBody: Record<string, any> | undefined,
-    preProcessRequest?: preProcesseRequestType,
+    preProcessRequest?: preProcesseRequestType
   ) {
     request.operationId = operationId;
 
@@ -166,13 +161,13 @@ export class SwaggerClientWrapper {
         request,
         requestParameters,
         requestBody,
-        requestHeaders,
+        requestHeaders
       );
 
       requestHeaders = this.swaggerSchemaMapper.mapRequestParameter(
         operationId,
         requestHeaders,
-        this.swaggerSchemaMapper.getParameterInHeaderFilter(),
+        this.swaggerSchemaMapper.getParameterInHeaderFilter()
       );
       request.headers = { ...request.headers, ...requestHeaders };
     }
@@ -185,35 +180,33 @@ export class SwaggerClientWrapper {
 
   private topLevelResponseInterceptor(
     this: SwaggerClientRequest,
-    response: SwaggerClientResponse,
+    response: SwaggerClientResponse
   ) {
     response.operationId = this.operationId;
     //TODO: Need to add proper logging
     console.log(
-      `Top level response interceptor interceptor, response: ${response}`,
+      `Top level response interceptor interceptor, response: ${response}`
     );
     return response;
   }
 }
 
 export async function execute() {
-  for await (const dirEntry of Deno.readDir(".")) {
+  const dirFiles = await readdir('.');
+  for (const dirEntry of dirFiles) {
     console.log(dirEntry);
   }
-  const specPath = "server/resources/exchanges/open_api_schemas/kraken.json";
+  const specPath = 'server/resources/exchanges/open_api_schemas/kraken.json';
   const swaggerClientWrapper = await new SwaggerClientWrapper().init(specPath);
-  const marketResponse: RestResponse<
-    { result?: Array<{ id: string }> }
-  > = await swaggerClientWrapper.dispatchRESTRequest(
-    "fetchMarkets",
-  );
+  const marketResponse: RestResponse<{ result?: Array<{ id: string }> }> =
+    await swaggerClientWrapper.dispatchRESTRequest('fetchMarkets');
   console.log(marketResponse);
   const orderBookResponse = await swaggerClientWrapper.dispatchRESTRequest(
-    "fetchOrderBook",
+    'fetchOrderBook',
     {
-      symbol: "SOLEUR" || marketResponse?.body?.result?.[2]?.id || "",
-      limit: 25,
-    },
+      symbol: 'SOLEUR' || marketResponse?.body?.result?.[2]?.id || '',
+      limit: 25
+    }
   );
   console.log(orderBookResponse);
 }

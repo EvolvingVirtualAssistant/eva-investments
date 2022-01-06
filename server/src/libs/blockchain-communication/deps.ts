@@ -1,6 +1,39 @@
-// @deno-types="./coolLib.d.ts"
-//import Web3 from 'https://cdn.esm.sh/v55/web3@1.6.0/deno/web3.js'; // 'https://cdn.skypack.dev/-/web3@v1.6.0-GpfciYNfDLlYbXKjiDaK/dist=es2020,mode=imports,min/optimized/web3.js?dts';
-//export { Web3 };
+import { join as pathJoin } from 'path';
+import { readdirSync } from 'fs';
+import Web3 from 'web3';
 
-import Web3 from 'https://cdn.esm.sh/web3@1.6.1?target=deno';
+function findRootFolder(path: string): string {
+  let foldersMatched = 0;
+  for (const dirEntry of readdirSync(path)) {
+    if (foldersMatched === 2) {
+      //root folder found
+      return path;
+    }
+
+    if (dirEntry === 'src' || dirEntry === 'tests') {
+      foldersMatched++;
+    } else if (
+      dirEntry === 'libs' ||
+      dirEntry === 'unit' ||
+      dirEntry === 'integration'
+    ) {
+      return findRootFolder(path.substr(0, path.lastIndexOf('/')));
+    } else if (dirEntry === 'server' || dirEntry === 'app') {
+      return findRootFolder(pathJoin(path, dirEntry));
+    }
+  }
+
+  if (foldersMatched === 2) {
+    //root folder found
+    return path;
+  }
+
+  throw new Error('Could not find root folder');
+}
+
+// path config
+const currentWorkingDir = process.cwd();
+export const ROOT_PATH = findRootFolder(currentWorkingDir);
+
+export { pathJoin };
 export { Web3 };

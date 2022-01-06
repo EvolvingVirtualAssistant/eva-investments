@@ -5,28 +5,20 @@ ARG DEFAULT_BUILD_MODE=production
 FROM debian:buster-slim as build
 
 ARG DEFAULT_BUILD_MODE
-
-ENV DENO_VERSION=1.16.2
-ARG DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get -qq update \
-    && apt-get -qq install -y --no-install-recommends curl ca-certificates unzip \
-    && curl -fsSL https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-x86_64-unknown-linux-gnu.zip --output deno.zip \
-    && unzip deno.zip \
-    && rm deno.zip \
-    && chmod 755 deno
-
-# --------------------------------------------------------------------------------------------------------
-
-FROM debian:buster-slim as blockchain
-
-ARG DEFAULT_BUILD_MODE
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends curl ca-certificates \
-    && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get -qq install -y --no-install-recommends nodejs
+    && curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && apt-get clean
+
+# --------------------------------------------------------------------------------------------------------
+
+FROM build as blockchain
+
+ARG DEFAULT_BUILD_MODE
+ARG DEBIAN_FRONTEND=noninteractive
 
 # install ethereum blockchain
 RUN npm install -g ganache-cli
@@ -40,46 +32,44 @@ CMD ganache-cli -v -h 0.0.0.0 \
 
 # --------------------------------------------------------------------------------------------------------
 
-FROM debian:buster-slim as base
+FROM build as base
 
 ARG DEFAULT_BUILD_MODE
-
-COPY --from=build deno /usr/bin/deno
 
 # copy entrypoint script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod 755 /usr/local/bin/entrypoint.sh
 
-# add deno user
-RUN useradd --uid 1000 --user-group deno \
-    && mkdir /deno-dir/ \
-    && chown deno:deno /deno-dir/
+# add eva user
+RUN useradd --uid 1000 --user-group eva \
+    && mkdir /node-dir/ \
+    && chown eva:eva /node-dir/
 
-# deno-dir is where you will place all of your deno project files
-ENV DENO_DIR /deno-dir/
-ENV DENO_INSTALL_ROOT /usr/local/
-ENV DENO_VERSION=1.16.2
+# eva-dir is where you will place all of your nodejs project files
+ENV NODE_DIR /node-dir/
 
 WORKDIR /app
 
-# use deno user instead of root
-USER deno
-
-# copies required libs folder referenced in src/deps.ts file
-COPY src/libs ./src/libs
-# cache all dependencies declared in deps.ts
-COPY src/deps.ts ./src/deps.ts
-COPY import_map.json ./import_map.json
-RUN deno cache --import-map=import_map.json --unstable src/deps.ts
+# use eva user instead of root
+USER eva
 
 ADD . .
 
-# avoids compiling the app everytime we startup the container
-RUN deno cache --import-map=import_map.json --unstable src/app.ts
+# --------------------------------------------------------------------------------------------------------
+
+FROM base as compile-for-test
+
+ARG DEFAULT_BUILD_MODE
+
+# install dependencies
+RUN npm run build:dependencies
+RUN npm install
+
+USER eva
 
 # --------------------------------------------------------------------------------------------------------
 
-FROM base as base-blockchain
+FROM compile-for-test as base-blockchain
 
 ARG DEFAULT_BUILD_MODE
 ARG DEBIAN_FRONTEND=noninteractive
@@ -88,13 +78,13 @@ USER root
 
 RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends curl ca-certificates \
-    && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
+    && curl -sL https://deb.nodesource.com/setup_lts.x | bash - \
     && apt-get -qq install -y --no-install-recommends nodejs
 
 # install ethereum blockchain
 RUN npm install -g ganache-cli
 
-USER deno
+USER eva
 
 # expose port 8545 (default ganache port)
 EXPOSE 8545
@@ -105,15 +95,10 @@ FROM base as development
 
 ARG DEFAULT_BUILD_MODE
 
-USER root
-
-# install denon
-RUN deno install -qAf --unstable https://deno.land/x/denon@2.4.10/denon.ts
-
 # clean WORKDIR as it will be mounted instead
 RUN rm -rf /app/
 
-USER deno
+USER eva
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -123,19 +108,17 @@ ARG DEFAULT_BUILD_MODE
 
 USER root
 
-# find files to be ingored and lint
-RUN ["/bin/bash", "-c", "lint_ignore=$(readarray -d '' array < <(find . -print | grep -i .bundle); echo $array | tr ' ' ','); \
-    ignore_flag='--ignore='; if [ -n $lint_ignore ]; then ignore_flag=''; fi; \
-    deno lint --unstable $ignore_flag$lint_ignore"]
+# lint
+RUN npm run lint
 
 # vunerabilities
 # yet to be decided what to use
 
-# compile deno app
-RUN deno compile --import-map=import_map.json --unstable --allow-net --allow-read src/app.ts
+# build app - not sure if needed
+#RUN npm run build
 
 # tests - commented for now since we do not yet have tests
-RUN deno test --import-map=import_map.json --unstable --allow-read --location https://example.com tests/
+RUN npm run test
 
 # integration tests using ganache as a blockchain
 # nothing for now
@@ -148,24 +131,30 @@ ARG DEFAULT_BUILD_MODE
 
 USER root
 
-# compile deno app
-RUN deno compile --import-map=import_map.json --unstable --allow-net --allow-read src/app.ts
+# install dependencies
+RUN npm set progress=false && npm config set depth 0
+#RUN npm install -g rimraf ts-node typescript
+RUN npm run build:dependencies
+RUN npm install
+
+# build app
+RUN npm run build
+
+RUN rm -rf /app/node_modules
+RUN npm install --only=production
 
 # --------------------------------------------------------------------------------------------------------
 
-FROM debian:buster-slim as production
+FROM build as production
 
 ARG DEFAULT_BUILD_MODE
 
-# add deno user
-RUN useradd --uid 1000 --user-group deno
+# add eva user
+RUN useradd --uid 1000 --user-group eva
 
-# When possible revert back to deno user, but for now we're having this issue
-# error: Could not create TypeScript compiler cache location: "/home/deno/.cache/deno/gen"
-# Check the permission of the directory.
-USER root
-
-COPY --from=compile-for-production /app/app /app/app
+COPY --from=compile-for-production /app/node_modules /app/node_modules
+COPY --from=compile-for-production /app/dist /app/dist
+COPY --from=compile-for-production /app/package.json /app/package.json
 COPY --from=compile-for-production /app/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 WORKDIR /app
@@ -178,10 +167,10 @@ ARG DEFAULT_BUILD_MODE
 
 ENV BUILD_MODE=$DEFAULT_BUILD_MODE
 
-# expose port 1993
-EXPOSE 1993
+# expose port 5000
+EXPOSE 5000
 
 ENTRYPOINT ["entrypoint.sh"]
-CMD ["run", "--import-map=import_map.json", "--allow-net", "--allow-read", "--unstable", "src/app.ts"]
+CMD ["run", "start"]
 
 # --------------------------------------------------------------------------------------------------------
