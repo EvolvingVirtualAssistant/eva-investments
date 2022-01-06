@@ -1,7 +1,6 @@
 import { test, assertEquals } from '../../../../wrap/testWrapper';
 import { pathJoin, ROOT_PATH } from '../../../../../src/deps';
 import { attemptImport } from '../../../../../src/libs/blockchain-communication/utils/import';
-import path from 'path';
 
 const currentDirPath = pathJoin(
   /*'file://', */ ROOT_PATH,
@@ -40,7 +39,6 @@ test('Should get empty array of imports on inexistent props', async () => {
 });
 
 test('Should get only existent imports', async () => {
-  const url = path.resolve(sampleImportPath);
   const importedDeps = await attemptImport(sampleImportPath, [
     'missingProp1',
     'testFunc1'

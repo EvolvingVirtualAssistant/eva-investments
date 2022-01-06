@@ -11,3 +11,5 @@ export {
 } from './worker/cliContext';
 
 export const CLI_ADAPTER_DEFAULT_TOKEN = CliConstants.CLI_ADAPTER_DEFAULT_TOKEN;
+
+export { initCli, terminateCli } from './worker/cliWorker';

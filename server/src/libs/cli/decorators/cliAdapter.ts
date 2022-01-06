@@ -1,10 +1,7 @@
-import { initCliWorker } from '../worker/cliWorker';
 import { CliContext } from '../worker/cliContext';
 import { Command } from '../types/cli.types';
 
 export function cliAdapter(command?: Command): ClassDecorator {
-  initCliWorker();
-
   return function (target: any) {
     const originalConstructor = target.prototype.constructor;
     let singleton = new target.prototype.constructor();

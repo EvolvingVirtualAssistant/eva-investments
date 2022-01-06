@@ -1,4 +1,3 @@
-import { initCliWorker } from '../worker/cliWorker';
 import { CliContext } from '../worker/cliContext';
 import { Command } from '../types/cli.types';
 import { CliError } from '../errors/cliError';
@@ -9,8 +8,6 @@ export function cliEntrypoint(
   command: Command,
   isFallback = false
 ): MethodDecorator {
-  initCliWorker();
-
   return function (
     target: any,
     key: string | symbol,

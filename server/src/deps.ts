@@ -39,6 +39,8 @@ export {
   getAllCliEntrypointsByCliAdapter,
   getAllCliAdapters,
   println,
+  initCli,
+  terminateCli,
   CLI_ADAPTER_DEFAULT_TOKEN,
   Command
 } from 'cli';

@@ -1,8 +1,7 @@
-import { execute } from "./deps";
-import { sleep } from "./utils/async";
-import { RootCliAdapter } from "./rootCliAdapter";
-import { WalletsCliAdapter } from "./wallets/drivers/walletsCliAdapter";
-import { web3 } from "./deps";
+import { execute, web3, initCli, terminateCli } from './deps';
+import { sleep } from './utils/async';
+import { RootCliAdapter } from './rootCliAdapter';
+import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter';
 
 /*await execute();
 
@@ -18,9 +17,10 @@ for await (const req of s) {
 
 // Init all cliAdapters
 function initCliAdapters() {
+  initCli();
   return {
     rootCliAdapter: new RootCliAdapter(),
-    walletsCliAdapter: new WalletsCliAdapter(),
+    walletsCliAdapter: new WalletsCliAdapter()
   };
 }
 
@@ -49,4 +49,5 @@ async function main() {
   await main();
 })().catch((e) => {
   console.log(e);
+  terminateCli();
 });

@@ -9,7 +9,6 @@ import { cliAdapter } from '../../../../../src/libs/cli/decorators/cliAdapter';
 import { cliEntrypoint } from '../../../../../src/libs/cli/decorators/cliEntrypoint';
 import { CliError } from '../../../../../src/libs/cli/errors/cliError';
 import { CliContext } from '../../../../../src/libs/cli/worker/cliContext';
-import { terminateCliWorker } from '../../../../../src/libs/cli/worker/cliWorker';
 import {
   MOCK_CLI_ADAPTER_COMMAND,
   MOCK_CLI_ENTRYPOINT_COMMAND,
@@ -22,7 +21,6 @@ import { MockClass } from '../mocks/mockClass';
 
 function clearTestContext(): void {
   CliContext.getInstance().clearContext();
-  terminateCliWorker();
 }
 
 test('Should get method decorator', () => {
