@@ -4,7 +4,6 @@
   "description": "",
   "main": "dist/mod.js",
   "types": "dist/mod.d.ts",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "swagger-client-generate-types": "tsc --allowJs -d --emitDeclarationOnly node_modules/swagger-client/lib/index.js",
@@ -32,6 +31,7 @@
     "typescript": "^4.5.4"
   },
   "dependencies": {
+    "server": "file:../../..",
     "swagger-client": "^3.17.0"
   }
 }

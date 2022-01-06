@@ -4,7 +4,6 @@
   "description": "",
   "main": "dist/mod.js",
   "types": "dist/mod.d.ts",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./dist && tsc && npm run build:types",
@@ -32,6 +31,7 @@
     "typescript": "^4.5.4"
   },
   "dependencies": {
-    "crypto-js": "^4.1.1"
+    "crypto-js": "^4.1.1",
+    "server": "file:../../.."
   }
 }

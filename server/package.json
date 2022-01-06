@@ -3,21 +3,32 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/app.js",
-  "type": "module",
   "directories": {
     "test": "./tests"
   },
   "scripts": {
     "start:dev": "nodemon",
-    "start": "node --loader ts-node/esm --experimental-specifier-resolution=node src/app.ts",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "start:old": "node --loader ts-node/esm --experimental-specifier-resolution=node src/app.ts",
+    "start": "ts-node src/app.ts",
+    "start:prod": "node dist/app.js",
+    "test": "jest --coverage",
     "build": "rimraf ./dist && tsc",
+    "build:dependencies": "concurrently \"npm run build:dependency:swaggger-client-mapper\" \"npm run build:dependency:cli\" \"npm run build:dependency:blockchain-communication\" \"npm run build:dependency:api-signature\"",
+    "build:dependencies:prod": "npm run build:dependency:prod:swaggger-client-mapper && npm run build:dependency:prod:cli && npm run build:dependency:prod:blockchain-communication && npm run build:dependency:prod:api-signature",
+    "build:dependency:swaggger-client-mapper": "npm --prefix src/libs/swagger-client-mapper install src/libs/swagger-client-mapper && npm run --prefix src/libs/swagger-client-mapper build",
+    "build:dependency:cli": "npm --prefix src/libs/cli install src/libs/cli && npm run --prefix src/libs/cli build",
+    "build:dependency:blockchain-communication": "npm --prefix src/libs/blockchain-communication install src/libs/blockchain-communication && npm run --prefix src/libs/blockchain-communication build",
+    "build:dependency:api-signature": "npm --prefix src/libs/api-signature install src/libs/api-signature && npm run --prefix src/libs/api-signature build",
+    "build:dependency:prod:swaggger-client-mapper": "npm --prefix src/libs/swagger-client-mapper install --only=production src/libs/swagger-client-mapper && npm run --prefix src/libs/swagger-client-mapper build",
+    "build:dependency:prod:cli": "npm --prefix src/libs/cli install --only=production src/libs/cli && npm run --prefix src/libs/cli build",
+    "build:dependency:prod:blockchain-communication": "npm --prefix src/libs/blockchain-communication install --only=production src/libs/blockchain-communication && npm run --prefix src/libs/blockchain-communication build",
+    "build:dependency:prod:api-signature": "npm --prefix src/libs/api-signature install --only=production src/libs/api-signature && npm run --prefix src/libs/api-signature build",
     "lint": "eslint . --ext .ts",
     "fix": "eslint . --ext .ts --fix",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
     "ts-node-show-config": "ts-node --show-config",
     "debug": "node --inspect-brk --loader ts-node/esm --experimental-specifier-resolution=node src/app.ts",
-    "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
+    "test:debug": "node --inspect-brk node_modules/jest/bin/jest.js --runInBand"
   },
   "keywords": [],
   "author": "",
@@ -42,15 +53,13 @@
     "api-signature": "file:src/libs/api-signature",
     "blockchain-communication": "file:src/libs/blockchain-communication",
     "cli": "file:src/libs/cli",
+    "concurrently": "^7.0.0",
     "dotenv": "^10.0.0",
     "swagger-client-mapper": "file:src/libs/swagger-client-mapper"
   },
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
-    "extensionsToTreatAsEsm": [
-      ".ts"
-    ],
     "globals": {
       "ts-jest": {
         "useESM": true

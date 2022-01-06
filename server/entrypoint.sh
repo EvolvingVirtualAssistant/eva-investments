@@ -1,19 +1,33 @@
-#!/bin/sh
+#!/usr/bin/env bash
 set -e
 
 case "$1" in
-bundle | cache | compile | completions | coverage | doc | eval | fmt | help | info | install | lint | lsp | repl | run | test | types | upgrade)
+run)
+    ARGS=("$@")
     if [ "${BUILD_MODE}" = 'production' ]; then
-        echo 'Starting compiled deno app'
-        ./app
+        echo 'Starting compiled nodejs app'
+        array_length=${#ARGS[@]}
+        last_token="${ARGS[$(("$array_length" - 1))]}:prod"
+        unset "ARGS[-1]"
+        ARGS=("${ARGS[@]} ${last_token}")
+        echo "Executing: npm" "${ARGS[@]}"
+        command $(echo npm "$ARGS")
     elif [ "${BUILD_MODE}" = 'development' ]; then
-        echo 'Starting denon'
-        exec denon "$@"
+        echo 'Starting nodemon'
+        array_length=${#ARGS[@]}
+        last_token="${ARGS[$(("$array_length" - 1))]}:dev"
+        unset "ARGS[-1]"
+        ARGS=("${ARGS[@]} ${last_token}")
+        echo "Executing: npm" "${ARGS[@]}"
+        command $(echo npm "$ARGS")
     else
-        echo 'Starting deno'
-        exec deno "$@"
+        echo 'Starting node app'
+        echo "Executing: npm" "$@"
+        command $(echo npm "$@")
     fi
     ;;
 esac
 
-exec "$@"
+echo "No command match"
+echo "Executing: npm" "$@"
+command $(echo npm "$@")

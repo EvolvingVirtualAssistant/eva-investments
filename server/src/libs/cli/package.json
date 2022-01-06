@@ -4,7 +4,6 @@
   "description": "",
   "main": "dist/mod.js",
   "types": "dist/mod.d.ts",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./dist && tsc && npm run build:types",
@@ -29,5 +28,8 @@
     "rimraf": "^3.0.2",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "server": "file:../../.."
   }
 }
