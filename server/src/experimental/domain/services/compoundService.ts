@@ -1,22 +1,22 @@
-import { ExperimentalCliConstants } from '../../../constants/cliConstants.ts';
-import { println } from '../../../libs/cli/mod.ts';
+import { ExperimentalCliConstants } from '../../../constants/cliConstants';
+import { println } from '../../../deps';
 import {
   equationToString,
-  parseEquation,
-} from '../../../libs/math/equations/equationParser.ts';
+  parseEquation
+} from '../../../libs/math/equations/equationParser';
 import {
   solveEquations,
-  getConstantBySolvingExpression,
-} from '../../../libs/math/equations/equationSolver.ts';
+  getConstantBySolvingExpression
+} from '../../../libs/math/equations/equationSolver';
 import {
   getAugmentedMatrices,
   solveLinearMatrices,
-  solveMatricesUnresolved,
-} from '../../../libs/math/matrices/matricesSolver.ts';
-import { Dictionary, Equation } from '../../../libs/math/types/math.types.ts';
-import { deepCopy } from '../../../libs/math/utils/deepCopy.ts';
-import { ExperimentalError } from '../../errors/exerimentalError.ts';
-import { CompoundEquations } from '../types/compound.type.ts';
+  solveMatricesUnresolved
+} from '../../../libs/math/matrices/matricesSolver';
+import { Dictionary, Equation } from '../../../libs/math/types/math.types';
+import { deepCopy } from '../../../libs/math/utils/deepCopy';
+import { ExperimentalError } from '../../errors/exerimentalError';
+import { CompoundEquations } from '../types/compound.type';
 
 export class CompoundService {
   // -------------------------- COMPOUND LONG CONSTS --------------------------
@@ -29,7 +29,7 @@ export class CompoundService {
         'IQ2*buyPInv=buyQ',
         'IQ2*buyPInv-buyQ=0',
         'IQ2*buyQInv=buyP',
-        'IQ2*buyQInv-buyP=0',
+        'IQ2*buyQInv-buyP=0'
       ],
       [
         'sellQ*sellP*sellF=IQ2',
@@ -41,7 +41,7 @@ export class CompoundService {
         '(1/sellF)*sellQInv*IQ2=sellP',
         '(1/sellF)*sellQInv*IQ2-sellP=0',
         'sellQInv*IQ2=sellF*sellP',
-        'sellQInv*IQ2-(sellF*sellP)=0',
+        'sellQInv*IQ2-(sellF*sellP)=0'
       ],
       [
         'buyF*buyQ=P1+sellQ',
@@ -54,8 +54,8 @@ export class CompoundService {
         'buyQInv=buyF/(P1+sellQ)',
         'buyQInv-(buyF/(P1+sellQ))=0',
         'sellQInv=1/((buyF*buyQ)-P1)',
-        'sellQInv-(1/((buyF*buyQ)-P1))=0',
-      ],
+        'sellQInv-(1/((buyF*buyQ)-P1))=0'
+      ]
     ],
     postMatrixSolvedEquations: [
       'buyPInv=1/buyP',
@@ -65,8 +65,8 @@ export class CompoundService {
       'buyP=1/buyPInv',
       'sellP=1/sellPInv',
       'buyQ=1/buyQInv',
-      'sellQ=1/sellQInv',
-    ],
+      'sellQ=1/sellQInv'
+    ]
   };
 
   static readonly COMPOUND_LONG_EQUATIONS_DERIVATIONS: Equation[] =
@@ -94,7 +94,7 @@ export class CompoundService {
         'buyPInv',
         'sellPInv',
         'buyQInv',
-        'sellQInv',
+        'sellQInv'
       ]
     );
 
@@ -120,7 +120,7 @@ export class CompoundService {
         'buyP=(sellF*sellQ*sellP)/buyQ',
         'buyP-(((sellF*sellQ)/buyQ)*sellP)=0',
         'buyP-(((sellF*sellP)/buyQ)*sellQ)=0',
-        'buyP-(sellF*sellP*sellQ*buyQInv)=0',
+        'buyP-(sellF*sellP*sellQ*buyQInv)=0'
       ],
       [
         'F*sellQ=(FQ1*buyP)/sellP',
@@ -138,7 +138,7 @@ export class CompoundService {
         'buyP=(F*sellQ*sellP)/FQ1',
         'buyP-(((F*sellQ)/FQ1)*sellP)=0',
         'buyP-(((F*sellP)/FQ1)*sellQ)=0',
-        'buyP-(F*sellP*sellQ*FQ1Inv)=0',
+        'buyP-(F*sellP*sellQ*FQ1Inv)=0'
       ],
       [
         'buyF*buyQ=P1+sellQ',
@@ -151,8 +151,8 @@ export class CompoundService {
         'buyQInv=buyF/(P1+sellQ)',
         'buyQInv-(buyF/(P1+sellQ))=0',
         'sellQInv=1/((buyF*buyQ)-P1)',
-        'sellQInv-(1/((buyF*buyQ)-P1))=0',
-      ],
+        'sellQInv-(1/((buyF*buyQ)-P1))=0'
+      ]
     ],
     postMatrixSolvedEquations: [
       'buyPInv=1/buyP',
@@ -164,8 +164,8 @@ export class CompoundService {
       'buyQ=1/buyQInv',
       'sellQ=1/sellQInv',
       'FQ1=1/FQ1Inv',
-      'FQ1Inv=1/FQ1',
-    ],
+      'FQ1Inv=1/FQ1'
+    ]
   };
 
   static readonly COMPOUND_SHORT_EQUATIONS_DERIVATIONS: Equation[] =
@@ -194,7 +194,7 @@ export class CompoundService {
         'sellPInv',
         'buyQInv',
         'sellQInv',
-        'FQ1Inv',
+        'FQ1Inv'
       ]
     );
 
@@ -233,7 +233,7 @@ export class CompoundService {
       'sellP=55500',
       'IQ2=90',
       'buyF=0.999',
-      'sellF=0.999',
+      'sellF=0.999'
     ];
 
     return this.singleCompoundLong(inputEquations);
@@ -306,7 +306,7 @@ export class CompoundService {
       'sellQ=0.002',
       'buyF=0.999',
       'sellF=0.999',
-      'F=0.998001',
+      'F=0.998001'
     ];
 
     return this.singleCompoundShort(inputEquations);
@@ -359,7 +359,7 @@ export class CompoundService {
       'sellP=1.824',
       'buyQ=0.9312756679179',
       `buyF=${buyF}`,
-      `sellF=${sellF}`,
+      `sellF=${sellF}`
     ];
 
     const longSolution = this.singleCompoundLong(inputEquations);
@@ -424,7 +424,7 @@ export class CompoundService {
       'sellQ=400',
       `buyF=${buyF}`,
       `sellF=${sellF}`,
-      `F=${F}`,
+      `F=${F}`
     ];
 
     const shortSolution = this.singleCompoundShort(inputEquations);
@@ -486,7 +486,7 @@ export class CompoundService {
       return equations.every((eq) => {
         const leftConstant = getConstantBySolvingExpression(eq.leftExpression, [
           sol,
-          count,
+          count
         ]);
 
         if (leftConstant == null) {
@@ -533,7 +533,7 @@ export class CompoundService {
       'FQ1=buyQ*buyF',
       'FQ1=sellQ+P1',
       'P1=(buyQ*buyF)-sellQ',
-      'P1=FQ1-sellQ',
+      'P1=FQ1-sellQ'
     ];
 
     const inputEquations: string[] = [
@@ -541,7 +541,7 @@ export class CompoundService {
       'P1=0.2',
       'IQ2=90',
       'buyF=0.999',
-      'sellF=0.999',
+      'sellF=0.999'
     ];
 
     const equations = equationsToSolve.map((eq) => parseEquation(eq));
@@ -606,7 +606,7 @@ export class CompoundService {
       'FQ1=(sellP*sellQ*F)/buyP',
       'P1=(buyQ*buyF)-sellQ',
       'P1=((sellP*sellQ*F)/buyP)-sellQ',
-      'P1=FQ1-sellQ',
+      'P1=FQ1-sellQ'
     ];
 
     const inputEquations: string[] = [
@@ -615,7 +615,7 @@ export class CompoundService {
       'P1=1.2',
       'buyF=0.999',
       'sellF=0.999',
-      'F=0.998001',
+      'F=0.998001'
     ];
 
     const equations = equationsToSolve.map((eq) => parseEquation(eq));
@@ -684,7 +684,7 @@ export class CompoundService {
       buy_token_1_price_in_token_2,
       sell_token_1_price_in_token_2,
       buy_quantity_token_1,
-      sell_quantity_token_1,
+      sell_quantity_token_1
     ] = this.shortGetQuantitiesAndPrices(
       value_1,
       value_2,
@@ -748,10 +748,10 @@ export class CompoundService {
     sellFeeReduction: number,
     feeReduction: number
   ): [number, number, number, number] {
-    var sellPrice = 0;
-    var buyPrice = 0;
-    var sellQuantity = 0;
-    var buyQuantity = 0;
+    let sellPrice = 0;
+    let buyPrice = 0;
+    let sellQuantity = 0;
+    let buyQuantity = 0;
 
     switch (value1Label) {
       case ExperimentalCliConstants.BUY_PRICE:

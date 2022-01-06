@@ -1,17 +1,17 @@
 import {
   equationToString,
   expressionToString,
-  parseExpression,
-} from '../equations/equationParser.ts';
+  parseExpression
+} from '../equations/equationParser';
 import {
   getConstantBySolvingExpression,
   getSolvedVariables,
   getVariableCoefficients,
   replaceVariablesByConstants,
   solveEquationsWithPreSolvedVars,
-  solveExpression,
-} from '../equations/equationSolver.ts';
-import { gauss } from '../equations/gaussianElimination.ts';
+  solveExpression
+} from '../equations/equationSolver';
+import { gauss } from '../equations/gaussianElimination';
 import {
   Dictionary,
   Equation,
@@ -23,9 +23,9 @@ import {
   LinearMatrixRow,
   LinearMatrixRowUnresolved,
   LinearMatrixUnresolved,
-  Term,
-} from '../types/math.types.ts';
-import { deepCopy } from '../utils/deepCopy.ts';
+  Term
+} from '../types/math.types';
+import { deepCopy } from '../utils/deepCopy';
 
 export function combineMatrices(
   equations: LinearMatrixRow[][]
@@ -52,7 +52,7 @@ function combos(
   current: LinearMatrix = {
     rows: [],
     variables: new Set<string>(),
-    constants: new Set<string>(),
+    constants: new Set<string>()
   }
 ): LinearMatrix[] {
   if (n === equations.length) {
@@ -61,7 +61,7 @@ function combos(
     equations[n].forEach((variation) => {
       const variables = new Set<string>([
         ...current.variables,
-        ...variation.coefficientsAndVariables.map((elem) => elem[1]),
+        ...variation.coefficientsAndVariables.map((elem) => elem[1])
       ]);
 
       const constants = new Set<string>([
@@ -69,14 +69,14 @@ function combos(
         ...(typeof variation.constant === 'string' ? [variation.constant] : []),
         ...variation.coefficientsAndVariables
           .filter((elem) => typeof elem[0] === 'string')
-          .map((elem) => elem[0] as string),
+          .map((elem) => elem[0] as string)
       ]);
 
       if (variables.size <= maxNumOfVars) {
         combos(equations, maxNumOfVars, n + 1, matrices, {
           rows: alignRowsByVariables([...current.rows, variation]),
           variables,
-          constants,
+          constants
         } as LinearMatrix);
       }
     });
@@ -94,7 +94,7 @@ function combosUnresolved(
   current: LinearMatrixUnresolved = {
     rows: [],
     variables: new Set<string>(),
-    constants: new Set<string>(),
+    constants: new Set<string>()
   }
 ): LinearMatrixUnresolved[] {
   if (n === equations.length) {
@@ -103,22 +103,22 @@ function combosUnresolved(
     equations[n].forEach((variation) => {
       const variables = new Set<string>([
         ...current.variables,
-        ...variation.coefficientsAndVariables.map((elem) => elem[1]),
+        ...variation.coefficientsAndVariables.map((elem) => elem[1])
       ]);
 
       const constants = new Set<string>([
         ...current.constants,
         ...getVariablesFromExpression(variation.constant),
         ...variation.coefficientsAndVariables.flatMap((elem) => [
-          ...getVariablesFromExpression(elem[0]),
-        ]),
+          ...getVariablesFromExpression(elem[0])
+        ])
       ]);
 
       if (variables.size <= maxNumOfVars) {
         combosUnresolved(equations, maxNumOfVars, n + 1, matrices, {
           rows: alignRowsByVariables([...current.rows, variation]),
           variables,
-          constants,
+          constants
         } as LinearMatrixUnresolved);
       }
     });
@@ -219,7 +219,7 @@ export function linearMatrixToNumber(matrix: LinearMatrix): number[][] {
       ...matrix.rows[i].coefficientsAndVariables.map(
         (elem) => elem[0] as number
       ),
-      matrix.rows[i].constant as number,
+      matrix.rows[i].constant as number
     ]);
   }
 
@@ -450,10 +450,10 @@ function getLinearMatrixRow(
     resRow = {
       coefficientsAndVariables: rightRow.map((elem, index) => [
         elem !== undefined ? elem : getConstantExpression(0),
-        variables[index],
+        variables[index]
       ]),
       constant: equation.leftExpression,
-      equation,
+      equation
     };
 
     if (!rowHasAllExpressionVariables(equation.rightExpression, resRow)) {
@@ -464,10 +464,10 @@ function getLinearMatrixRow(
     resRow = {
       coefficientsAndVariables: leftRow.map((elem, index) => [
         elem !== undefined ? elem : getConstantExpression(0),
-        variables[index],
+        variables[index]
       ]),
       constant: equation.rightExpression,
-      equation,
+      equation
     };
 
     if (!rowHasAllExpressionVariables(equation.leftExpression, resRow)) {
@@ -497,7 +497,7 @@ function rowHasAllExpressionVariables(
 function getConstantExpression(value: number): Expression {
   return {
     values: [{ value: { value, type: 'Constant' }, type: 'Term' } as Term],
-    type: 'Expression',
+    type: 'Expression'
   } as Expression;
 }
 
@@ -586,7 +586,7 @@ export function solveMatricesUnresolved(
           return {
             equation: row.equation,
             coefficientsAndVariables,
-            constant: constant.value,
+            constant: constant.value
           } as LinearMatrixRow;
         })
         .filter((row) => row !== undefined);
@@ -598,7 +598,7 @@ export function solveMatricesUnresolved(
       return {
         rows,
         variables: matrix.variables,
-        constants: matrix.constants,
+        constants: matrix.constants
       } as LinearMatrix;
     })
     .filter((matrix) => matrix !== undefined) as LinearMatrix[];

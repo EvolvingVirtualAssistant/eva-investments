@@ -1,5 +1,5 @@
-import { EquationConstants } from './../constants/mathConstants.ts';
-import { EquationError } from './../errors/equationError.ts';
+import { EquationConstants } from './../constants/mathConstants';
+import { EquationError } from './../errors/equationError';
 import {
   Constant,
   Equation,
@@ -12,8 +12,8 @@ import {
   Variable,
   isExpression,
   isTerm,
-  isVariable,
-} from './../types/math.types.ts';
+  isVariable
+} from './../types/math.types';
 
 export function parseEquation(equation: string): Equation {
   if (equation.trim() === '') {
@@ -38,7 +38,7 @@ export function parseEquation(equation: string): Equation {
   return {
     leftExpression,
     rightExpression,
-    variables,
+    variables
   };
 }
 
@@ -172,7 +172,7 @@ function buildExpression(
     } else if (matches[j] === '#') {
       exprTreeLayer.push({
         value: { value: matches[j], type: 'Variable' } as Variable,
-        type: 'Term',
+        type: 'Term'
       } as Term);
     } else {
       if (j > 0 && !isStringOperator(matches[j - 1])) {
@@ -186,12 +186,12 @@ function buildExpression(
       if (!isNaN(Number(matches[j]))) {
         exprTreeLayer.push({
           value: { value: Number(matches[j]), type: 'Constant' } as Constant,
-          type: 'Term',
+          type: 'Term'
         } as Term);
       } else {
         exprTreeLayer.push({
           value: { value: matches[j], type: 'Variable' } as Variable,
-          type: 'Term',
+          type: 'Term'
         } as Term);
         variables.add(matches[j]);
       }

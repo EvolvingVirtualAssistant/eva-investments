@@ -14,10 +14,10 @@ import {
   isAddition,
   isSubtraction,
   Operator,
-  Variable,
-} from './../types/math.types.ts';
-import { equationToString } from './equationParser.ts';
-import { deepCopy } from './../utils/deepCopy.ts';
+  Variable
+} from './../types/math.types';
+import { equationToString } from './equationParser';
+import { deepCopy } from './../utils/deepCopy';
 
 // Consider this in case of issues with roundings
 //import Big from 'https://raw.githubusercontent.com/mikemcl/big.js/v6.0.0/big.mjs';
@@ -204,7 +204,7 @@ function solveByOperators(
       expression.values[index] = calculate(
         {
           value: isSubtraction(expression.values[index] as Operator) ? -1 : 1,
-          type: 'Constant',
+          type: 'Constant'
         },
         rightConstant,
         { value: '*' }
@@ -252,34 +252,34 @@ function calculate(
     return {
       value: {
         value: leftConstant.value / rightConstant.value,
-        type: 'Constant',
+        type: 'Constant'
       },
-      type: 'Term',
+      type: 'Term'
     };
   } else if (isMultiplication(operator)) {
     return {
       value: {
         value: leftConstant.value * rightConstant.value,
-        type: 'Constant',
+        type: 'Constant'
       },
-      type: 'Term',
+      type: 'Term'
     };
   } else if (isAddition(operator)) {
     return {
       value: {
         value: leftConstant.value + rightConstant.value,
-        type: 'Constant',
+        type: 'Constant'
       },
-      type: 'Term',
+      type: 'Term'
     };
   }
 
   return {
     value: {
       value: leftConstant.value - rightConstant.value,
-      type: 'Constant',
+      type: 'Constant'
     },
-    type: 'Term',
+    type: 'Term'
   };
 }
 
@@ -352,7 +352,7 @@ export function replaceVariablesByConstants(
       if (value != null) {
         (expression.values[i] as Term).value = {
           value,
-          type: 'Constant',
+          type: 'Constant'
         } as Constant;
       } else {
         variablesToSolve++;
@@ -419,7 +419,7 @@ function getCoefficients(
   variableIndex: number,
   variableDefaultCoefficient: Term | Expression = {
     value: { value: 1, type: 'Constant' } as Constant,
-    type: 'Term',
+    type: 'Term'
   } as Term
 ): Expression {
   // Initialize coefficients with 1 (if no coefficients are found to the right or left, or even if they are,
@@ -428,7 +428,7 @@ function getCoefficients(
   // is itself an expression of coefficients, that will be "bubbled up"
   const coefficients: Expression = {
     values: [variableDefaultCoefficient],
-    type: 'Expression',
+    type: 'Expression'
   };
 
   // Search to the right

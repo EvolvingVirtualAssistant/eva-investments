@@ -1,19 +1,19 @@
 import {
   CliConstants,
-  ExperimentalCliConstants,
-} from '../../constants/cliConstants.ts';
+  ExperimentalCliConstants
+} from '../../constants/cliConstants';
 import {
   cliAdapter,
   cliEntrypoint,
   getAllCliEntrypointsByCliAdapter,
-  println,
-} from '../../libs/cli/mod.ts';
-import { Dictionary } from '../../libs/math/types/math.types.ts';
-import { CompoundService } from '../domain/services/compoundService.ts';
+  println
+} from './../../deps';
+import { Dictionary } from '../../libs/math/types/math.types';
+import { CompoundService } from '../domain/services/compoundService';
 
 @cliAdapter({
   tokens: [ExperimentalCliConstants.ADAPTER_TOKEN],
-  description: ExperimentalCliConstants.ADAPTER_DESCRIPTION,
+  description: ExperimentalCliConstants.ADAPTER_DESCRIPTION
 })
 export class ExperimentalCliAdapter {
   private compoundService: CompoundService;
@@ -26,9 +26,9 @@ export class ExperimentalCliAdapter {
     {
       tokens: [
         CliConstants.OPTION_HELP_TOKEN_1,
-        CliConstants.OPTION_HELP_TOKEN_2,
+        CliConstants.OPTION_HELP_TOKEN_2
       ],
-      description: CliConstants.OPTION_HELP_DESCRIPTION,
+      description: CliConstants.OPTION_HELP_DESCRIPTION
     },
     true
   )
@@ -47,7 +47,7 @@ export class ExperimentalCliAdapter {
                   ...entry.tokens.map((t) => [t])
                 ),
                 entry.description
-              ),
+              )
             ])
           )
         )
@@ -57,7 +57,7 @@ export class ExperimentalCliAdapter {
   @cliEntrypoint({
     tokens: ['compound_long_matrix'],
     description:
-      'Simple compound long position strategy. Args = token1, token2 (i.e., token 1 and 2 symbols)',
+      'Simple compound long position strategy. Args = token1, token2 (i.e., token 1 and 2 symbols)'
   })
   compoundLongMatrices(token1: string, token2: string): void {
     const solution: Dictionary<number> | undefined =
@@ -100,7 +100,7 @@ export class ExperimentalCliAdapter {
   @cliEntrypoint({
     tokens: ['compound_short_matrix'],
     description:
-      'Simple compound short position strategy. Args = token1, token2 (i.e., token 1 and 2 symbols)',
+      'Simple compound short position strategy. Args = token1, token2 (i.e., token 1 and 2 symbols)'
   })
   compoundShortMatrices(token1: string, token2: string): void {
     const solution: Dictionary<number> | undefined =
@@ -143,7 +143,7 @@ export class ExperimentalCliAdapter {
   @cliEntrypoint({
     tokens: ['compound_long_with_inverse_matrix'],
     description:
-      'Simple compound long position strategy, with information for a short strategy on the token 2 of the pair. Args = token1, token2 (i.e., token 1 and 2 symbols)',
+      'Simple compound long position strategy, with information for a short strategy on the token 2 of the pair. Args = token1, token2 (i.e., token 1 and 2 symbols)'
   })
   compoundLongWithInverseMatrices(token1: string, token2: string): void {
     const solution:
@@ -221,14 +221,14 @@ export class ExperimentalCliAdapter {
     this.printForExcel(solution, [
       ['buyP', 'sellP', 'buyQ', 'sellQ', 'IQ2', 'P1', 'P1_PERC'],
       ['buyP', 'sellP', 'buyQ', 'sellQ', 'FQ1', 'P1', 'P1_PERC'],
-      ['buyP', 'sellP', 'buyQ', 'sellQ', 'FQ2', 'P2', 'P2_PERC'],
+      ['buyP', 'sellP', 'buyQ', 'sellQ', 'FQ2', 'P2', 'P2_PERC']
     ]);
   }
 
   @cliEntrypoint({
     tokens: ['compound_short_with_inverse_matrix'],
     description:
-      'Simple compound short position strategy, with information for a long strategy on the token 2 of the pair. Args = token1, token2 (i.e., token 1 and 2 symbols)',
+      'Simple compound short position strategy, with information for a long strategy on the token 2 of the pair. Args = token1, token2 (i.e., token 1 and 2 symbols)'
   })
   compoundShortWithInverseMatrices(token1: string, token2: string): void {
     const solution:
@@ -306,7 +306,7 @@ export class ExperimentalCliAdapter {
     this.printForExcel(solution, [
       ['buyP', 'sellP', 'buyQ', 'sellQ', 'FQ1', 'P1', 'P1_PERC'],
       ['buyP', 'sellP', 'buyQ', 'sellQ', 'IQ2', 'P1', 'P1_PERC'],
-      ['buyP', 'sellP', 'buyQ', 'sellQ', 'IQ2', 'P2', 'P2_PERC'],
+      ['buyP', 'sellP', 'buyQ', 'sellQ', 'IQ2', 'P2', 'P2_PERC']
     ]);
   }
 
