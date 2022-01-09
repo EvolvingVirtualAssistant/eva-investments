@@ -1,8 +1,6 @@
 class AccountNotFoundError extends Error {
   constructor(address: string) {
-    super(
-      `Could not find account with address: ${address}.`,
-    );
+    super(`Could not find account with address: ${address}.`);
   }
 }
 

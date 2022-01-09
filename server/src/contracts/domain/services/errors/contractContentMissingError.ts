@@ -4,11 +4,11 @@ class ContractContentMissingError extends Error {
     contractName: string,
     contractJson: string,
     contractByteCode: string,
-    abi: [],
+    abi: []
   ) {
     super(
       `Could not load contract ${contractName} (found in ${contractPath}) successfully. 
-      contractJson exists: ${!!contractJson} , contractByteCode exists: ${!!contractByteCode} , abi exists: ${!!abi}`,
+      contractJson exists: ${!!contractJson} , contractByteCode exists: ${!!contractByteCode} , abi exists: ${!!abi}`
     );
   }
 }

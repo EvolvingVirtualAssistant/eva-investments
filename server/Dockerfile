@@ -26,6 +26,13 @@ RUN npm install -g ganache-cli
 # expose port 8545 (default ganache port)
 EXPOSE 8545
 
+# install geth and other tooling to interact with blockchain
+RUN curl -fsSL https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.15-8be800ff.tar.gz --output geth-linux-amd64-1.10.15-8be800ff.tar.gz \
+    && tar --directory=/opt -xvf geth-linux-amd64-1.10.15-8be800ff.tar.gz \
+    && rm geth-linux-amd64-1.10.15-8be800ff.tar.gz
+
+ENV PATH "$PATH:/opt/geth-linux-amd64-1.10.15-8be800ff"
+
 CMD ganache-cli -v -h 0.0.0.0 \ 
     --account=\"$(cat run/secrets/test_acc1_priv_key),100000000000000000000\" \
     --account=\"$(cat run/secrets/test_acc2_priv_key),100000000000000000000\"

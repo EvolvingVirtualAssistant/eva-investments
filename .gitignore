@@ -13,3 +13,6 @@ coverage
 
 # test temp file
 tempSampleNodesOptions.json
+
+# Solidity
+bin/

@@ -1,11 +1,5 @@
 import { readJsonFile, readTextFile } from '../../../utils/files';
-import {
-  Unit,
-  TransactionReceipt,
-  pathJoin,
-  ROOT_PATH,
-  envConfig
-} from '../../../deps';
+import { Unit, TransactionReceipt, pathJoin, ROOT_PATH } from '../../../deps';
 import { web3 } from '../../../libs/blockchain-communication/mod';
 import AccountNotFoundError from './errors/accountNotFoundError';
 import ContractContentMissingError from './errors/contractContentMissingError';
@@ -81,12 +75,14 @@ export class DeployContractService {
           latestBlockHash?: string
         ) => {
           console.log(
-            `Transaction confirmed. ConfirmationNumber: ${confirmationNumber} , LatestBlockHash: ${latestBlockHash} , Receipt: ${receipt}`
+            `Transaction confirmed. ConfirmationNumber: ${confirmationNumber} , LatestBlockHash: ${latestBlockHash} , Receipt: ${JSON.stringify(
+              receipt
+            )}`
           );
         }
       );
 
-    console.log(`Contract deployed receipt: ${createReceipt}`);
+    console.log(`Contract deployed receipt: ${JSON.stringify(createReceipt)}`);
 
     if (!createReceipt.contractAddress) {
       throw new Error('Contract address not available');
@@ -100,7 +96,7 @@ export class DeployContractService {
   ): Promise<Account | undefined> {
     const accountsPath: string = pathJoin(
       ROOT_PATH,
-      envConfig.parsed?.[this.ACCOUNTS_KEY] || ''
+      process.env[this.ACCOUNTS_KEY] || ''
     );
     const accounts = readJsonFile(accountsPath);
     if (!accounts) {
