@@ -2,14 +2,14 @@ import {
   cliAdapter,
   cliEntrypoint,
   getAllCliEntrypointsByCliAdapter,
-  println
-} from '../../libs/cli/mod';
+  println,
+  Unit
+} from '../../deps';
 import {
   CliConstants,
   ContractsCliConstants
 } from '../../constants/cliConstants';
 import { DeployContractService } from '../domain/services/deployContractService';
-import { Unit } from '../../deps';
 
 @cliAdapter({
   tokens: [ContractsCliConstants.ADAPTER_TOKEN],
@@ -54,13 +54,10 @@ export class ContractsCliAdapter {
     );
   }
 
-  @cliEntrypoint(
-    {
-      tokens: [ContractsCliConstants.CONTRACTS_DEPLOY_TOKEN],
-      description: ContractsCliConstants.CONTRACTS_DEPLOY_DESCRIPTION
-    },
-    true
-  )
+  @cliEntrypoint({
+    tokens: [ContractsCliConstants.CONTRACTS_DEPLOY_TOKEN],
+    description: ContractsCliConstants.CONTRACTS_DEPLOY_DESCRIPTION
+  })
   async deployContract(
     contractPath: string,
     contractName: string,
@@ -71,24 +68,20 @@ export class ContractsCliAdapter {
     gasPrice: string,
     ethereUnit: string
   ): Promise<void> {
-    //const deployedContractAddress = await this.deployContractService.deploy(
-    //  compiledContractPath,
-    //  deployerAccountAddress,
-    //  host,
-    //  gas,
-    //  gasPrice,
-    //  ethereUnit as EthereUnit,
-    //);
-    const deployedContractAddress = await this.deployContractService.deploy(
-      contractPath, //"D:/Projetos/eva/eva-investments-private/contracts/evaSwap.sol",
-      contractName, //"EvaSwap",
-      compiledContractPath, //"D:/Projetos/eva/eva-investments-private/bin/contracts/evaSwap-solc-output.json",
-      deployerAccountAddress, //"0xc4F39aC7664043A89a9815F0487A5D02b0338B6b",
-      host, //"http://localhost:8545",
-      gas, //750000,
-      gasPrice, //"1.2444",
-      ethereUnit as Unit //"gwei" as EthereUnit,
-    );
-    await println(`Deployed contract address: ${deployedContractAddress}`);
+    try {
+      const deployedContractAddress = await this.deployContractService.deploy(
+        contractPath,
+        contractName,
+        compiledContractPath,
+        deployerAccountAddress,
+        host,
+        gas,
+        gasPrice,
+        ethereUnit as Unit
+      );
+      await println(`Deployed contract address: ${deployedContractAddress}`);
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
