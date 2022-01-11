@@ -9,19 +9,13 @@ import {
   CliConstants,
   ContractsCliConstants
 } from '../../constants/cliConstants';
-import { DeployContractService } from '../domain/services/deployContractService';
+import { deploy } from '../domain/services/deployContractService';
 
 @cliAdapter({
   tokens: [ContractsCliConstants.ADAPTER_TOKEN],
   description: ContractsCliConstants.ADAPTER_DESCRIPTION
 })
 export class ContractsCliAdapter {
-  private readonly deployContractService: DeployContractService;
-
-  constructor(deployContractService: DeployContractService) {
-    this.deployContractService = deployContractService;
-  }
-
   @cliEntrypoint(
     {
       tokens: [
@@ -69,7 +63,7 @@ export class ContractsCliAdapter {
     ethereUnit: string
   ): Promise<void> {
     try {
-      const deployedContractAddress = await this.deployContractService.deploy(
+      const deployedContractAddress = await deploy(
         contractPath,
         contractName,
         compiledContractPath,

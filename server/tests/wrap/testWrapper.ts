@@ -92,3 +92,50 @@ export function assertArrayIncludes(
     throw new Error(msg);
   }
 }
+
+export function assertNotNull(actual: unknown, msg?: string) {
+  try {
+    expect(actual).not.toBeNull();
+  } catch (e) {
+    if (msg == null) {
+      throw e;
+    }
+
+    throw new Error(msg);
+  }
+}
+
+//still missing
+//toBeLessThan
+//toBeGreaterThanOrEqual
+export function assertToBeGreaterThan(
+  actual: number | bigint,
+  expected: number | bigint,
+  msg?: string
+) {
+  try {
+    expect(actual).toBeGreaterThan(expected);
+  } catch (e) {
+    if (msg == null) {
+      throw e;
+    }
+
+    throw new Error(msg);
+  }
+}
+
+export function assertToBeLessThanOrEqual(
+  actual: number | bigint,
+  expected: number | bigint,
+  msg?: string
+) {
+  try {
+    expect(actual).toBeLessThanOrEqual(expected);
+  } catch (e) {
+    if (msg == null) {
+      throw e;
+    }
+
+    throw new Error(msg);
+  }
+}
