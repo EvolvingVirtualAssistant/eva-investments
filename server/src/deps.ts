@@ -39,7 +39,8 @@ export {
   buildIpcNodeOptions,
   buildWsNodeOptions
   Unit,
-  TransactionReceipt
+  TransactionReceipt,
+  ContractSendMethod
 } from 'blockchain-communication';
 
 export {
