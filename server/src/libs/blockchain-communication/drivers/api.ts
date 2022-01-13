@@ -6,6 +6,12 @@
 import { setupProxy } from '../domain/services/proxy';
 import { Web3 } from '../deps';
 import { sleep } from '../utils/async';
+import { NodesConfigRepository } from '../driven/repositories/nodesConfigRepository';
+import { NodesRepository } from '../driven/repositories/nodesRepository';
+import { NodeOptions } from '../domain/entities/nodeOptions';
+import { Node } from '../domain/entities/node';
+import { NodeError } from '../errors/nodeError';
+import { loadNodes } from '../domain/services/nodesLoader';
 
 /*var options = {
       keepAlive: true,
@@ -56,7 +62,7 @@ Deno.test('Should load config nodes on json rpc wrapper initialization', () => {
   const originalValue = Deno.env.get(BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY);
   Deno.env.set(
     BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY,
-    currentDirPath + '/sampleNodes.json'
+    currentDirPath + '/sampleNodesOptions.json'
   );
   cleanRepositories();
 
@@ -75,6 +81,7 @@ Deno.test('Should load config nodes on json rpc wrapper initialization', () => {
 });
 */
 
+// Have a file with the mappings of callbacks for web3 methods in resources.
 const callbacks: [
   string,
   ((targetObj: object, thisArg: any, argumentsList: any[]) => any)[]
@@ -106,6 +113,25 @@ const callbacks: [
 //  new Web3.providers.HttpProvider('http://localhost:8545')
 //);
 //web3Provider.eth.getAccounts().then(console.log);
-const web3 = new Web3(); //setupProxy(new Web3(), callbacks, '.');
 
-export { web3 };
+export class BlockchainCommunication {
+  private nodesConfigRepository: NodesConfigRepository;
+  private nodesRepository: NodesRepository;
+
+  web3: Web3;
+
+  constructor(
+    nodesConfigRepository: NodesConfigRepository,
+    nodesRepository: NodesRepository
+  ) {
+    this.nodesConfigRepository = nodesConfigRepository;
+    this.nodesRepository = nodesRepository;
+
+    this.web3 = this.setupWeb3Proxy();
+    loadNodes(this.nodesConfigRepository, this.nodesRepository);
+  }
+
+  private setupWeb3Proxy(): Web3 {
+    return new Web3(); //setupProxy(new Web3(), callbacks, '.');
+  }
+}

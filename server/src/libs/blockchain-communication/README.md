@@ -37,6 +37,55 @@ Type of node used for http based connections.
     ...
 
     // Optional fields:
+    agent: {
+        // Optional fields:
+        httpAgent: {
+            // https://nodejs.org/docs/latest-v16.x/api/http.html#new-agentoptions
+            // Optional fields:
+            keepAlive: boolean // allow sockets to be used for future requests,
+                               // without establishing new TCP connections
+                               // default: false
+            keepAliveMsecs: number // initial delay for TCP Keep-Alive packets
+                                   // default: 1000
+            maxSockets: number // max sockets per host. If this value is
+                               // exceeded, new connections will wait in queue
+                               // until a socket is available
+                               // default: Infinity
+            maxTotalSocket: number // max sockets for all hosts in total
+                                   // default: Infinity
+            maxFreeSockets: number // max number of sockets per host 
+                                   // to leave open in free state
+                                   // default: 256
+            scheduling: string // strategy used to pick the next free socket
+                               // 'lifo' -> selects least recently used socket
+                               //        -> in low request rate per second,
+                               //           lowers the risk of picking a 
+                               //           closed socket by inactivity
+                               //        -> in high request rate per second,
+                               //           minimizes number of open sockets
+                               // 'fifo' -> selects most recently used socket
+                               //        -> in high request rate per second,
+                               //           maximizes number of open sockets
+                               // default: 'lifo'
+            timeout: number // socket timout in miliseconds
+        }
+        httpsAgent: {
+            // https://nodejs.org/docs/latest-v16.x/api/https.html#new-agentoptions
+
+            // All fields from httpAgent (above)
+            ...
+
+            // Optional fields:
+            maxCachedSessions: number // max TLS cached sessions
+                                      // 0 disables TLS session caching
+                                      // default: 100
+            servername: string // SNI (Sever Name Indication) extension
+                               // '' will disable sending the extension
+                               // default: host name of the target server or
+                               // '' if target is an IP address
+        }
+        baseUrl: string // base url for the node
+    }
     withCredentials: boolean // indicates whether cross-site access-control
                              // requests should be made using credentials
                              // default: false

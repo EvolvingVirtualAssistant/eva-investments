@@ -1,4 +1,4 @@
-import { NodesRepository, BaseNode } from '../../../deps';
+import { NodesRepository, Node } from '../../../deps';
 
 export class NodesDBAdapter implements NodesRepository {
   private static instance: NodesDBAdapter;
@@ -14,16 +14,16 @@ export class NodesDBAdapter implements NodesRepository {
     return NodesDBAdapter.instance;
   }
 
-  getNodes(): BaseNode[] {
+  getNodes(): Node[] {
     throw new Error('Method not implemented.');
   }
-  save(node: BaseNode): void {
+  save(node: Node): void {
     throw new Error('Method not implemented.');
   }
-  saveAll(nodes: BaseNode[]): void {
+  saveAll(nodes: Node[]): void {
     throw new Error('Method not implemented.');
   }
-  deleteById(id: number): BaseNode {
+  deleteById(id: number): Node {
     throw new Error('Method not implemented.');
   }
   deleteAll(): void {

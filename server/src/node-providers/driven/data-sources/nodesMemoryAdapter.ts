@@ -1,10 +1,10 @@
 import { Dictionary } from '../../../types/types';
-import { NodesRepository, BaseNode } from '../../../deps';
+import { NodesRepository, Node } from '../../../deps';
 
 export class NodesMemoryAdapter implements NodesRepository {
   private static instance: NodesMemoryAdapter;
 
-  private nodes: Dictionary<BaseNode>;
+  private nodes: Dictionary<Node>;
 
   private constructor() {
     this.nodes = {};
@@ -18,7 +18,7 @@ export class NodesMemoryAdapter implements NodesRepository {
     return NodesMemoryAdapter.instance;
   }
 
-  getNodes(): BaseNode[] {
+  getNodes(): Node[] {
     const res = [];
     for (const key in this.nodes) {
       res.push(this.nodes[key]);
@@ -27,15 +27,15 @@ export class NodesMemoryAdapter implements NodesRepository {
     return res;
   }
 
-  save(node: BaseNode): void {
+  save(node: Node): void {
     this.nodes[node.id] = node;
   }
 
-  saveAll(nodes: BaseNode[]): void {
+  saveAll(nodes: Node[]): void {
     nodes.forEach((node) => this.save(node));
   }
 
-  deleteById(id: number): BaseNode {
+  deleteById(id: number): Node {
     const res = this.nodes[id];
     delete this.nodes[id];
     return res;

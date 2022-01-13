@@ -1,0 +1,6 @@
+[
+    {
+        "url": "http://some-node-url",
+        "apiKeyPath": "/tests/resources/libs/blockchain-communication/node_auth_api_key"
+    }
+]

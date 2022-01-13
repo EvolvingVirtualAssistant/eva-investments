@@ -2,13 +2,21 @@ export function test(testName: string, fn: () => any) {
   it(testName, fn);
 }
 
+export function testParameterized(
+  params: any[][],
+  testName: string,
+  fn: (...args: any[]) => any
+) {
+  it.each(params)(testName, fn);
+}
+
 export function fail(msg?: string) {
   throw new Error(`Fail ${msg || ''}`);
 }
 
 export function assertEquals(actual: unknown, expected: unknown, msg?: string) {
   try {
-    expect(actual).toBe(actual);
+    expect(actual).toStrictEqual(expected);
   } catch (e) {
     if (msg == null) {
       throw e;

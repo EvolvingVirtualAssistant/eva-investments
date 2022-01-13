@@ -1,7 +1,6 @@
 [
     {
-        "id": 1,
         "host": "http://localhost:8545",
-        "type": "HTTP"
+        "type": "INVALID_TYPE"
     }
 ]

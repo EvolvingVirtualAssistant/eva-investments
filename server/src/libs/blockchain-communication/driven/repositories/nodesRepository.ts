@@ -1,15 +1,13 @@
-// URL | API_KEY | DATE | ACCESSES (Number of writes, reads, ...) | SPEED (overall time, time per specific call)
-
-import { BaseNode } from '../../domain/entities/node';
+import { Node } from '../../domain/entities/node';
 
 export interface NodesRepository {
-  getNodes(): BaseNode[];
+  getNodes(): Node[];
 
-  save(node: BaseNode): void;
+  save(node: Node): void;
 
-  saveAll(nodes: BaseNode[]): void;
+  saveAll(nodes: Node[]): void;
 
-  deleteById(id: number): BaseNode;
+  deleteById(id: number): Node;
 
   deleteAll(): void;
 }
