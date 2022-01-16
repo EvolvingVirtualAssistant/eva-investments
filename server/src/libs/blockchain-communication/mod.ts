@@ -6,7 +6,6 @@ export {
   HttpNodeOptions,
   IpcNodeOptions,
   WsNodeOptions,
-  buildNodeOptions,
   buildHttpNodeOptions,
   buildIpcNodeOptions,
   buildWsNodeOptions

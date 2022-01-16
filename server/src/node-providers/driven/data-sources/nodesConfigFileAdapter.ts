@@ -10,7 +10,6 @@ import {
   NodeOptions,
   buildHttpNodeOptions,
   buildIpcNodeOptions,
-  buildNodeOptions,
   buildWsNodeOptions
 } from '../../../deps';
 import { isType } from '../../../../src/utils/typeGuards';
@@ -48,7 +47,7 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
   }
 
   private getTextFromPath(path: string): string {
-    const textPath: string = pathJoin(ROOT_PATH, path || '');
+    const textPath: string = pathJoin(ROOT_PATH, path?.trim() || '');
 
     return readTextFile(textPath);
   }
@@ -65,12 +64,11 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
     );
 
     return nodesOptions.map((opt) => {
-      const nodeOptions = buildNodeOptions(opt);
-      if (nodeOptions.type === 'HTTP') {
+      if (opt?.type === 'HTTP') {
         return buildHttpNodeOptions(opt);
-      } else if (nodeOptions.type === 'WS') {
+      } else if (opt?.type === 'WS') {
         return buildWsNodeOptions(opt);
-      } else if (nodeOptions.type === 'IPC') {
+      } else if (opt?.type === 'IPC') {
         return buildIpcNodeOptions(opt);
       }
 

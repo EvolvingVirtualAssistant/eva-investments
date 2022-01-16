@@ -4,56 +4,14 @@ import {
   assertThrows
 } from '../../../../../wrap/testWrapper';
 import {
-  isNodeOptions,
   isHttpNodeOptions,
   isWsNodeOptions,
   isIpcNodeOptions,
-  buildNodeOptions,
   buildHttpNodeOptions,
   buildWsNodeOptions,
   buildIpcNodeOptions
 } from '../../../../../../src/libs/blockchain-communication/domain/entities/nodeOptions';
 import { BuildNodeError } from '../../../../../../src/libs/blockchain-communication/errors/buildNodeError';
-
-test('Should be Node Options', () => {
-  const nodeOptions = {
-    host: 'some host',
-    type: 'HTTP'
-  };
-  assertEquals(isNodeOptions(nodeOptions), true);
-  const nodeOptions1 = {
-    ...nodeOptions,
-    keepAlive: true
-  };
-  assertEquals(isNodeOptions(nodeOptions1), true);
-  const nodeOptions2 = {
-    ...nodeOptions1,
-    timeout: 0
-  };
-  assertEquals(isNodeOptions(nodeOptions2), true);
-});
-
-test('Should build Node Options', () => {
-  const nodeOptions = {
-    host: 'some host',
-    type: 'HTTP',
-    keepAlive: true,
-    timeout: 0
-  };
-
-  const node = buildNodeOptions(nodeOptions);
-  assertEquals(node.type, 'HTTP');
-});
-
-test('Should not build Node Options', () => {
-  const nodeOptions = {
-    host: 'some host',
-    keepAlive: true,
-    timeout: 0
-  };
-
-  assertThrows(() => buildNodeOptions(nodeOptions), BuildNodeError);
-});
 
 test('Should be Http Node', () => {
   const httpNodeOptions = {

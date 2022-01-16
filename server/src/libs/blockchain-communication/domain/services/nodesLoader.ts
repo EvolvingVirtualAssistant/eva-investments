@@ -18,7 +18,7 @@ export function loadNodes(
   // - May want to store these somewhere else before deleting, as history to help with taking decisions in the future
   // - May want to store node options (minus the host), and add an id to each one of them, which would help with:
   //   - avoiding data duplication
-  //   - able to associate easily an identifiable options with other stats as times, speed, ..., which can be common to different hosts
+  //   - able to associate easily an identifiable options with other info, which can be common to different hosts
   nodesRepository.deleteAll();
   nodesRepository.saveAll(newNodes);
 }
@@ -88,6 +88,7 @@ function findNodesIndexByUrl(nodes: Node[], url: string) {
   return nodes.findIndex((node) => node.url === url);
 }
 
+// Good enough for what I need
 function deepEquals(obj1: unknown, obj2: unknown): boolean {
   if (typeof obj1 !== typeof obj2) {
     return false;

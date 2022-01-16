@@ -5,6 +5,6 @@
     },
     {
         "type": "HTTP",
-        "host": "http://localhost:8545"
+        "host": "http://localhost:8545 "
     }
 ]

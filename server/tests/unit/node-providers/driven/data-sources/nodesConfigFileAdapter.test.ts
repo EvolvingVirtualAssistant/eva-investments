@@ -112,7 +112,7 @@ testParameterized(
     process.env[envKey] = resourcesDirPath + filePath;
 
     const nodes: (NodeOptions | NodeAuth)[] = getMethod();
-    assertEquals(nodes.length, 1);
+    assertEquals(nodes.length, 3);
 
     process.env[envKey] = originalEnvKeyValue || '';
   }
@@ -123,7 +123,6 @@ test('Should not get nodes options on invalid node type', () => {
     resourcesDirPath + '/invalidNodeType.json';
 
   const nodes = nodesConfigFileAdapter.getNodesOptions();
-  console.log(nodes);
   assertEquals(nodes.length, 0);
 
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =

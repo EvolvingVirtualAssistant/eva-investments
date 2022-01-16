@@ -8,7 +8,8 @@ import { NodesMemoryAdapter } from '../../../../../../src/node-providers/driven/
 import {
   assertEquals,
   assertThrows,
-  test
+  test,
+  testParameterized
 } from '../../../../../wrap/testWrapper';
 import { NodeError } from 'blockchain-communication/errors/nodeError';
 
@@ -33,6 +34,8 @@ function clearContext() {
 }
 
 test('Should not load nodes if node options and nodes auth are empty', () => {
+  clearContext();
+
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =
     resourcesDirPath + '/emptyNodesOptions.json';
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY] =
@@ -47,17 +50,160 @@ test('Should not load nodes if node options and nodes auth are empty', () => {
   clearContext();
 });
 
-test('Should not load nodes if node options has duplicated elements', () => {
+testParameterized(
+  [
+    [
+      'node options has duplicated elements',
+      '/duplicatedNodesOptions.json',
+      '/sampleNodesAuth.json',
+      'Duplicated element'
+    ],
+    [
+      'node auth has duplicated elements',
+      '/sampleNodesOptions.json',
+      '/duplicatedNodesAuth.json',
+      'Duplicated element'
+    ],
+    [
+      'node auth has hosts missing in node options',
+      '/sampleNodesOptions.json',
+      '/nodesAuthOptionsWithDiffHosts.json',
+      'found in node auth collection but not in node options collection'
+    ]
+  ],
+  'Should throw error if %s',
+  (_condition, nodeOptionsFile, nodeAuthFile, errMsg) => {
+    clearContext();
+
+    process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =
+      resourcesDirPath + nodeOptionsFile;
+    process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY] =
+      resourcesDirPath + nodeAuthFile;
+
+    assertThrows(
+      () => loadNodes(nodesConfigRepository, nodesRepository),
+      NodeError,
+      errMsg
+    );
+
+    clearContext();
+  }
+);
+
+test('Should group options with the same host, under the same node', () => {
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =
-    resourcesDirPath + '/duplicatedNodesOptions.json';
+    resourcesDirPath + '/sampleNodesOptions.json';
+  process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY] =
+    resourcesDirPath + '/oneUrlNodesAuth.json';
+
+  const nodesOptions = nodesConfigRepository.getNodesOptions();
+  const nodesAuth = nodesConfigRepository.getNodesAuth();
+
+  assertEquals(nodesRepository.getNodes().length, 0);
+  assertEquals(nodesOptions.length, 3);
+  assertEquals(nodesAuth.length, 1);
+
+  loadNodes(nodesConfigRepository, nodesRepository);
+  const nodes = nodesRepository.getNodes();
+
+  assertEquals(nodes.length, 2);
+  assertEquals(nodes.flatMap((node) => node.options).length, 3);
+
+  clearContext();
+});
+
+test('Should have as many nodes as different api keys for the same url', () => {
+  clearContext();
+
+  process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =
+    resourcesDirPath + '/oneOptionNodesOptions.json';
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY] =
     resourcesDirPath + '/sampleNodesAuth.json';
 
-  assertThrows(
-    () => loadNodes(nodesConfigRepository, nodesRepository),
-    NodeError,
-    'Duplicated element'
+  const nodesOptions = nodesConfigRepository.getNodesOptions();
+  const nodesAuth = nodesConfigRepository.getNodesAuth();
+
+  assertEquals(nodesRepository.getNodes().length, 0);
+  assertEquals(nodesOptions.length, 1);
+  assertEquals(nodesAuth.length, 2);
+  assertEquals(nodesAuth[0].url, nodesAuth[1].url);
+
+  loadNodes(nodesConfigRepository, nodesRepository);
+  const nodes = nodesRepository.getNodes();
+
+  assertEquals(nodes.length, 2);
+  assertEquals(
+    nodes.every((node) => node.url === nodesAuth[0].url),
+    true
   );
+  assertEquals(nodes[0].url === nodes[1].url, true);
+  assertEquals(nodes[0].apiKey !== nodes[1].apiKey, true);
+
+  clearContext();
+});
+
+test('Should have nodes without api keys if no api key is specified for that url', () => {
+  clearContext();
+
+  process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =
+    resourcesDirPath + '/sampleNodesOptions.json';
+  process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY] =
+    resourcesDirPath + '/sampleNodesAuth.json';
+
+  const nodesOptions = nodesConfigRepository.getNodesOptions();
+  const nodesAuth = nodesConfigRepository.getNodesAuth();
+
+  assertEquals(nodesRepository.getNodes().length, 0);
+  assertEquals(nodesOptions.length, 3);
+  assertEquals(nodesAuth.length, 2);
+  assertEquals(nodesAuth[0].url, nodesAuth[1].url);
+
+  loadNodes(nodesConfigRepository, nodesRepository);
+  const nodes = nodesRepository.getNodes();
+
+  assertEquals(nodes.length, 3);
+
+  if (nodes[0].url === nodes[1].url) {
+    assertEquals(
+      nodes[0].apiKey != null &&
+        nodes[1].apiKey != null &&
+        nodes[0].apiKey !== nodes[1].apiKey,
+      true
+    );
+    assertEquals(nodes[2].apiKey == null, true);
+  } else if (nodes[0].url === nodes[2].url) {
+    assertEquals(
+      nodes[0].apiKey != null &&
+        nodes[2].apiKey != null &&
+        nodes[0].apiKey !== nodes[2].apiKey,
+      true
+    );
+    assertEquals(nodes[1].apiKey == null, true);
+  } else {
+    assertEquals(true, false, "There should've been two equal urls");
+  }
+});
+
+test('Should load nodes', () => {
+  clearContext();
+
+  process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =
+    resourcesDirPath + '/sampleNodesOptions.json';
+  process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY] =
+    resourcesDirPath + '/sampleNodesAuth.json';
+
+  const nodesOptions = nodesConfigRepository.getNodesOptions();
+  const nodesAuth = nodesConfigRepository.getNodesAuth();
+
+  assertEquals(nodesRepository.getNodes().length, 0);
+  assertEquals(nodesOptions.length, 3);
+  assertEquals(nodesAuth.length, 2);
+  assertEquals(nodesAuth[0].url, nodesAuth[1].url);
+
+  loadNodes(nodesConfigRepository, nodesRepository);
+  const nodes = nodesRepository.getNodes();
+
+  assertEquals(nodes.length, 3);
 
   clearContext();
 });

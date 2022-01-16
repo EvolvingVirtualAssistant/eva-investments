@@ -12,18 +12,6 @@ export interface NodeOptions {
   timeout?: number;
 }
 
-export function buildNodeOptions(obj: any): NodeOptions {
-  if (!isNodeOptions(obj)) {
-    throw new BuildNodeError('NodeOptions', obj);
-  }
-
-  return { ...(obj as NodeOptions) };
-}
-
-export function isNodeOptions(obj: any): boolean {
-  return isType(obj, ['host', 'type'], ['keepAlive', 'timeout']);
-}
-
 export interface Header {
   name: string;
   value: string;

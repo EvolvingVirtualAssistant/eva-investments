@@ -2,5 +2,13 @@
     {
         "host": "http://localhost:8545",
         "type": "HTTP"
+    },
+    {
+        "host": "ws://localhost",
+        "type": "WS"
+    },
+    {
+        "host": "some/file/path.ipc",
+        "type": "IPC"
     }
 ]

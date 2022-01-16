@@ -22,7 +22,6 @@ export {
   WsNodeOptions,
   buildHttpNodeOptions,
   buildIpcNodeOptions,
-  buildNodeOptions,
   buildWsNodeOptions
 } from 'blockchain-communication';
 
