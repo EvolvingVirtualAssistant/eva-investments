@@ -64,5 +64,5 @@ export const ContractsCliConstants = {
   ADAPTER_DESCRIPTION: 'Contracts related operations',
   CONTRACTS_DEPLOY_TOKEN: 'deploy',
   CONTRACTS_DEPLOY_DESCRIPTION:
-    'Deploys contract given contractPath(1) contractName(2) compiledContractPath(3) deployerAccountAddress(4) host(5) gas(6) gasPrice(7) ethereUnit(8)'
+    'Deploys contract given contractPath(1) contractName(2) compiledContractPath(3) deployerAccountAddress(4) host(5) gas(6) gasPrice(7) ethereUnit(8) contractArgsJson(9)'
 } as const;

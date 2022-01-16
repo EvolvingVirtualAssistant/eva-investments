@@ -40,7 +40,8 @@ export {
   buildWsNodeOptions
   Unit,
   TransactionReceipt,
-  ContractSendMethod
+  ContractSendMethod,
+  SignedTransaction
 } from 'blockchain-communication';
 
 export {
@@ -58,7 +59,8 @@ export {
 export { execute } from 'swagger-client-mapper';
 
 // path config
-const currentWorkingDir = process.cwd();
+const currentWorkingDir = __dirname + '/../'; //process.cwd();
+console.log('currentWorkingDir', currentWorkingDir);
 export const ROOT_PATH = findRootFolder(currentWorkingDir);
 console.log('ROOT_PATH', ROOT_PATH);
 

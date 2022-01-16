@@ -60,3 +60,5 @@ async function main() {
   console.log(e);
   terminateCli();
 });
+
+export * from './mod';
