@@ -3,6 +3,7 @@ import {
   Unit,
   TransactionReceipt,
   ContractSendMethod,
+  SignedTransaction,
   pathJoin,
   ROOT_PATH,
   web3
@@ -10,14 +11,35 @@ import {
 import AccountNotFoundError from './errors/accountNotFoundError';
 import ContractContentMissingError from './errors/contractContentMissingError';
 import NoAccountsProvidedError from './errors/noAccountsProvidedError';
-import { SignedTransaction } from 'web3-core';
 import { ACCOUNTS_KEY } from '../../constants/contractsConstants';
 
-type Account = {
+export type Account = {
   address: string;
   privateKey: string;
   privateKeyPath: string;
 };
+
+export async function deployPrecompiled(
+  precompiledContractPath: any,
+  deployerAccountAddress: string,
+  host: string,
+  gas: number,
+  gasPrice: string,
+  ethereUnit: Unit,
+  contractArguments?: unknown[]
+): Promise<string> {
+  const contractJson = readJsonFile(precompiledContractPath);
+
+  return await _deploy(
+    contractJson,
+    deployerAccountAddress,
+    host,
+    gas,
+    gasPrice,
+    ethereUnit,
+    contractArguments
+  );
+}
 
 export async function deploy(
   contractPath: string,
@@ -27,23 +49,44 @@ export async function deploy(
   host: string,
   gas: number,
   gasPrice: string,
-  ethereUnit: Unit
+  ethereUnit: Unit,
+  contractArguments?: unknown[]
 ): Promise<string> {
   let contractJson = readJsonFile(compiledContractPath);
+  contractJson = contractJson?.contracts[contractPath]?.[contractName];
 
+  return await _deploy(
+    contractJson,
+    deployerAccountAddress,
+    host,
+    gas,
+    gasPrice,
+    ethereUnit,
+    contractArguments
+  );
+}
+
+async function _deploy(
+  contractJson: any,
+  deployerAccountAddress: string,
+  host: string,
+  gas: number,
+  gasPrice: string,
+  ethereUnit: Unit,
+  contractArguments: unknown[] = []
+): Promise<string> {
   const deployerAccount = getAccountByAccountAddress(deployerAccountAddress);
   if (!deployerAccount) {
     throw new AccountNotFoundError(deployerAccountAddress);
   }
-
-  contractJson = contractJson?.contracts[contractPath]?.[contractName];
-  const contractByteCode: string = contractJson?.evm?.bytecode?.object;
+  const contractByteCode: string =
+    contractJson?.evm?.bytecode?.object || contractJson?.bytecode;
   const abi: [] = contractJson?.abi;
 
   if (!contractJson || !contractByteCode || !abi) {
     throw new ContractContentMissingError(
-      contractPath,
-      contractName,
+      '',
+      '',
       contractJson,
       contractByteCode,
       abi
@@ -54,7 +97,8 @@ export async function deploy(
 
   const contract = new web3.eth.Contract(abi);
   const contractTx = contract.deploy({
-    data: contractByteCode
+    data: contractByteCode,
+    arguments: contractArguments
   });
   const createTransaction = await signTransaction(
     deployerAccount,
@@ -139,7 +183,9 @@ function getAccountByAccountAddress(address: string): Account | undefined {
     return undefined;
   }
 
-  const privateKey = readTextFile(account.privateKeyPath);
+  const privateKeyPath: string = pathJoin(ROOT_PATH, account.privateKeyPath);
+
+  const privateKey = readTextFile(privateKeyPath);
 
   return { ...account, privateKey };
 }

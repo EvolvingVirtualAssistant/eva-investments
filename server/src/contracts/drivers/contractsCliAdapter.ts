@@ -60,9 +60,13 @@ export class ContractsCliAdapter {
     host: string,
     gas: number,
     gasPrice: string,
-    ethereUnit: string
+    ethereUnit: string,
+    contractArgsJson: string
   ): Promise<void> {
     try {
+      const contractArgs = contractArgsJson
+        ? Object.values(JSON.parse(contractArgsJson))
+        : undefined;
       const deployedContractAddress = await deploy(
         contractPath,
         contractName,
@@ -71,7 +75,8 @@ export class ContractsCliAdapter {
         host,
         gas,
         gasPrice,
-        ethereUnit as Unit
+        ethereUnit as Unit,
+        contractArgs
       );
       await println(`Deployed contract address: ${deployedContractAddress}`);
     } catch (e) {
