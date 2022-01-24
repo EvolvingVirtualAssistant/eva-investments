@@ -57,7 +57,7 @@ test('Should not be Http Node Options with invalid agent', () => {
     host: 'some host',
     type: 'HTTP',
     agent: {
-      httpAgent: {
+      http: {
         maxSockets: 0,
         invalidField: 'invalid field'
       },
@@ -87,7 +87,7 @@ test('Should build Http Node Options', () => {
       }
     ],
     agent: {
-      httpAgent: {
+      http: {
         maxSockets: Infinity
       },
       baseUrl: 'base'

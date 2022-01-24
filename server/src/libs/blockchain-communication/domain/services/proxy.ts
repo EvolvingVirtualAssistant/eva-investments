@@ -6,11 +6,11 @@ export type FnCallbacks = ((
   thisArg: any,
   argumentsList: any[]
 ) => any)[];
-export type ObjFnCallbacks = Dictionary<FnCallbacks | ObjFnCallbacks>;
+export type ObjCallbacks = Dictionary<FnCallbacks | ObjCallbacks>;
 
 export function setupProxy<T extends object>(
   target: T,
-  callbacksByProps: ObjFnCallbacks
+  callbacksByProps: ObjCallbacks
 ): T {
   const propsFns: [string, any][] = [];
   const propsObjs: [string, any][] = [];

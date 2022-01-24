@@ -79,7 +79,7 @@ export interface HttpsAgentOptions extends HttpAgentOptions {
 
 function isAgent(obj: any): boolean {
   return (
-    isType(obj, [], ['httpAgent', 'httpAgent', 'baseUrl']) &&
+    isType(obj, [], ['http', 'https', 'baseUrl']) &&
     ((obj as Agent).http === undefined || isHttpAgent((obj as Agent).http)) &&
     ((obj as Agent).https === undefined || isHttpsAgent((obj as Agent).https))
   );
