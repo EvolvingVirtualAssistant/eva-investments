@@ -1,5 +1,5 @@
 import { join as pathJoin } from 'path';
-import { readdirSync } from 'fs';
+import { readdirSync, readFileSync } from 'fs';
 import Web3 from 'web3';
 
 function findRootFolder(path: string): string {
@@ -35,5 +35,4 @@ function findRootFolder(path: string): string {
 const currentWorkingDir = process.cwd();
 export const ROOT_PATH = findRootFolder(currentWorkingDir);
 
-export { pathJoin };
-export { Web3 };
+export { pathJoin, readFileSync, Web3 };

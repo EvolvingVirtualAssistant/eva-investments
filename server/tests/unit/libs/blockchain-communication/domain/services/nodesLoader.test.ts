@@ -34,8 +34,6 @@ function clearContext() {
 }
 
 test('Should not load nodes if node options and nodes auth are empty', () => {
-  clearContext();
-
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =
     resourcesDirPath + '/emptyNodesOptions.json';
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY] =
@@ -73,8 +71,6 @@ testParameterized(
   ],
   'Should throw error if %s',
   (_condition, nodeOptionsFile, nodeAuthFile, errMsg) => {
-    clearContext();
-
     process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =
       resourcesDirPath + nodeOptionsFile;
     process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY] =
@@ -113,8 +109,6 @@ test('Should group options with the same host, under the same node', () => {
 });
 
 test('Should have as many nodes as different api keys for the same url', () => {
-  clearContext();
-
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =
     resourcesDirPath + '/oneOptionNodesOptions.json';
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY] =
@@ -143,8 +137,6 @@ test('Should have as many nodes as different api keys for the same url', () => {
 });
 
 test('Should have nodes without api keys if no api key is specified for that url', () => {
-  clearContext();
-
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =
     resourcesDirPath + '/sampleNodesOptions.json';
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY] =
@@ -182,11 +174,11 @@ test('Should have nodes without api keys if no api key is specified for that url
   } else {
     assertEquals(true, false, "There should've been two equal urls");
   }
+
+  clearContext();
 });
 
 test('Should load nodes', () => {
-  clearContext();
-
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY] =
     resourcesDirPath + '/sampleNodesOptions.json';
   process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY] =

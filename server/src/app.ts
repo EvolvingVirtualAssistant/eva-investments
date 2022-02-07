@@ -9,6 +9,7 @@ import { RootCliAdapter } from './rootCliAdapter';
 import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter';
 import { NodesConfigFileAdapter } from './node-providers/driven/data-sources/nodesConfigFileAdapter';
 import { NodesMemoryAdapter } from './node-providers/driven/data-sources/nodesMemoryAdapter';
+import { Web3 } from 'blockchain-communication/deps';
 
 /*await execute();
 
@@ -31,12 +32,19 @@ function initCliAdapters() {
   };
 }
 
-function initWeb3() {
+async function initWeb3(): Promise<Web3> {
   const blockchainCommunication = new BlockchainCommunication(
     NodesConfigFileAdapter.getInstance(),
     NodesMemoryAdapter.getInstance()
   );
 
+  await blockchainCommunication.init();
+  const contract = blockchainCommunication.web3.eth.Contract;
+  const a = new contract([], '');
+  const ta = a.deploy({ data: 'fasdsad' });
+  const taenc = ta.encodeABI();
+  const b = new blockchainCommunication.web3.eth.Contract([], '');
+  b.deploy({ data: 'fwedads' });
   return blockchainCommunication.web3;
 }
 
@@ -56,7 +64,7 @@ async function main() {
   );*/
   const cliAdapters = initCliAdapters();
 
-  const web3 = initWeb3();
+  const web3 = await initWeb3();
 
   // eslint-disable-next-line no-constant-condition
   while (true) {

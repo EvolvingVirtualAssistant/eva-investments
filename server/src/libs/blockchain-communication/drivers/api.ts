@@ -8,10 +8,9 @@ import { Web3 } from '../deps';
 import { sleep } from '../utils/async';
 import { NodesConfigRepository } from '../driven/repositories/nodesConfigRepository';
 import { NodesRepository } from '../driven/repositories/nodesRepository';
-import { NodeOptions } from '../domain/entities/nodeOptions';
-import { Node } from '../domain/entities/node';
-import { NodeError } from '../errors/nodeError';
 import { loadNodes } from '../domain/services/nodesLoader';
+import { UninitializedError } from '../errors/uninitializedError';
+import { loadCallbacks } from '../domain/services/callbacksLoader';
 
 /*var options = {
       keepAlive: true,
@@ -115,23 +114,40 @@ const callbacks: [
 //web3Provider.eth.getAccounts().then(console.log);
 
 export class BlockchainCommunication {
-  private nodesConfigRepository: NodesConfigRepository;
-  private nodesRepository: NodesRepository;
+  private _nodesConfigRepository: NodesConfigRepository;
+  private _nodesRepository: NodesRepository;
 
-  web3: Web3;
+  private _web3?: Web3;
+  get web3(): Web3 {
+    if (this._web3 === undefined) {
+      throw new UninitializedError();
+    }
+    return this._web3;
+  }
 
   constructor(
     nodesConfigRepository: NodesConfigRepository,
     nodesRepository: NodesRepository
   ) {
-    this.nodesConfigRepository = nodesConfigRepository;
-    this.nodesRepository = nodesRepository;
+    this._nodesConfigRepository = nodesConfigRepository;
+    this._nodesRepository = nodesRepository;
 
-    this.web3 = this.setupWeb3Proxy();
-    loadNodes(this.nodesConfigRepository, this.nodesRepository);
+    loadNodes(this._nodesConfigRepository, this._nodesRepository);
   }
 
-  private setupWeb3Proxy(): Web3 {
-    return new Web3(); //setupProxy(new Web3(), callbacks, '.');
+  async init() {
+    this._web3 = await this.setupWeb3Proxy();
+  }
+
+  private async setupWeb3Proxy(): Promise<Web3> {
+    const res = new Web3();
+
+    const callbacksByProps = await loadCallbacks();
+
+    if (callbacksByProps != null) {
+      return setupProxy(res, callbacksByProps);
+    }
+
+    return res;
   }
 }
