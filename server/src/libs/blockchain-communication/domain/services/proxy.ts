@@ -1,4 +1,3 @@
-import { ProxyError } from '../../errors/proxyError';
 import { Dictionary } from '../../types/blockchainCommunication.types';
 
 export type FnCallback = (
@@ -36,11 +35,7 @@ export function setupProxy<T extends object>(
         const propFn = propsFns.find((prop) => prop.name === key);
 
         if (propFn != null) {
-          if (propFn.callbacks == null) {
-            propFn.callbacks = value as FnCallback[];
-          } else {
-            throw new ProxyError(`Duplicated key ${key}`);
-          }
+          propFn.callbacks = value as FnCallback[];
         } else {
           propsFns.push({
             name: key,
@@ -57,11 +52,7 @@ export function setupProxy<T extends object>(
         const propFn = propsFns.find((prop) => prop.name === returnKey);
 
         if (propFn != null) {
-          if (propFn.callbacksByProps == null) {
-            propFn.callbacksByProps = value as ObjCallbacks;
-          } else {
-            throw new ProxyError(`Duplicated key ${key}`);
-          }
+          propFn.callbacksByProps = value as ObjCallbacks;
         } else {
           propsFns.push({
             name: returnKey,
