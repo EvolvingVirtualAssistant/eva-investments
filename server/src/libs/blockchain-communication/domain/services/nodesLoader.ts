@@ -1,6 +1,6 @@
 import { NodesConfigRepository } from '../../driven/repositories/nodesConfigRepository';
 import { NodesRepository } from '../../driven/repositories/nodesRepository';
-import { NodeError } from '../../errors/nodeError';
+import { NodeError } from './errors/nodeError';
 import { Node } from '../entities/node';
 import { NodeAuth } from '../entities/nodeAuth';
 import { NodeOptions } from '../entities/nodeOptions';

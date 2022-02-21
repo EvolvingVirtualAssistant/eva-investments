@@ -38,7 +38,7 @@ async function initWeb3(): Promise<Web3> {
     NodesMemoryAdapter.getInstance()
   );
 
-  await blockchainCommunication.init();
+  await blockchainCommunication.init(true);
   const contract = blockchainCommunication.web3.eth.Contract;
   const a = new contract([], '');
   const ta = a.deploy({ data: 'fasdsad' });

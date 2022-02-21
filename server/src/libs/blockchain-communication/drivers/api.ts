@@ -1,117 +1,16 @@
-// This will use jsonRpcWrapper to call methods
-// api is the only one being exposed to the outside
-// This will receive what is necessary through the constructor or even builder pattern
-// and pass it to the jsonRpcWrapper
-
 import { setupProxy } from '../domain/services/proxy';
 import { Web3 } from '../deps';
-import { sleep } from '../utils/async';
 import { NodesConfigRepository } from '../driven/repositories/nodesConfigRepository';
 import { NodesRepository } from '../driven/repositories/nodesRepository';
 import { loadNodes } from '../domain/services/nodesLoader';
-import { UninitializedError } from '../errors/uninitializedError';
+import { UninitializedError } from './errors/uninitializedError';
 import { loadCallbacks } from '../domain/services/callbacksLoader';
+import { setProvider } from '../domain/services/providerService';
+import { ExternalDeps, getExternalImports } from '../externalDeps';
 
-/*var options = {
-      keepAlive: true,
-      withCredentials: false,
-      timeout: 20000, // ms
-      headers: [
-        {
-          name: 'Access-Control-Allow-Origin',
-          value: '*',
-        },
-      ],
-      agent: {
-        http: http.Agent(...),
-        baseUrl: '',
-      },
-    };*/
-/*this.web3Provider = new Web3(
-      new Web3.providers.HttpProvider('http://localhost:8545')
-    );
-    this.web3Provider.eth.getAccounts().then(console.log);
+const AUTOMATIC_PROVIDER_ROTATION_TNTERVAL = 60000; // ms
 
-    const a = 0;*/
-
-/*
-private loadConfigNodes() {
-    const nodes = this.configNodesRepository.getConfigNodes();
-
-    // load config nodes in data source
-    this.nodesRepository.saveAll(nodes);
-  }
-
-// Tests
-import { assertEquals } from 'https://deno.land/std/testing/asserts';
-import { BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY } from '../../../../../../src/libs/blockchain-communication/constants/blockchainCommunicationConstants';
-import { JsonRpcWrapper } from '../../../../../../src/libs/blockchain-communication/domain/services/jsonRpcWrapper';
-import { ConfigNodesFileAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/configNodesFileAdapter';
-import { NodesMemoryAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/nodesMemoryAdapter';
-
-const nodesFileRepository = NodesMemoryAdapter.getInstance();
-const configNodesFileRepository = ConfigNodesFileAdapter.getInstance();
-const currentDirPath = '/tests/resources/libs/blockchain-communication';
-
-function cleanRepositories() {
-  nodesFileRepository.deleteAll();
-}
-
-Deno.test('Should load config nodes on json rpc wrapper initialization', () => {
-  const originalValue = Deno.env.get(BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY);
-  Deno.env.set(
-    BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY,
-    currentDirPath + '/sampleNodesOptions.json'
-  );
-  cleanRepositories();
-
-  let nodes = nodesFileRepository.getNodes();
-  assertEquals(nodes.length, 0);
-
-  JsonRpcWrapper.getInstance();
-  const configNodes = configNodesFileRepository.getConfigNodes();
-  nodes = nodesFileRepository.getNodes();
-  assertEquals(configNodes.length, 1);
-  assertEquals(nodes.length, 1);
-  assertEquals(nodes[0].id, configNodes[0].id);
-
-  cleanRepositories();
-  Deno.env.set(BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY, originalValue || '');
-});
-*/
-
-// Have a file with the mappings of callbacks for web3 methods in resources.
-const callbacks: [
-  string,
-  ((targetObj: object, thisArg: any, argumentsList: any[]) => any)[]
-][] = [
-  [
-    'eth.subscribe',
-    [
-      async (arg1: object, arg2: any, arg3: any[]) => {
-        const b = 0;
-        await sleep(1000);
-        console.log('Async');
-      },
-      (arg1: object, arg2: any, arg3: any[]) => {
-        const b = 0;
-        console.log('Throw Error Sync');
-      },
-      (arg1: object, arg2: any, arg3: any[]) => {
-        const b = 0;
-        console.log('Sync');
-      },
-      (arg1: object, arg2: any, arg3: any[]) => {
-        const b = 0;
-        console.log('Throw Error Async');
-      }
-    ]
-  ]
-];
-// const web3Provider = new Web3(
-//  new Web3.providers.HttpProvider('http://localhost:8545')
-//);
-//web3Provider.eth.getAccounts().then(console.log);
+export let externalDeps: ExternalDeps | undefined;
 
 export class BlockchainCommunication {
   private _nodesConfigRepository: NodesConfigRepository;
@@ -125,6 +24,22 @@ export class BlockchainCommunication {
     return this._web3;
   }
 
+  private _intervalId?: NodeJS.Timer;
+  private _automaticProviders = true;
+  get automaticProviders(): boolean {
+    return this._automaticProviders;
+  }
+  set automaticProviders(value: boolean) {
+    this._automaticProviders = value;
+
+    if (this._automaticProviders) {
+      this._intervalId = this.rotateProvider();
+    } else if (this._intervalId != null) {
+      clearInterval(this._intervalId);
+      this._intervalId = undefined;
+    }
+  }
+
   constructor(
     nodesConfigRepository: NodesConfigRepository,
     nodesRepository: NodesRepository
@@ -135,8 +50,13 @@ export class BlockchainCommunication {
     loadNodes(this._nodesConfigRepository, this._nodesRepository);
   }
 
-  async init() {
+  async init(automaticProviders: boolean) {
+    this.automaticProviders = automaticProviders;
     this._web3 = await this.setupWeb3Proxy();
+
+    if (externalDeps == null) {
+      externalDeps = await getExternalImports();
+    }
   }
 
   private async setupWeb3Proxy(): Promise<Web3> {
@@ -149,5 +69,16 @@ export class BlockchainCommunication {
     }
 
     return res;
+  }
+
+  // In the future consider aside from time based rotation also "manual" rotation,
+  // by registering an instance of this class to the getProvider method,
+  // so that this instance gets "notified" to change the provider
+  private rotateProvider(): NodeJS.Timer {
+    return setInterval(() => {
+      if (this._web3 != null && this._automaticProviders) {
+        setProvider(this._web3, this._nodesRepository);
+      }
+    }, AUTOMATIC_PROVIDER_ROTATION_TNTERVAL);
   }
 }

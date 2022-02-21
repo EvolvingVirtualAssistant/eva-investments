@@ -1,6 +1,12 @@
 import { join as pathJoin } from 'path';
 import { readdirSync, readFileSync } from 'fs';
 import Web3 from 'web3';
+import {
+  provider,
+  HttpProvider,
+  IpcProvider,
+  WebsocketProvider
+} from 'web3-core';
 
 function findRootFolder(path: string): string {
   let foldersMatched = 0;
@@ -35,4 +41,12 @@ function findRootFolder(path: string): string {
 const currentWorkingDir = process.cwd();
 export const ROOT_PATH = findRootFolder(currentWorkingDir);
 
-export { pathJoin, readFileSync, Web3 };
+export {
+  pathJoin,
+  readFileSync,
+  Web3,
+  provider,
+  HttpProvider,
+  IpcProvider,
+  WebsocketProvider
+};

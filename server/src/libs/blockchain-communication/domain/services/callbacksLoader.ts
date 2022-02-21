@@ -1,5 +1,5 @@
 import { pathJoin, readFileSync, ROOT_PATH } from '../../deps';
-import { CallbackError } from '../../errors/callbackError';
+import { CallbackError } from './errors/callbackError';
 import { Dictionary } from '../../types/blockchainCommunication.types';
 import { attemptImport } from '../../utils/import';
 import { isType } from '../../utils/typeGuards';

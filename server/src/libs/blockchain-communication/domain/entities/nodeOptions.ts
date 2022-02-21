@@ -1,5 +1,5 @@
 import { isType } from '../../utils/typeGuards';
-import { BuildNodeError } from '../../errors/buildNodeError';
+import { BuildNodeError } from './errors/buildNodeError';
 import { NodeType } from '../../types/blockchainCommunication.types';
 
 export interface NodeOptions {
