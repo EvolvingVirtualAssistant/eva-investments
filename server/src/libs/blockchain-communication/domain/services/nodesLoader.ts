@@ -7,8 +7,17 @@ import { NodeOptions } from '../entities/nodeOptions';
 
 export function loadNodes(
   nodesConfigRepository: NodesConfigRepository,
-  nodesRepository: NodesRepository
-) {
+  nodesRepository: NodesRepository,
+  keepLoadingNodes = false
+): void {
+  // Get notified in case of changes on the nodes config repository
+  // In case something changes we should reload nodes
+  if (keepLoadingNodes) {
+    nodesConfigRepository.callOnChange(() =>
+      loadNodes(nodesConfigRepository, nodesRepository, false)
+    );
+  }
+
   const nodesOptions = nodesConfigRepository.getNodesOptions();
   const nodesAuth = nodesConfigRepository.getNodesAuth();
 

@@ -1,12 +1,10 @@
 import { join as pathJoin } from 'path';
 import { readdirSync, readFileSync } from 'fs';
 import Web3 from 'web3';
-import {
-  provider,
-  HttpProvider,
-  IpcProvider,
-  WebsocketProvider
-} from 'web3-core';
+import { provider } from 'web3-core';
+import HttpProvider from 'web3-providers-http';
+import WebsocketProvider from 'web3-providers-ws';
+import IpcProvider from 'web3-providers-ipc';
 
 function findRootFolder(path: string): string {
   let foldersMatched = 0;

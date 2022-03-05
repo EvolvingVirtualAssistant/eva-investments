@@ -2,10 +2,14 @@ import { setupProxy } from '../domain/services/proxy';
 import { Web3 } from '../deps';
 import { NodesConfigRepository } from '../driven/repositories/nodesConfigRepository';
 import { NodesRepository } from '../driven/repositories/nodesRepository';
+import { Node } from '../domain/entities/node';
 import { loadNodes } from '../domain/services/nodesLoader';
 import { UninitializedError } from './errors/uninitializedError';
 import { loadCallbacks } from '../domain/services/callbacksLoader';
-import { setProvider } from '../domain/services/providerService';
+import {
+  registerProviderRotation,
+  setProvider
+} from '../domain/services/providerService';
 import { ExternalDeps, getExternalImports } from '../externalDeps';
 
 const AUTOMATIC_PROVIDER_ROTATION_TNTERVAL = 60000; // ms
@@ -15,6 +19,8 @@ export let externalDeps: ExternalDeps | undefined;
 export class BlockchainCommunication {
   private _nodesConfigRepository: NodesConfigRepository;
   private _nodesRepository: NodesRepository;
+
+  private _currentNode: Node | undefined;
 
   private _web3?: Web3;
   get web3(): Web3 {
@@ -47,7 +53,7 @@ export class BlockchainCommunication {
     this._nodesConfigRepository = nodesConfigRepository;
     this._nodesRepository = nodesRepository;
 
-    loadNodes(this._nodesConfigRepository, this._nodesRepository);
+    loadNodes(this._nodesConfigRepository, this._nodesRepository, true);
   }
 
   async init(automaticProviders: boolean) {
@@ -71,13 +77,23 @@ export class BlockchainCommunication {
     return res;
   }
 
-  // In the future consider aside from time based rotation also "manual" rotation,
-  // by registering an instance of this class to the getProvider method,
-  // so that this instance gets "notified" to change the provider
   private rotateProvider(): NodeJS.Timer {
+    if (this._web3 != null && this._automaticProviders) {
+      registerProviderRotation(
+        this._web3,
+        this._nodesRepository,
+        () => this._currentNode,
+        (node: Node) => (this._currentNode = node)
+      );
+    }
+
     return setInterval(() => {
       if (this._web3 != null && this._automaticProviders) {
-        setProvider(this._web3, this._nodesRepository);
+        this._currentNode = setProvider(
+          this._web3,
+          this._nodesRepository,
+          this._currentNode
+        );
       }
     }, AUTOMATIC_PROVIDER_ROTATION_TNTERVAL);
   }

@@ -14,6 +14,7 @@ import {
 } from '../../../deps';
 import { isType } from '../../../../src/utils/typeGuards';
 import { BuildNodeAuthPathError } from '../../../../src/node-providers/errors/buildNodeAuthPathError';
+import { watchFile } from '../../../utils/filesystemWatcher';
 
 export class NodesConfigFileAdapter implements NodesConfigRepository {
   private static instance: NodesConfigFileAdapter;
@@ -44,6 +45,18 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
     }
 
     return [];
+  }
+
+  callOnChange(callback: () => void): void {
+    let filepath = process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY];
+    if (filepath) {
+      watchFile(pathJoin(ROOT_PATH, filepath), callback);
+    }
+
+    filepath = process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY];
+    if (filepath) {
+      watchFile(pathJoin(ROOT_PATH, filepath), callback);
+    }
   }
 
   private getTextFromPath(path: string): string {
