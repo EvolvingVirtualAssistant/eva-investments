@@ -11,7 +11,7 @@ import {
   test,
   testParameterized
 } from '../../../../../wrap/testWrapper';
-import { NodeError } from 'blockchain-communication/errors/nodeError';
+import { NodeError } from '../../../../../../src/libs/blockchain-communication/domain/services/errors/nodeError';
 
 const resourcesDirPath = '/tests/resources/libs/blockchain-communication';
 

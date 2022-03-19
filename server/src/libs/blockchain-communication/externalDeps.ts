@@ -8,6 +8,7 @@ export interface ExternalDeps {
   registerProviderRotation?: (
     setProviderCallback: (targetNode: Node) => void
   ) => void;
+  unregisterProviderRotation?: () => void;
 }
 
 let externalDeps: ExternalDeps | undefined;
@@ -32,7 +33,10 @@ export async function getExternalImports() {
 
   externalDeps = {
     getProviderNode: externalImportsFind('getProviderNode'),
-    registerProviderRotation: externalImportsFind('registerProviderRotation')
+    registerProviderRotation: externalImportsFind('registerProviderRotation'),
+    unregisterProviderRotation: externalImportsFind(
+      'unregisterProviderRotation'
+    )
   };
 
   return externalDeps;

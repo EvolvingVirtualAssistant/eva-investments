@@ -13,9 +13,13 @@ export function loadNodes(
   // Get notified in case of changes on the nodes config repository
   // In case something changes we should reload nodes
   if (keepLoadingNodes) {
-    nodesConfigRepository.callOnChange(() =>
-      loadNodes(nodesConfigRepository, nodesRepository, false)
-    );
+    nodesConfigRepository.callOnChange(() => {
+      try {
+        loadNodes(nodesConfigRepository, nodesRepository, false);
+      } catch (e) {
+        console.log(e);
+      }
+    });
   }
 
   const nodesOptions = nodesConfigRepository.getNodesOptions();

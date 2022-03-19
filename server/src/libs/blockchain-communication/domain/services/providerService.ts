@@ -13,6 +13,10 @@ import { equalNodes, Node } from '../entities/node';
 import { NodeError } from './errors/nodeError';
 import { ProviderError } from './errors/providerError';
 
+export function unregisterProviderRotation(): void {
+  externalDeps?.unregisterProviderRotation?.();
+}
+
 export function registerProviderRotation(
   web3: Web3,
   nodesRepository: NodesRepository,

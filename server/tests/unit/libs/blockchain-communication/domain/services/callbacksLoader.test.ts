@@ -7,7 +7,7 @@ import {
   PROXY_CALLBACKS_PATH_ENV_KEY,
   loadCallbacks
 } from '../../../../../../src/libs/blockchain-communication/domain/services/callbacksLoader';
-import { CallbackError } from '../../../../../../src/libs/blockchain-communication/errors/callbackError';
+import { CallbackError } from '../../../../../../src/libs/blockchain-communication/domain/services/errors/callbackError';
 import {
   FnCallback,
   ObjCallbacks

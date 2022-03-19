@@ -8,6 +8,7 @@ import { UninitializedError } from './errors/uninitializedError';
 import { loadCallbacks } from '../domain/services/callbacksLoader';
 import {
   registerProviderRotation,
+  unregisterProviderRotation,
   setProvider
 } from '../domain/services/providerService';
 import { ExternalDeps, getExternalImports } from '../externalDeps';
@@ -30,7 +31,7 @@ export class BlockchainCommunication {
     return this._web3;
   }
 
-  private _intervalId?: NodeJS.Timer;
+  private _timeoutId?: NodeJS.Timer;
   private _automaticProviders = true;
   get automaticProviders(): boolean {
     return this._automaticProviders;
@@ -39,10 +40,14 @@ export class BlockchainCommunication {
     this._automaticProviders = value;
 
     if (this._automaticProviders) {
-      this._intervalId = this.rotateProvider();
-    } else if (this._intervalId != null) {
-      clearInterval(this._intervalId);
-      this._intervalId = undefined;
+      this.rotateProvider();
+    } else {
+      if (this._timeoutId != null) {
+        clearTimeout(this._timeoutId);
+        this._timeoutId = undefined;
+      }
+
+      unregisterProviderRotation();
     }
   }
 
@@ -57,12 +62,13 @@ export class BlockchainCommunication {
   }
 
   async init(automaticProviders: boolean) {
-    this.automaticProviders = automaticProviders;
     this._web3 = await this.setupWeb3Proxy();
 
     if (externalDeps == null) {
       externalDeps = await getExternalImports();
     }
+
+    this.automaticProviders = automaticProviders;
   }
 
   private async setupWeb3Proxy(): Promise<Web3> {
@@ -77,7 +83,12 @@ export class BlockchainCommunication {
     return res;
   }
 
-  private rotateProvider(): NodeJS.Timer {
+  private rotateProvider(): void {
+    if (this._timeoutId != null) {
+      clearTimeout(this._timeoutId);
+      this._timeoutId = undefined;
+    }
+
     if (this._web3 != null && this._automaticProviders) {
       registerProviderRotation(
         this._web3,
@@ -87,14 +98,21 @@ export class BlockchainCommunication {
       );
     }
 
-    return setInterval(() => {
-      if (this._web3 != null && this._automaticProviders) {
-        this._currentNode = setProvider(
-          this._web3,
-          this._nodesRepository,
-          this._currentNode
-        );
-      }
-    }, AUTOMATIC_PROVIDER_ROTATION_TNTERVAL);
+    this.setProviderTimeout();
+  }
+
+  private setProviderTimeout(): void {
+    if (this._web3 != null && this._automaticProviders) {
+      this._currentNode = setProvider(
+        this._web3,
+        this._nodesRepository,
+        this._currentNode
+      );
+    }
+
+    this._timeoutId = setTimeout(
+      () => this.setProviderTimeout(),
+      AUTOMATIC_PROVIDER_ROTATION_TNTERVAL
+    );
   }
 }

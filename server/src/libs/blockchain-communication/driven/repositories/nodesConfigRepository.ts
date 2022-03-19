@@ -6,4 +6,5 @@ export interface NodesConfigRepository {
   getNodesAuth(): NodeAuth[];
 
   callOnChange(callback: () => void): void;
+  disableCallOnChange(): void;
 }

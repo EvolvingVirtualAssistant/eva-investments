@@ -11,7 +11,7 @@ import {
   buildWsNodeOptions,
   buildIpcNodeOptions
 } from '../../../../../../src/libs/blockchain-communication/domain/entities/nodeOptions';
-import { BuildNodeError } from '../../../../../../src/libs/blockchain-communication/errors/buildNodeError';
+import { BuildNodeError } from '../../../../../../src/libs/blockchain-communication/domain/entities/errors/buildNodeError';
 
 test('Should be Http Node', () => {
   const httpNodeOptions = {

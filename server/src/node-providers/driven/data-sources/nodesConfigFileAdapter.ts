@@ -14,10 +14,16 @@ import {
 } from '../../../deps';
 import { isType } from '../../../../src/utils/typeGuards';
 import { BuildNodeAuthPathError } from '../../../../src/node-providers/errors/buildNodeAuthPathError';
-import { watchFile } from '../../../utils/filesystemWatcher';
+import { unwatchFile, watchFile } from '../../../utils/filesystemWatcher';
 
 export class NodesConfigFileAdapter implements NodesConfigRepository {
   private static instance: NodesConfigFileAdapter;
+
+  private watchedFiles: string[];
+
+  private constructor() {
+    this.watchedFiles = [];
+  }
 
   static getInstance(): NodesConfigFileAdapter {
     if (!NodesConfigFileAdapter.instance) {
@@ -48,15 +54,24 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
   }
 
   callOnChange(callback: () => void): void {
+    this.disableCallOnChange();
+
     let filepath = process.env[BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY];
     if (filepath) {
+      this.watchedFiles.push(pathJoin(ROOT_PATH, filepath));
       watchFile(pathJoin(ROOT_PATH, filepath), callback);
     }
 
     filepath = process.env[BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY];
     if (filepath) {
+      this.watchedFiles.push(pathJoin(ROOT_PATH, filepath));
       watchFile(pathJoin(ROOT_PATH, filepath), callback);
     }
+  }
+
+  disableCallOnChange(): void {
+    this.watchedFiles.forEach((file) => unwatchFile(file));
+    this.watchedFiles = [];
   }
 
   private getTextFromPath(path: string): string {

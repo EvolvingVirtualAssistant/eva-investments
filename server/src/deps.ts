@@ -1,7 +1,13 @@
 import { join as pathJoin } from 'path';
 export { pathJoin };
-import { readdirSync, readFileSync, watch, WatchEventType } from 'fs';
-export { readFileSync, watch, WatchEventType };
+import {
+  FSWatcher,
+  readdirSync,
+  readFileSync,
+  watch,
+  WatchEventType
+} from 'fs';
+export { FSWatcher, readFileSync, watch, WatchEventType };
 
 // config
 import { config as dotEnvConfig } from 'dotenv';
