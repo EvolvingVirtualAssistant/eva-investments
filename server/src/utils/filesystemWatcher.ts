@@ -2,15 +2,14 @@ import { Dictionary } from '../types/types';
 import { FSWatcher, watch, WatchEventType } from '../deps';
 
 interface FileTime {
-  callTime: number;
-  timeoutId: NodeJS.Timeout;
+  callTime?: number;
+  timeoutId?: NodeJS.Timeout;
   watcher: FSWatcher;
 }
 
 const WAIT_FILE_READY_TIME = 1000; // ms
 
 const filesWatched: Dictionary<FileTime[]> = {};
-const watchers: Dictionary<FSWatcher> = {};
 
 export function watchFile(filePath: string, callback: () => void): void {
   const watcher = watch(filePath, (event: WatchEventType, filename: string) => {
@@ -23,6 +22,10 @@ export function watchFile(filePath: string, callback: () => void): void {
       `filesystemWatcher - Ignored event ${event} received for file ${filename} (${filePath})`
     );
   });
+
+  const fileTimes = filesWatched[filePath] || [];
+  fileTimes.push({ watcher });
+  filesWatched[filePath] = fileTimes;
 }
 
 function invokeCallback(
@@ -41,8 +44,14 @@ function invokeCallback(
       watcher
     });
   } else {
-    if (currTime - fileTimes[index].callTime < WAIT_FILE_READY_TIME) {
-      clearTimeout(fileTimes[index].timeoutId);
+    if (
+      fileTimes[index].callTime != null &&
+      fileTimes[index].timeoutId != null &&
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      currTime - fileTimes[index].callTime! < WAIT_FILE_READY_TIME
+    ) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      clearTimeout(fileTimes[index].timeoutId!);
     }
 
     fileTimes[index].callTime = currTime;
@@ -57,9 +66,11 @@ export function unwatchFile(filePath: string): void {
 
   if (fileTimes != null) {
     fileTimes.forEach((fileTime) => {
-      fileTime.timeoutId.unref();
-      clearTimeout(fileTime.timeoutId);
-      fileTime.watcher.removeAllListeners();
+      if (fileTime.timeoutId != null) {
+        fileTime.timeoutId.unref();
+        clearTimeout(fileTime.timeoutId);
+      }
+
       fileTime.watcher.close();
     });
     delete filesWatched[filePath];

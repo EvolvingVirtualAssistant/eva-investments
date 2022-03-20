@@ -4,10 +4,19 @@ import {
   FSWatcher,
   readdirSync,
   readFileSync,
+  unlinkSync,
   watch,
-  WatchEventType
+  WatchEventType,
+  writeFileSync
 } from 'fs';
-export { FSWatcher, readFileSync, watch, WatchEventType };
+export {
+  FSWatcher,
+  readFileSync,
+  unlinkSync,
+  watch,
+  WatchEventType,
+  writeFileSync
+};
 
 // config
 import { config as dotEnvConfig } from 'dotenv';

@@ -7,11 +7,13 @@ import { NodesConfigFileAdapter } from '../../../../../../src/node-providers/dri
 import { NodesMemoryAdapter } from '../../../../../../src/node-providers/driven/data-sources/nodesMemoryAdapter';
 import { assertEquals, fail, test } from '../../../../../wrap/testWrapper';
 import { NodeOptions } from '../../../../../../src/libs/blockchain-communication/domain/entities/nodeOptions';
-import { Node } from '../../../../../../src/libs/blockchain-communication/domain/entities/node';
-import { unlinkSync, writeFileSync } from 'fs';
 import { sleep } from '../../../../../../src/utils/async';
-import { NodeAuth } from '../../../../../../src/libs/blockchain-communication/domain/entities/nodeAuth';
-import { pathJoin, ROOT_PATH } from '../../../../../../src/deps';
+import {
+  pathJoin,
+  ROOT_PATH,
+  unlinkSync,
+  writeFileSync
+} from '../../../../../../src/deps';
 import { readJsonFile } from '../../../../../../src/utils/files';
 import { NodesConfigRepository } from 'blockchain-communication/driven/repositories/nodesConfigRepository';
 import { NodesRepository } from 'blockchain-communication/driven/repositories/nodesRepository';
