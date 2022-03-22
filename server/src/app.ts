@@ -39,31 +39,11 @@ async function initWeb3(): Promise<Web3> {
   );
 
   await blockchainCommunication.init(true);
-  const contract = blockchainCommunication.web3.eth.Contract;
-  const a = new contract([], '');
-  const ta = a.deploy({ data: 'fasdsad' });
-  const taenc = ta.encodeABI();
-  const b = new blockchainCommunication.web3.eth.Contract([], '');
-  b.deploy({ data: 'fwedads' });
   return blockchainCommunication.web3;
 }
 
 async function main() {
-  /*web3.eth.getAccounts().then(console.log);
-  web3.eth.subscribe(
-    'pendingTransactions',
-    (error: Error, transactionHash: string) => {
-      console.log("I'm subscribing");
-    }
-  );*/
-  /*web3.eth.subscribe(
-    'pendingTransactions',
-    (error: Error, transactionHash: string) => {
-      console.log("I'm subscribing");
-    }
-  );*/
   const cliAdapters = initCliAdapters();
-
   const web3 = await initWeb3();
 
   // eslint-disable-next-line no-constant-condition
