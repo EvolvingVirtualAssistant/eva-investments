@@ -11,7 +11,7 @@ const WAIT_FILE_READY_TIME = 1000; // ms
 
 const filesWatched: Dictionary<FileTime[]> = {};
 
-export function watchFile(filePath: string, callback: () => void): void {
+export function watchFile(filePath: string, callback: () => void): FSWatcher {
   const watcher = watch(filePath, (event: WatchEventType, filename: string) => {
     if (event === 'change') {
       invokeCallback(filePath, callback, watcher);
@@ -26,6 +26,8 @@ export function watchFile(filePath: string, callback: () => void): void {
   const fileTimes = filesWatched[filePath] || [];
   fileTimes.push({ watcher });
   filesWatched[filePath] = fileTimes;
+
+  return watcher;
 }
 
 function invokeCallback(
@@ -61,18 +63,28 @@ function invokeCallback(
   filesWatched[filePath] = fileTimes;
 }
 
-export function unwatchFile(filePath: string): void {
+export function unwatchFile(filePath: string, watchers: FSWatcher[]): void {
   const fileTimes = filesWatched[filePath];
 
   if (fileTimes != null) {
+    const newFileTimes: FileTime[] = [];
     fileTimes.forEach((fileTime) => {
-      if (fileTime.timeoutId != null) {
-        fileTime.timeoutId.unref();
-        clearTimeout(fileTime.timeoutId);
-      }
+      if (watchers.some((watcher) => watcher === fileTime.watcher)) {
+        if (fileTime.timeoutId != null) {
+          fileTime.timeoutId.unref();
+          clearTimeout(fileTime.timeoutId);
+        }
 
-      fileTime.watcher.close();
+        fileTime.watcher.close();
+      } else {
+        newFileTimes.push(fileTime);
+      }
     });
-    delete filesWatched[filePath];
+
+    if (newFileTimes.length === 0) {
+      delete filesWatched[filePath];
+    } else {
+      filesWatched[filePath] = newFileTimes;
+    }
   }
 }
