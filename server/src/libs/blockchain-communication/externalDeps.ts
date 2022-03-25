@@ -1,11 +1,15 @@
 import { pathJoin, ROOT_PATH } from './deps';
 import { attemptImport } from './utils/import';
+import { NodesRepository } from './driven/repositories/nodesRepository';
+import { Node } from './domain/entities/node';
 
 export interface ExternalDeps {
-  field1: () => boolean;
+  getProviderNode?: (nodesRepository: NodesRepository) => Node;
+  registerProviderRotation?: (
+    setProviderCallback: (targetNode: Node) => void
+  ) => void;
+  unregisterProviderRotation?: () => void;
 }
-
-const externalDepsPath = process.env['EXTERNAL_DEPS_PATH'];
 
 let externalDeps: ExternalDeps | undefined;
 
@@ -13,6 +17,8 @@ export async function getExternalImports() {
   if (externalDeps) {
     return externalDeps;
   }
+
+  const externalDepsPath = process.env['EXTERNAL_DEPS_PATH'];
 
   const externalImports = await attemptImport(
     externalDepsPath
@@ -22,8 +28,15 @@ export async function getExternalImports() {
     {}
   );
 
+  const externalImportsFind = (prop: string) =>
+    externalImports.find((func) => func?.name === prop);
+
   externalDeps = {
-    field1: externalImports[0]
+    getProviderNode: externalImportsFind('getProviderNode'),
+    registerProviderRotation: externalImportsFind('registerProviderRotation'),
+    unregisterProviderRotation: externalImportsFind(
+      'unregisterProviderRotation'
+    )
   };
 
   return externalDeps;

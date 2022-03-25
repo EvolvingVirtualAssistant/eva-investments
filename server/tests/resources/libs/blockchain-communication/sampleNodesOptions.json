@@ -1,0 +1,23 @@
+[
+    {
+        "host": "http://localhost:8545",
+        "type": "HTTP",
+        "agent": {
+            "http": {
+                "keepAlive": true,
+                "keepAliveMsecs": 1000
+            }
+        }
+    },
+    {
+        "host": "http://localhost:8545",
+        "type": "HTTP",
+        "agent": {
+            "baseUrl": "base"
+        }
+    },
+    {
+        "host": "ws://localhost:8545",
+        "type": "WS"
+    }
+]

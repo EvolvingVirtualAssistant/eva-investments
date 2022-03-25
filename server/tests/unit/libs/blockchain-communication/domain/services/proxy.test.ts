@@ -11,6 +11,8 @@ class MockClass {
 
   prop1: InnerMockClass = new InnerMockClass();
 
+  InnerMockClass = InnerMockClass;
+
   fn1(_numArg: number, _stringArg: string): boolean {
     return true;
   }
@@ -24,6 +26,14 @@ class InnerMockClass {
   callbacksFinished = false;
 
   innerProp1 = 'Inner Prop 1';
+
+  static calledInnerMockClassCount = 0;
+  static calledInnerMockClassArgs: any[] = [];
+  static calledInnerMockCallbacks: string[] = [];
+
+  constructor(_numArg?: number, _stringArg?: string) {
+    // nothing to do here
+  }
 
   innerFn1(_booleanArg: boolean): boolean {
     return true;
@@ -46,6 +56,10 @@ function setCallbackPropsInMockObj(
     mockObj['calledInnerFn1Count'] += 1;
     mockObj['calledInnerFn1Args'].push(...fnArgs);
     mockObj['calledCallbacks'].push(callbackName);
+  } else if (fn.name === 'InnerMockClass') {
+    mockObj['calledInnerMockClassCount'] += 1;
+    mockObj['calledInnerMockClassArgs'].push(...fnArgs);
+    mockObj['calledInnerMockCallbacks'].push(callbackName);
   }
 }
 
@@ -132,25 +146,66 @@ async function callAndAssertFn1(proxyMockObj: MockClass) {
   assertEquals(proxyMockObj.calledFn1Args[3], '2');
 }
 
-async function callAndAssertInnerFn1(proxyMockObj: MockClass) {
-  assertEquals(proxyMockObj.prop1.calledCallbacks.length, 0);
-  assertEquals(proxyMockObj.prop1.calledInnerFn1Count, 0);
-  assertEquals(proxyMockObj.prop1.calledInnerFn1Args.length, 0);
+async function callAndAssertInnerMockClass(
+  proxyMockObj: MockClass
+): Promise<InnerMockClass> {
+  assertEquals(proxyMockObj.InnerMockClass.calledInnerMockCallbacks.length, 0);
+  assertEquals(proxyMockObj.InnerMockClass.calledInnerMockClassCount, 0);
+  assertEquals(proxyMockObj.InnerMockClass.calledInnerMockClassArgs.length, 0);
 
-  proxyMockObj.prop1.innerFn1(false);
+  const innerMock = new proxyMockObj.InnerMockClass(1, '2');
 
-  await waitForLastCallback(proxyMockObj.prop1);
+  await waitForLastCallback(
+    proxyMockObj.InnerMockClass as unknown as InnerMockClass
+  );
 
-  assertEquals(proxyMockObj.prop1.calledCallbacks.length, 2);
-  assertEquals(proxyMockObj.prop1.calledCallbacks.includes('mockSyncFn'), true);
+  assertEquals(proxyMockObj.InnerMockClass.calledInnerMockCallbacks.length, 2);
   assertEquals(
-    proxyMockObj.prop1.calledCallbacks.includes('mockSyncThrowErrorFn'),
+    proxyMockObj.InnerMockClass.calledInnerMockCallbacks.includes(
+      'mockAsyncFn'
+    ),
     true
   );
-  assertEquals(proxyMockObj.prop1.calledInnerFn1Count, 2);
-  assertEquals(proxyMockObj.prop1.calledInnerFn1Args.length, 2);
-  assertEquals(proxyMockObj.prop1.calledInnerFn1Args[0], false);
-  assertEquals(proxyMockObj.prop1.calledInnerFn1Args[1], false);
+  assertEquals(
+    proxyMockObj.InnerMockClass.calledInnerMockCallbacks.includes(
+      'mockAsyncThrowErrorFn'
+    ),
+    true
+  );
+  assertEquals(proxyMockObj.InnerMockClass.calledInnerMockClassCount, 2);
+  assertEquals(proxyMockObj.InnerMockClass.calledInnerMockClassArgs.length, 4);
+  assertEquals(proxyMockObj.InnerMockClass.calledInnerMockClassArgs[0], 1);
+  assertEquals(proxyMockObj.InnerMockClass.calledInnerMockClassArgs[1], '2');
+  assertEquals(proxyMockObj.InnerMockClass.calledInnerMockClassArgs[2], 1);
+  assertEquals(proxyMockObj.InnerMockClass.calledInnerMockClassArgs[3], '2');
+
+  // Reset data
+  proxyMockObj.InnerMockClass.calledInnerMockClassCount = 0;
+  proxyMockObj.InnerMockClass.calledInnerMockClassArgs = [];
+  proxyMockObj.InnerMockClass.calledInnerMockCallbacks = [];
+
+  return innerMock;
+}
+
+async function callAndAssertInnerFn1(proxyMockObj: InnerMockClass) {
+  assertEquals(proxyMockObj.calledCallbacks.length, 0);
+  assertEquals(proxyMockObj.calledInnerFn1Count, 0);
+  assertEquals(proxyMockObj.calledInnerFn1Args.length, 0);
+
+  proxyMockObj.innerFn1(false);
+
+  await waitForLastCallback(proxyMockObj);
+
+  assertEquals(proxyMockObj.calledCallbacks.length, 2);
+  assertEquals(proxyMockObj.calledCallbacks.includes('mockSyncFn'), true);
+  assertEquals(
+    proxyMockObj.calledCallbacks.includes('mockSyncThrowErrorFn'),
+    true
+  );
+  assertEquals(proxyMockObj.calledInnerFn1Count, 2);
+  assertEquals(proxyMockObj.calledInnerFn1Args.length, 2);
+  assertEquals(proxyMockObj.calledInnerFn1Args[0], false);
+  assertEquals(proxyMockObj.calledInnerFn1Args[1], false);
 }
 
 test('Should setup proxy on existing props and call specified callbacks', async () => {
@@ -163,5 +218,18 @@ test('Should setup proxy on existing props and call specified callbacks', async 
   const mockObj = new MockClass();
   const proxyMockObj = setupProxy(mockObj, callbacksByProps);
   await callAndAssertFn1(proxyMockObj);
-  await callAndAssertInnerFn1(proxyMockObj);
+  await callAndAssertInnerFn1(proxyMockObj.prop1);
+});
+
+test('Should setup proxy on new instances and function returns', async () => {
+  const callbacksByProps = {
+    InnerMockClass: [mockAsyncFn, mockAsyncThrowErrorFn, lastCallback],
+    'return|InnerMockClass': {
+      innerFn1: [mockSyncFn, mockSyncThrowErrorFn, lastCallback]
+    }
+  };
+  const mockObj = new MockClass();
+  const proxyMockObj = setupProxy(mockObj, callbacksByProps);
+  const innerMock = await callAndAssertInnerMockClass(proxyMockObj);
+  await callAndAssertInnerFn1(innerMock);
 });

@@ -1,0 +1,11 @@
+{
+    "prop1": {
+        "innerFn1": [
+            {
+                "filePath": "/tests/resources/libs/blockchain-communication/dynamicImportSample.ts",
+                "functionName": "testFuncNonExistent"
+            }
+        ]
+    },
+    "fn1": []
+}

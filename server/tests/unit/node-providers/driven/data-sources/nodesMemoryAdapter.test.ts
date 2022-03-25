@@ -1,14 +1,14 @@
 import { test, assertEquals } from '../../../../wrap/testWrapper';
 import { NodesMemoryAdapter } from '../../../../../src/node-providers/driven/data-sources/nodesMemoryAdapter';
-import { BaseNode } from '../../../../../src/libs/blockchain-communication/mod';
+import { Node } from '../../../../../src/libs/blockchain-communication/mod';
 
 const nodesMemoryAdapter = NodesMemoryAdapter.getInstance();
 
-const mockNodes: BaseNode[] = [
+const mockNodes: Node[] = [
   {
     id: 1,
-    type: 'HTTP',
-    host: 'localhost'
+    url: 'localhost',
+    options: []
   }
 ];
 
@@ -59,8 +59,8 @@ test('Should delete nodes by id', () => {
 
   const node = nodesMemoryAdapter.deleteById(mockNodes[0].id);
   assertEquals(node.id, mockNodes[0].id);
-  assertEquals(node.host, mockNodes[0].host);
-  assertEquals(node.type, mockNodes[0].type);
+  assertEquals(node.url, mockNodes[0].url);
+  assertEquals(node.options, mockNodes[0].options);
 
   nodes = nodesMemoryAdapter.getNodes();
   assertEquals(nodes.length, 0);

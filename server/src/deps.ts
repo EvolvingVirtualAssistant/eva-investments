@@ -1,38 +1,45 @@
 import { join as pathJoin } from 'path';
 export { pathJoin };
-import { readdirSync, readFileSync } from 'fs';
-export { readFileSync };
+import {
+  FSWatcher,
+  readdirSync,
+  readFileSync,
+  unlinkSync,
+  watch,
+  WatchEventType,
+  writeFileSync
+} from 'fs';
+export {
+  FSWatcher,
+  readFileSync,
+  unlinkSync,
+  watch,
+  WatchEventType,
+  writeFileSync
+};
 
 // config
 import { config as dotEnvConfig } from 'dotenv';
 
 // libs
 
-// Preferred when ESM is actually supported by Node
 export { getApiSignature } from 'api-signature';
-//import apiSignature from 'api-signature';
-//export const { getApiSignature } = apiSignature;
-//export type { Sign } from 'api-signature';
 
-// Preferred when ESM is actually supported by Node
 export {
-  web3,
-  ConfigNodesRepository,
+  BlockchainCommunication,
+  Node,
+  NodesConfigRepository,
   NodesRepository,
-  BaseNode,
-  HttpNode,
-  IpcNode,
-  WsNode
+  NodeAuth,
+  NodeOptions,
+  HttpNodeOptions,
+  IpcNodeOptions,
+  WsNodeOptions,
+  buildHttpNodeOptions,
+  buildIpcNodeOptions,
+  buildWsNodeOptions
 } from 'blockchain-communication';
-/*import blockchainCommunication from 'blockchain-communication';
-export const { web3, BaseNode, HttpNode, IpcNode, WsNode } =
-  blockchainCommunication;
-export {
-  ConfigNodesRepository,
-  NodesRepository
-} from 'blockchain-communication';*/
 
-// Preferred when ESM is actually supported by Node
 export {
   cliAdapter,
   cliEntrypoint,
@@ -44,21 +51,8 @@ export {
   CLI_ADAPTER_DEFAULT_TOKEN,
   Command
 } from 'cli';
-/*import cli from 'cli';
-export const {
-  cliAdapter,
-  cliEntrypoint,
-  getAllCliEntrypointsByCliAdapter,
-  getAllCliAdapters,
-  println,
-  CLI_ADAPTER_DEFAULT_TOKEN
-} = cli;
-export { Command } from 'cli';*/
 
-// Preferred when ESM is actually supported by Node
 export { execute } from 'swagger-client-mapper';
-/*import swaggerClientMapper from 'swagger-client-mapper';
-export const { execute } = swaggerClientMapper;*/
 
 // path config
 const currentWorkingDir = process.cwd();

@@ -1,0 +1,12 @@
+[
+    {
+        "host": "http://localhost:8545",
+        "type": "HTTP",
+        "agent": {
+            "http": {
+                "keepAlive": true,
+                "keepAliveMsecs": 1000
+            }
+        }
+    }
+]

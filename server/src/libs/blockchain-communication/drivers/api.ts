@@ -1,111 +1,118 @@
-// This will use jsonRpcWrapper to call methods
-// api is the only one being exposed to the outside
-// This will receive what is necessary through the constructor or even builder pattern
-// and pass it to the jsonRpcWrapper
-
 import { setupProxy } from '../domain/services/proxy';
 import { Web3 } from '../deps';
-import { sleep } from '../utils/async';
+import { NodesConfigRepository } from '../driven/repositories/nodesConfigRepository';
+import { NodesRepository } from '../driven/repositories/nodesRepository';
+import { Node } from '../domain/entities/node';
+import { loadNodes } from '../domain/services/nodesLoader';
+import { UninitializedError } from './errors/uninitializedError';
+import { loadCallbacks } from '../domain/services/callbacksLoader';
+import {
+  registerProviderRotation,
+  unregisterProviderRotation,
+  setProvider
+} from '../domain/services/providerService';
+import { ExternalDeps, getExternalImports } from '../externalDeps';
 
-/*var options = {
-      keepAlive: true,
-      withCredentials: false,
-      timeout: 20000, // ms
-      headers: [
-        {
-          name: 'Access-Control-Allow-Origin',
-          value: '*',
-        },
-      ],
-      agent: {
-        http: http.Agent(...),
-        baseUrl: '',
-      },
-    };*/
-/*this.web3Provider = new Web3(
-      new Web3.providers.HttpProvider('http://localhost:8545')
-    );
-    this.web3Provider.eth.getAccounts().then(console.log);
+const AUTOMATIC_PROVIDER_ROTATION_TNTERVAL = 60000; // ms
 
-    const a = 0;*/
+export let externalDeps: ExternalDeps | undefined;
 
-/*
-private loadConfigNodes() {
-    const nodes = this.configNodesRepository.getConfigNodes();
+export class BlockchainCommunication {
+  private _nodesConfigRepository: NodesConfigRepository;
+  private _nodesRepository: NodesRepository;
 
-    // load config nodes in data source
-    this.nodesRepository.saveAll(nodes);
+  private _currentNode: Node | undefined;
+
+  private _web3?: Web3;
+  get web3(): Web3 {
+    if (this._web3 === undefined) {
+      throw new UninitializedError();
+    }
+    return this._web3;
   }
 
-// Tests
-import { assertEquals } from 'https://deno.land/std/testing/asserts';
-import { BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY } from '../../../../../../src/libs/blockchain-communication/constants/blockchainCommunicationConstants';
-import { JsonRpcWrapper } from '../../../../../../src/libs/blockchain-communication/domain/services/jsonRpcWrapper';
-import { ConfigNodesFileAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/configNodesFileAdapter';
-import { NodesMemoryAdapter } from '../../../../../../src/libs/blockchain-communication/driven/data-sources/nodesMemoryAdapter';
+  private _timeoutId?: NodeJS.Timer;
+  private _automaticProviders = true;
+  get automaticProviders(): boolean {
+    return this._automaticProviders;
+  }
+  set automaticProviders(value: boolean) {
+    this._automaticProviders = value;
 
-const nodesFileRepository = NodesMemoryAdapter.getInstance();
-const configNodesFileRepository = ConfigNodesFileAdapter.getInstance();
-const currentDirPath = '/tests/resources/libs/blockchain-communication';
-
-function cleanRepositories() {
-  nodesFileRepository.deleteAll();
-}
-
-Deno.test('Should load config nodes on json rpc wrapper initialization', () => {
-  const originalValue = Deno.env.get(BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY);
-  Deno.env.set(
-    BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY,
-    currentDirPath + '/sampleNodes.json'
-  );
-  cleanRepositories();
-
-  let nodes = nodesFileRepository.getNodes();
-  assertEquals(nodes.length, 0);
-
-  JsonRpcWrapper.getInstance();
-  const configNodes = configNodesFileRepository.getConfigNodes();
-  nodes = nodesFileRepository.getNodes();
-  assertEquals(configNodes.length, 1);
-  assertEquals(nodes.length, 1);
-  assertEquals(nodes[0].id, configNodes[0].id);
-
-  cleanRepositories();
-  Deno.env.set(BLOCKCHAIN_COMMUNICATION_NODES_ENV_KEY, originalValue || '');
-});
-*/
-
-const callbacks: [
-  string,
-  ((targetObj: object, thisArg: any, argumentsList: any[]) => any)[]
-][] = [
-  [
-    'eth.subscribe',
-    [
-      async (arg1: object, arg2: any, arg3: any[]) => {
-        const b = 0;
-        await sleep(1000);
-        console.log('Async');
-      },
-      (arg1: object, arg2: any, arg3: any[]) => {
-        const b = 0;
-        console.log('Throw Error Sync');
-      },
-      (arg1: object, arg2: any, arg3: any[]) => {
-        const b = 0;
-        console.log('Sync');
-      },
-      (arg1: object, arg2: any, arg3: any[]) => {
-        const b = 0;
-        console.log('Throw Error Async');
+    if (this._automaticProviders) {
+      this.rotateProvider();
+    } else {
+      if (this._timeoutId != null) {
+        clearTimeout(this._timeoutId);
+        this._timeoutId = undefined;
       }
-    ]
-  ]
-];
-// const web3Provider = new Web3(
-//  new Web3.providers.HttpProvider('http://localhost:8545')
-//);
-//web3Provider.eth.getAccounts().then(console.log);
-const web3 = new Web3(); //setupProxy(new Web3(), callbacks, '.');
 
-export { web3 };
+      unregisterProviderRotation();
+    }
+  }
+
+  constructor(
+    nodesConfigRepository: NodesConfigRepository,
+    nodesRepository: NodesRepository
+  ) {
+    this._nodesConfigRepository = nodesConfigRepository;
+    this._nodesRepository = nodesRepository;
+
+    loadNodes(this._nodesConfigRepository, this._nodesRepository, true);
+  }
+
+  async init(automaticProviders: boolean) {
+    this._web3 = await this.setupWeb3Proxy();
+
+    if (externalDeps == null) {
+      externalDeps = await getExternalImports();
+    }
+
+    this.automaticProviders = automaticProviders;
+  }
+
+  private async setupWeb3Proxy(): Promise<Web3> {
+    const res = new Web3();
+
+    const callbacksByProps = await loadCallbacks();
+
+    if (callbacksByProps != null) {
+      return setupProxy(res, callbacksByProps);
+    }
+
+    return res;
+  }
+
+  private rotateProvider(): void {
+    if (this._timeoutId != null) {
+      clearTimeout(this._timeoutId);
+      this._timeoutId = undefined;
+    }
+
+    if (this._web3 != null && this._automaticProviders) {
+      registerProviderRotation(
+        this._web3,
+        this._nodesRepository,
+        () => this._currentNode,
+        (node: Node) => (this._currentNode = node)
+      );
+    }
+
+    this.setProviderTimeout();
+  }
+
+  private setProviderTimeout(): void {
+    if (this._web3 != null && this._automaticProviders) {
+      this._currentNode = setProvider(
+        this._web3,
+        this._nodesRepository,
+        this._currentNode
+      );
+    }
+
+    this._timeoutId = setTimeout(
+      () => this.setProviderTimeout(),
+      AUTOMATIC_PROVIDER_ROTATION_TNTERVAL
+    );
+  }
+}

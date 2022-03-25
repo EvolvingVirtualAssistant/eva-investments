@@ -1,0 +1,14 @@
+[
+    {
+        "url": "http://some-node-url1",
+        "apiKeyPath": "/tests/resources/node-providers/node_auth_api_key"
+    },
+    {
+        "url": "http://some-node-url2",
+        "apiKeyPath": "/tests/resources/node-providers/node_auth_api_key"
+    },
+    {
+        "url": "http://some-node-url3",
+        "apiKeyPath": "/tests/resources/node-providers/node_auth_api_key"
+    }
+]

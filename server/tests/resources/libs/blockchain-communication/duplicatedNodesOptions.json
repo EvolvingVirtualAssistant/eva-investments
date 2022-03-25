@@ -1,0 +1,10 @@
+[
+    {
+        "host": "http://localhost:8545",
+        "type": "HTTP"
+    },
+    {
+        "type": "HTTP",
+        "host": "http://localhost:8545 "
+    }
+]
