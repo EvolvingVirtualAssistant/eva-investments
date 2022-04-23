@@ -12,6 +12,7 @@ import { NodeOptions } from '../entities/nodeOptions';
 import { equalNodes, Node } from '../entities/node';
 import { NodeError } from './errors/nodeError';
 import { ProviderError } from './errors/providerError';
+import { jsonStringify } from '../../utils/jsonStringify';
 
 export function unregisterProviderRotation(): void {
   externalDeps?.unregisterProviderRotation?.();
@@ -43,7 +44,7 @@ export function registerProviderRotation(
     setCurrentNode(newNode);
     console.log(
       `New provider was set (by callback): ${
-        typeof provider === 'string' ? provider : JSON.stringify(provider)
+        typeof provider === 'string' ? provider : jsonStringify(provider)
       }`
     );
   }
@@ -67,7 +68,7 @@ export function setProvider(
   web3?.setProvider(provider);
   console.log(
     `New provider was set: ${
-      typeof provider === 'string' ? provider : JSON.stringify(provider)
+      typeof provider === 'string' ? provider : jsonStringify(provider)
     }`
   );
 

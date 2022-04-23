@@ -2,6 +2,8 @@ import { join as pathJoin } from 'path';
 import { readdirSync, readFileSync } from 'fs';
 import Web3 from 'web3';
 import { provider, TransactionReceipt, SignedTransaction } from 'web3-core';
+import { BlockHeader } from 'web3-eth';
+import { Subscription } from 'web3-core-subscriptions';
 import HttpProvider from 'web3-providers-http';
 import WebsocketProvider from 'web3-providers-ws';
 import IpcProvider from 'web3-providers-ipc';
@@ -42,6 +44,7 @@ const currentWorkingDir = __dirname + '/../../../../'; //process.cwd();
 export const ROOT_PATH = findRootFolder(currentWorkingDir);
 
 export {
+  BlockHeader,
   pathJoin,
   readFileSync,
   Web3,
@@ -52,5 +55,6 @@ export {
   Unit,
   TransactionReceipt,
   ContractSendMethod,
-  SignedTransaction
+  SignedTransaction,
+  Subscription
 };
