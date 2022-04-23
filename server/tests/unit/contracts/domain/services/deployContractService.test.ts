@@ -1,6 +1,6 @@
-import { deploy } from '../../../../../src/contracts/domain/services/deployContractService';
+import { DeployContractService } from '../../../../../src/contracts/domain/services/deployContractService';
 import AccountNotFoundError from '../../../../../src/contracts/domain/services/errors/accountNotFoundError';
-import { pathJoin, ROOT_PATH } from '../../../../../src/deps';
+import { pathJoin, ROOT_PATH, Web3 } from '../../../../../src/deps';
 import { test, assertThrowsAsync } from '../../../../wrap/testWrapper';
 import { ACCOUNTS_KEY } from '../../../../../src/contracts/constants/contractsConstants';
 import { readJsonFile } from '../../../../../src/utils/files';
@@ -27,13 +27,16 @@ const gas = 750000;
 const gasPrice = '1.2444';
 const ethereUnit = 'gwei';
 
+const web3 = new Web3(host);
+const deployContractService = new DeployContractService(web3);
+
 test('Should throw NoAccountsProvidedError deploying contract when no resource file with accounts exist', async () => {
   const subPath = 'invalidKey';
   const envAccountKeyValue = process.env[ACCOUNTS_KEY];
   process.env[ACCOUNTS_KEY] = subPath;
   await assertThrowsAsync(
     async () => {
-      await deploy(
+      await deployContractService.deploy(
         contractPath,
         contractName,
         counterCompiledContractPath,
@@ -53,7 +56,7 @@ test('Should throw NoAccountsProvidedError deploying contract when no resource f
 test('Should throw AccountNotFoundError deploying contract when providing an invalid account address', async () => {
   await assertThrowsAsync(
     async () => {
-      await deploy(
+      await deployContractService.deploy(
         contractPath,
         contractName,
         counterCompiledContractPath,
@@ -75,7 +78,7 @@ test('Should throw ContractContentMissingError deploying contract when providing
   const contractName = 'wrongContractName';
   await assertThrowsAsync(
     async () => {
-      await deploy(
+      await deployContractService.deploy(
         contractPath,
         contractName,
         counterCompiledContractPath,
@@ -97,7 +100,7 @@ test('Should throw ContractContentMissingError deploying contract when providing
   const contractPath = 'wrongContractPath';
   await assertThrowsAsync(
     async () => {
-      await deploy(
+      await deployContractService.deploy(
         contractPath,
         contractName,
         counterCompiledContractPath,

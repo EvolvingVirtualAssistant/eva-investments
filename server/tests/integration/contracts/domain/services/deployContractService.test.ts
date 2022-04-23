@@ -1,8 +1,8 @@
 // test with invalid account address expect AccountNotFoundError
 // deploy contract successfully
 
-import { deploy } from '../../../../../src/contracts/domain/services/deployContractService';
-import { pathJoin, ROOT_PATH, web3 } from '../../../../../src/deps';
+import { DeployContractService } from '../../../../../src/contracts/domain/services/deployContractService';
+import { pathJoin, ROOT_PATH, Web3 } from '../../../../../src/deps';
 import {
   test,
   assertNotNull,
@@ -33,6 +33,9 @@ const gas = 750000;
 const gasPrice = '1.2444';
 const ethereUnit = 'gwei';
 
+const web3 = new Web3(host);
+const deployContractService = new DeployContractService(web3);
+
 // Sets number of Transaction Confirmation Blocks
 
 const defaultTransactionConfirmationBlocks =
@@ -51,7 +54,7 @@ test('Should be able to call estimateGas on contract after successfully deployin
   const accounts = readJsonFile(accountsPath);
   const accountAddress = Object.keys(accounts)[0];
 
-  const contractAddress = await deploy(
+  const contractAddress = await deployContractService.deploy(
     contractPath,
     contractName,
     counterCompiledContractPath,
@@ -87,7 +90,7 @@ test('Should be able to interact with contract after successfully deploying cont
   const accounts = readJsonFile(accountsPath);
   const accountAddress = Object.keys(accounts)[0];
 
-  const contractAddress = await deploy(
+  const contractAddress = await deployContractService.deploy(
     contractPath,
     contractName,
     counterCompiledContractPath,

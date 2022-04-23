@@ -31,6 +31,6 @@
   },
   "dependencies": {
     "server": "file:../../..",
-    "web3": "^1.6.1"
+    "web3": "^1.7.1"
   }
 }

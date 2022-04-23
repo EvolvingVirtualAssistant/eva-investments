@@ -9,13 +9,19 @@ import {
   CliConstants,
   ContractsCliConstants
 } from '../../constants/cliConstants';
-import { deploy } from '../domain/services/deployContractService';
+import { DeployContractService } from '../domain/services/deployContractService';
 
 @cliAdapter({
   tokens: [ContractsCliConstants.ADAPTER_TOKEN],
   description: ContractsCliConstants.ADAPTER_DESCRIPTION
 })
 export class ContractsCliAdapter {
+  private deployContractService: DeployContractService;
+
+  constructor(deployContractService: DeployContractService) {
+    this.deployContractService = deployContractService;
+  }
+
   @cliEntrypoint(
     {
       tokens: [
@@ -67,7 +73,7 @@ export class ContractsCliAdapter {
       const contractArgs = contractArgsJson
         ? Object.values(JSON.parse(contractArgsJson))
         : undefined;
-      const deployedContractAddress = await deploy(
+      const deployedContractAddress = await this.deployContractService.deploy(
         contractPath,
         contractName,
         compiledContractPath,

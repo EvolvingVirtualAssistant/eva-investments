@@ -25,8 +25,11 @@ import { config as dotEnvConfig } from 'dotenv';
 
 export { getApiSignature } from 'api-signature';
 
+import { Web3 } from 'blockchain-communication';
+export { Web3 }; // without this, Web3 was undefined in certain tests
 export {
   BlockchainCommunication,
+  BlockHeader,
   Node,
   NodesConfigRepository,
   NodesRepository,
@@ -35,9 +38,10 @@ export {
   HttpNodeOptions,
   IpcNodeOptions,
   WsNodeOptions,
+  Subscription,
   buildHttpNodeOptions,
   buildIpcNodeOptions,
-  buildWsNodeOptions
+  buildWsNodeOptions,
   Unit,
   TransactionReceipt,
   ContractSendMethod,
