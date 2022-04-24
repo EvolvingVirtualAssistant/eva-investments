@@ -19,5 +19,6 @@ export type {
   Unit,
   TransactionReceipt,
   ContractSendMethod,
-  SignedTransaction
+  SignedTransaction,
+  Contract
 } from './deps';

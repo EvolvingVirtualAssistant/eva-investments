@@ -45,7 +45,8 @@ export {
   Unit,
   TransactionReceipt,
   ContractSendMethod,
-  SignedTransaction
+  SignedTransaction,
+  Contract
 } from 'blockchain-communication';
 
 export {
