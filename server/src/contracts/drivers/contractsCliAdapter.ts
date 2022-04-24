@@ -73,17 +73,18 @@ export class ContractsCliAdapter {
       const contractArgs = contractArgsJson
         ? Object.values(JSON.parse(contractArgsJson))
         : undefined;
-      const deployedContractAddress = await this.deployContractService.deploy(
-        contractPath,
-        contractName,
-        compiledContractPath,
-        deployerAccountAddress,
-        host,
-        gas,
-        gasPrice,
-        ethereUnit as Unit,
-        contractArgs
-      );
+      const deployedContractAddress =
+        await this.deployContractService.deployContract(
+          contractPath,
+          contractName,
+          compiledContractPath,
+          deployerAccountAddress,
+          host,
+          gas,
+          gasPrice,
+          ethereUnit as Unit,
+          contractArgs
+        );
       await println(`Deployed contract address: ${deployedContractAddress}`);
     } catch (e) {
       console.error(e);
