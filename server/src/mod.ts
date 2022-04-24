@@ -10,6 +10,7 @@ export {
   sendSignedTransaction
 } from './contracts/domain/services/transactionService';
 export {
+  Web3,
   Unit as EthereUnit,
   TransactionReceipt,
   ContractSendMethod,
