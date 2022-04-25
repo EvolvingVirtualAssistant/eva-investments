@@ -31,7 +31,7 @@ export async function initAppContext() {
 async function getAppContext(): Promise<AppContext> {
   while (!appContextReady) {
     console.log('Waiting for app context to be loaded');
-    sleep(100);
+    await sleep(10000);
   }
 
   return appContext;
