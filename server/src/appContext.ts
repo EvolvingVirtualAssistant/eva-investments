@@ -14,10 +14,10 @@ import { sleep } from './utils/async';
 // dependencies, instead of all dependencies each as a different argument
 // may make sense to have types for these objects in each folder for that specific domain (i.e., wallets, subscribers, node-providers, ...) NOT SURE ABOUT THIS
 
-interface AppContext {
+type AppContext = {
   blockchainCommunication?: BlockchainCommunication;
   deployContractService?: DeployContractService;
-}
+};
 
 const appContext: AppContext = {};
 let appContextReady = false;

@@ -23,4 +23,7 @@ export {
   writeJsonFile,
   writeTextFile
 } from './utils/files';
+export { watchFile } from './utils/filesystemWatcher';
+export { isType } from './utils/typeGuards';
+export { Dictionary } from './types/types';
 export { getWeb3 } from './appContext';
