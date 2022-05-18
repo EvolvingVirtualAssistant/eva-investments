@@ -1,4 +1,5 @@
 import {
+  BN,
   SignedTransaction,
   TransactionReceipt,
   Unit as EthereUnit,
@@ -20,7 +21,7 @@ export class TransactionService {
     gasPrice: string,
     ethereUnit: EthereUnit,
     toAddress?: string,
-    value?: number
+    value?: BN
   ): Promise<SignedTransaction> {
     return await signTransaction(
       this.web3,
@@ -49,7 +50,7 @@ export const signTransaction = async (
   gasPrice: string,
   ethereUnit: EthereUnit,
   toAddress?: string,
-  value?: number
+  value?: BN
 ): Promise<SignedTransaction> => {
   return await web3.eth.accounts.signTransaction(
     {

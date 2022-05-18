@@ -24,6 +24,8 @@ import { config as dotEnvConfig } from 'dotenv';
 // libs
 
 export { getApiSignature } from 'api-signature';
+import BN from 'bn.js';
+export { BN };
 
 import { Web3 } from 'blockchain-communication';
 export { Web3 }; // without this, Web3 was undefined in certain tests
