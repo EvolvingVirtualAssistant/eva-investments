@@ -53,6 +53,7 @@
   "dependencies": {
     "api-signature": "file:src/libs/api-signature",
     "blockchain-communication": "file:src/libs/blockchain-communication",
+    "bn.js": "^5.2.0",
     "cli": "file:src/libs/cli",
     "concurrently": "^7.0.0",
     "dotenv": "^10.0.0",

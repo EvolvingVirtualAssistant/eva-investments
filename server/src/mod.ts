@@ -9,13 +9,15 @@ export {
   signTransaction,
   sendSignedTransaction
 } from './contracts/domain/services/transactionService';
+export { subscribeLatestBlock } from './subscribers/domain/services/subscriptionService';
 export {
   Web3,
   Unit as EthereUnit,
   TransactionReceipt,
   ContractSendMethod,
   Contract,
-  SignedTransaction
+  SignedTransaction,
+  BN
 } from './deps';
 export {
   readJsonFile,
