@@ -1,4 +1,10 @@
-import { execute, BlockchainCommunication, initCli, Unit } from './deps';
+import {
+  execute,
+  BlockchainCommunication,
+  NonceTracker,
+  initCli,
+  Unit
+} from './deps';
 import { RootCliAdapter } from './rootCliAdapter';
 import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter';
 import { NodesConfigFileAdapter } from './node-providers/driven/data-sources/nodesConfigFileAdapter';
@@ -8,6 +14,8 @@ import { ContractsCliAdapter } from './contracts/drivers/contractsCliAdapter';
 import { subscribeLatestBlock } from './subscribers/domain/services/subscriptionService';
 import { DeployContractService } from './contracts/domain/services/deployContractService';
 import { sleep } from './utils/async';
+import { AccountsRepository } from './wallets/driven/repositories/accountsRepository';
+import { AccountsConfigFileAdapter } from './wallets/driven/data-sources/accountsConfigFileAdapter';
 
 // Furthermore as things start to grow, and I may have logging and other utilitary libs in the middle and if these
 // are not completly stateless (or need to be instantiated) it may be nice to actually pass as parameter an object containing
@@ -17,6 +25,7 @@ import { sleep } from './utils/async';
 type AppContext = {
   blockchainCommunication?: BlockchainCommunication;
   deployContractService?: DeployContractService;
+  accountsRepository?: AccountsRepository;
 };
 
 const appContext: AppContext = {};
@@ -26,6 +35,8 @@ export async function initAppContext() {
   await initServices();
   appContextReady = true;
   initCliAdapters();
+  initRepositories();
+  await initNonceTrackerEntriesForAccounts();
 }
 
 async function getAppContext(): Promise<AppContext> {
@@ -67,9 +78,41 @@ async function initBlockchainCommunication(): Promise<BlockchainCommunication> {
   return blockchainCommunication;
 }
 
+function initRepositories(): void {
+  appContext.accountsRepository = AccountsConfigFileAdapter.getInstance();
+}
+
+async function initNonceTrackerEntriesForAccounts(): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const web3 = appContext.blockchainCommunication!.web3;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const nonceTracker = appContext.blockchainCommunication!.nonceTracker;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const promises = appContext
+    .accountsRepository!.getAccounts()
+    .map((account) => account.address)
+    .map((address) => nonceTracker.initAddress(web3, address));
+
+  await Promise.all(promises);
+}
+
 export async function getWeb3(): Promise<Web3> {
   const context = await getAppContext();
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return context.blockchainCommunication!.web3;
+}
+
+export async function getNonceTracker(): Promise<NonceTracker> {
+  const context = await getAppContext();
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return context.blockchainCommunication!.nonceTracker;
+}
+
+export async function getAccountsRepository(): Promise<AccountsRepository> {
+  const context = await getAppContext();
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return context.accountsRepository!;
 }

@@ -1,3 +1,4 @@
+import { getNonceTracker } from '../../../appContext';
 import {
   BN,
   SignedTransaction,
@@ -5,7 +6,7 @@ import {
   Unit as EthereUnit,
   Web3
 } from '../../../deps';
-import { Account } from './deployContractService';
+import { Account } from '../../../wallets/domain/entities/accounts';
 
 export class TransactionService {
   private web3: Web3;
@@ -52,6 +53,18 @@ export const signTransaction = async (
   toAddress?: string,
   value?: BN
 ): Promise<SignedTransaction> => {
+  const nonceTracker = await getNonceTracker();
+  let nonce;
+
+  try {
+    nonce = await nonceTracker.getNextNonce(web3, account.address);
+  } catch (e) {
+    await nonceTracker.initAddress(web3, account.address);
+    nonce = await nonceTracker.getNextNonce(web3, account.address);
+  } finally {
+    console.log('Using nonce:', nonce);
+  }
+
   return await web3.eth.accounts.signTransaction(
     {
       from: account.address,
@@ -59,7 +72,8 @@ export const signTransaction = async (
       data: sendMethodEncoded,
       gas, //750000
       gasPrice: web3.utils.toWei(gasPrice, ethereUnit), //1.2444,
-      value
+      value,
+      nonce: nonce
     },
     account.privateKey
   );
