@@ -2,9 +2,10 @@ export {
   deployContract,
   deployPrecompiledContract,
   loadContract,
-  loadPrecompiledContract,
-  Account
+  loadPrecompiledContract
 } from './contracts/domain/services/deployContractService';
+export type { Account } from './wallets/domain/entities/accounts';
+export { getAccountByAccountAddress } from './wallets/domain/services/accountsService';
 export {
   signTransaction,
   sendSignedTransaction

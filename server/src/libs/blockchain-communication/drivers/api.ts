@@ -11,6 +11,8 @@ import {
   unregisterProviderRotation,
   setProvider
 } from '../domain/services/providerService';
+import type { NonceTracker } from '../domain/services/nonceTracker';
+import getNonceTracker from '../domain/services/nonceTracker';
 import { ExternalDeps, getExternalImports } from '../externalDeps';
 
 const AUTOMATIC_PROVIDER_ROTATION_TNTERVAL = 60000; // ms
@@ -51,6 +53,14 @@ export class BlockchainCommunication {
     }
   }
 
+  private _nonceTracker?: NonceTracker;
+  get nonceTracker(): NonceTracker {
+    if (this._nonceTracker === undefined) {
+      throw new UninitializedError();
+    }
+    return this._nonceTracker;
+  }
+
   constructor(
     nodesConfigRepository: NodesConfigRepository,
     nodesRepository: NodesRepository
@@ -69,6 +79,7 @@ export class BlockchainCommunication {
     }
 
     this.automaticProviders = automaticProviders;
+    this._nonceTracker = getNonceTracker();
   }
 
   private async setupWeb3Proxy(): Promise<Web3> {

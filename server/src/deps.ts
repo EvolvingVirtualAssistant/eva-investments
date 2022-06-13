@@ -48,7 +48,8 @@ export {
   TransactionReceipt,
   ContractSendMethod,
   SignedTransaction,
-  Contract
+  Contract,
+  NonceTracker
 } from 'blockchain-communication';
 
 export {

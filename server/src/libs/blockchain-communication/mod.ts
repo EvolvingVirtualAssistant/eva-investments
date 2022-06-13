@@ -12,6 +12,7 @@ export {
 } from './domain/entities/nodeOptions';
 export { NodeAuth } from './domain/entities/nodeAuth';
 export { Node } from './domain/entities/node';
+export { NonceTracker } from './domain/services/nonceTracker';
 export { Web3 } from './deps';
 export type {
   BlockHeader,

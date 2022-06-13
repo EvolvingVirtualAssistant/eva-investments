@@ -1,25 +1,9 @@
-import { readJsonFile, readTextFile } from '../../../utils/files';
-import {
-  Unit,
-  TransactionReceipt,
-  ContractSendMethod,
-  SignedTransaction,
-  pathJoin,
-  ROOT_PATH,
-  Web3,
-  Contract
-} from '../../../deps';
-import AccountNotFoundError from './errors/accountNotFoundError';
+import { readJsonFile } from '../../../utils/files';
+import { Unit, Web3, Contract } from '../../../deps';
+import AccountNotFoundError from '../../../wallets/domain/services/errors/accountNotFoundError';
 import ContractContentMissingError from './errors/contractContentMissingError';
-import NoAccountsProvidedError from './errors/noAccountsProvidedError';
-import { ACCOUNTS_KEY } from '../../constants/contractsConstants';
 import { sendSignedTransaction, signTransaction } from './transactionService';
-
-export type Account = {
-  address: string;
-  privateKey: string;
-  privateKeyPath: string;
-};
+import { getAccountByAccountAddress } from '../../../wallets/domain/services/accountsService';
 
 export class DeployContractService {
   private web3: Web3;
@@ -162,7 +146,9 @@ const _deployContract = async (
   ethereUnit: Unit,
   contractArguments: unknown[] = []
 ): Promise<string> => {
-  const deployerAccount = getAccountByAccountAddress(deployerAccountAddress);
+  const deployerAccount = await getAccountByAccountAddress(
+    deployerAccountAddress
+  );
   if (!deployerAccount) {
     throw new AccountNotFoundError(deployerAccountAddress);
   }
@@ -243,33 +229,3 @@ const _loadContract = (
 ): Contract => {
   return new web3.eth.Contract(abi, contractAddress);
 };
-
-function getAccountByAccountAddress(address: string): Account | undefined {
-  const accountsPath: string = pathJoin(
-    ROOT_PATH,
-    process.env[ACCOUNTS_KEY] || ''
-  );
-
-  let accounts;
-
-  try {
-    accounts = readJsonFile(accountsPath);
-    if (!accounts) {
-      throw new Error();
-    }
-  } catch (e) {
-    throw new NoAccountsProvidedError(accountsPath);
-  }
-
-  const account = accounts?.[address];
-
-  if (!account) {
-    return undefined;
-  }
-
-  const privateKeyPath: string = pathJoin(ROOT_PATH, account.privateKeyPath);
-
-  const privateKey = readTextFile(privateKeyPath);
-
-  return { ...account, privateKey };
-}
