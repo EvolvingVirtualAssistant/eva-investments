@@ -61,8 +61,6 @@ export const signTransaction = async (
   } catch (e) {
     await nonceTracker.initAddress(web3, account.address);
     nonce = await nonceTracker.getNextNonce(web3, account.address);
-  } finally {
-    console.log('Using nonce:', nonce);
   }
 
   return await web3.eth.accounts.signTransaction(
