@@ -146,9 +146,7 @@ const _deployContract = async (
   ethereUnit: Unit,
   contractArguments: unknown[] = []
 ): Promise<string> => {
-  const deployerAccount = await getAccountByAccountAddress(
-    deployerAccountAddress
-  );
+  const deployerAccount = getAccountByAccountAddress(deployerAccountAddress);
   if (!deployerAccount) {
     throw new AccountNotFoundError(deployerAccountAddress);
   }

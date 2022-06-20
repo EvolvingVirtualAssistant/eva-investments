@@ -16,6 +16,8 @@ import { DeployContractService } from './contracts/domain/services/deployContrac
 import { sleep } from './utils/async';
 import { AccountsRepository } from './wallets/driven/repositories/accountsRepository';
 import { AccountsConfigFileAdapter } from './wallets/driven/data-sources/accountsConfigFileAdapter';
+import { ContractsConfigFileAdapter } from './contracts/driven/data-sources/contractsConfigFileAdapter';
+import { ContractsRepository } from './contracts/driven/repositories/contractsRepository';
 
 // Furthermore as things start to grow, and I may have logging and other utilitary libs in the middle and if these
 // are not completly stateless (or need to be instantiated) it may be nice to actually pass as parameter an object containing
@@ -25,7 +27,6 @@ import { AccountsConfigFileAdapter } from './wallets/driven/data-sources/account
 type AppContext = {
   blockchainCommunication?: BlockchainCommunication;
   deployContractService?: DeployContractService;
-  accountsRepository?: AccountsRepository;
 };
 
 const appContext: AppContext = {};
@@ -35,7 +36,6 @@ export async function initAppContext() {
   await initServices();
   appContextReady = true;
   initCliAdapters();
-  initRepositories();
   await initNonceTrackerEntriesForAccounts();
 }
 
@@ -78,18 +78,14 @@ async function initBlockchainCommunication(): Promise<BlockchainCommunication> {
   return blockchainCommunication;
 }
 
-function initRepositories(): void {
-  appContext.accountsRepository = AccountsConfigFileAdapter.getInstance();
-}
-
 async function initNonceTrackerEntriesForAccounts(): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const web3 = appContext.blockchainCommunication!.web3;
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const nonceTracker = appContext.blockchainCommunication!.nonceTracker;
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const promises = appContext
-    .accountsRepository!.getAccounts()
+  const promises = getAccountsRepository()
+    .getAccounts()
     .map((account) => account.address)
     .map((address) => nonceTracker.initAddress(web3, address));
 
@@ -110,9 +106,10 @@ export async function getNonceTracker(): Promise<NonceTracker> {
   return context.blockchainCommunication!.nonceTracker;
 }
 
-export async function getAccountsRepository(): Promise<AccountsRepository> {
-  const context = await getAppContext();
+export function getAccountsRepository(): AccountsRepository {
+  return AccountsConfigFileAdapter.getInstance();
+}
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return context.accountsRepository!;
+export function getContractsRepository(): ContractsRepository {
+  return ContractsConfigFileAdapter.getInstance();
 }

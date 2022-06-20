@@ -10,7 +10,9 @@ export {
   signTransaction,
   sendSignedTransaction
 } from './contracts/domain/services/transactionService';
+export { getContractByName } from './contracts/domain/services/contractService';
 export { subscribeLatestBlock } from './subscribers/domain/services/subscriptionService';
+export { erc20TokenApprove } from './wallets/domain/services/tokensService';
 export {
   Web3,
   Unit as EthereUnit,
