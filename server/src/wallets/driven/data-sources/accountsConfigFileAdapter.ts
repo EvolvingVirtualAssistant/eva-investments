@@ -3,7 +3,7 @@ import { FSWatcher, pathJoin, ROOT_PATH } from '../../../deps';
 import { Account } from '../../domain/entities/accounts';
 import { AccountsRepository } from '../repositories/accountsRepository';
 import { watchFile } from '../../../utils/filesystemWatcher';
-import { readJsonFile, readTextFile } from '../../../utils/files';
+import { getObjFromJson, readTextFile } from '../../../utils/files';
 import NoAccountsProvidedError from './errors/noAccountsProvidedError';
 import { isType } from '../../../utils/typeGuards';
 
@@ -30,7 +30,19 @@ export class AccountsConfigFileAdapter implements AccountsRepository {
   getAccounts(): Account[] {
     try {
       if (this._refreshAccounts) {
-        this._accounts = this.getAccountsJson();
+        try {
+          this._accounts = getObjFromJson(
+            ACCOUNTS_KEY,
+            ROOT_PATH,
+            buildAccounts,
+            accountsValidation
+          );
+        } catch (e) {
+          throw new NoAccountsProvidedError(
+            pathJoin(ROOT_PATH, process.env[ACCOUNTS_KEY] || '')
+          );
+        }
+
         this._refreshAccounts = false;
       }
 
@@ -56,27 +68,17 @@ export class AccountsConfigFileAdapter implements AccountsRepository {
   getAccount(address: string): Account | undefined {
     return this._accounts.find((acc) => acc.address === address);
   }
-
-  private getAccountsJson(): Account[] {
-    const accountsPath: string = pathJoin(
-      ROOT_PATH,
-      process.env[ACCOUNTS_KEY] || ''
-    );
-
-    let accounts;
-
-    try {
-      accounts = readJsonFile(accountsPath);
-      if (!accounts) {
-        throw new Error();
-      }
-    } catch (e) {
-      throw new NoAccountsProvidedError(accountsPath);
-    }
-
-    return Object.values(accounts).map(buildAccount);
-  }
 }
+
+const accountsValidation = (accounts: unknown): void => {
+  if (!accounts) {
+    throw new Error();
+  }
+};
+
+const buildAccounts = (accounts: unknown[]): Account[] => {
+  return Object.values(accounts).map(buildAccount);
+};
 
 const buildAccount = (obj: any): Account => {
   if (!isAccount(obj)) {
