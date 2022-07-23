@@ -1,5 +1,5 @@
 import { FSWatcher, pathJoin, ROOT_PATH } from '../../../deps';
-import { readJsonFile, readTextFile } from '../../../utils/files';
+import { getObjFromJson, readTextFile } from '../../../utils/files';
 import {
   BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY,
   BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY
@@ -36,7 +36,11 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
 
   getNodesOptions(): NodeOptions[] {
     try {
-      return this.getNodesOptionsJson();
+      return getObjFromJson(
+        BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY,
+        ROOT_PATH,
+        buildNodesOptions
+      );
     } catch (e) {
       console.log('Error in NodesFileAdapter - getNodesOptions: ' + e);
     }
@@ -46,7 +50,11 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
 
   getNodesAuth(): NodeAuth[] {
     try {
-      return this.getNodesAuthJson();
+      return getObjFromJson(
+        BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY,
+        ROOT_PATH,
+        buildNodesAuth
+      );
     } catch (e) {
       console.log('Error in NodesFileAdapter - getNodesAuth: ' + e);
     }
@@ -76,53 +84,6 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
     this.watchedFiles = {};
   }
 
-  private getTextFromPath(path: string): string {
-    const textPath: string = pathJoin(ROOT_PATH, path?.trim() || '');
-
-    return readTextFile(textPath);
-  }
-
-  private getJsonFromEnvKey(key: string): any {
-    const jsonPath: string = pathJoin(ROOT_PATH, process.env[key] || '');
-
-    return readJsonFile(jsonPath);
-  }
-
-  private getNodesOptionsJson(): NodeOptions[] {
-    const nodesOptions: NodeOptions[] = this.getJsonFromEnvKey(
-      BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY
-    );
-
-    return nodesOptions.map((opt) => {
-      if (opt?.type === 'HTTP') {
-        return buildHttpNodeOptions(opt);
-      } else if (opt?.type === 'WS') {
-        return buildWsNodeOptions(opt);
-      } else if (opt?.type === 'IPC') {
-        return buildIpcNodeOptions(opt);
-      }
-
-      throw Error(
-        `The deserialized JSON contains the following invalid node options: ${opt}`
-      );
-    });
-  }
-
-  private getNodesAuthJson(): NodeAuth[] {
-    const nodesAuthPaths: NodeAuthPath[] = this.getJsonFromEnvKey(
-      BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY
-    );
-
-    return nodesAuthPaths.map((obj) => {
-      const nodeAuthPath = buildNodeAuthPath(obj);
-
-      return {
-        url: nodeAuthPath.url,
-        apiKey: this.getTextFromPath(nodeAuthPath.apiKeyPath)
-      } as NodeAuth;
-    });
-  }
-
   private watchFileChanges(callback: () => void, filepath?: string): void {
     if (filepath) {
       const path = pathJoin(ROOT_PATH, filepath);
@@ -133,6 +94,39 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
     }
   }
 }
+
+const buildNodesOptions = (nodesOptions: NodeOptions[]): NodeOptions[] => {
+  return nodesOptions.map((opt) => {
+    if (opt?.type === 'HTTP') {
+      return buildHttpNodeOptions(opt);
+    } else if (opt?.type === 'WS') {
+      return buildWsNodeOptions(opt);
+    } else if (opt?.type === 'IPC') {
+      return buildIpcNodeOptions(opt);
+    }
+
+    throw Error(
+      `The deserialized JSON contains the following invalid node options: ${opt}`
+    );
+  });
+};
+
+const buildNodesAuth = (nodesAuthPaths: unknown[]): NodeAuth[] => {
+  return nodesAuthPaths.map((obj) => {
+    const nodeAuthPath = buildNodeAuthPath(obj);
+
+    return {
+      url: nodeAuthPath.url,
+      apiKey: getTextFromPath(nodeAuthPath.apiKeyPath)
+    } as NodeAuth;
+  });
+};
+
+const getTextFromPath = (path: string): string => {
+  const textPath: string = pathJoin(ROOT_PATH, path?.trim() || '');
+
+  return readTextFile(textPath);
+};
 
 // -------------------------- Node Auth Path --------------------------
 

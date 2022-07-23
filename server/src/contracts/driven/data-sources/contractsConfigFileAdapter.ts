@@ -1,6 +1,6 @@
 import { isType } from '../../../utils/typeGuards';
-import { pathJoin, ROOT_PATH } from '../../../deps';
-import { readJsonFile } from '../../../utils/files';
+import { ROOT_PATH } from '../../../deps';
+import { getObjFromJson } from '../../../utils/files';
 import { ContractData } from '../../domain/entities/contract';
 import {
   ContractDataFilter,
@@ -25,7 +25,12 @@ export class ContractsConfigFileAdapter implements ContractsRepository {
 
   getContractsData(filter?: ContractDataFilter): ContractData[] {
     try {
-      const contractsData = this.getContractsDataJson();
+      const contractsData = getObjFromJson(
+        CONTRACTS_ENV_KEY,
+        ROOT_PATH,
+        buildContracts,
+        contractsValidation
+      );
 
       if (filter == null) {
         return contractsData;
@@ -47,25 +52,19 @@ export class ContractsConfigFileAdapter implements ContractsRepository {
 
     return [];
   }
-
-  private getContractsDataJson(): ContractData[] {
-    const contracts: ContractData[] = this.getJsonFromEnvKey(CONTRACTS_ENV_KEY);
-
-    if (!Array.isArray(contracts)) {
-      throw new Error(
-        'Unable to retrieve a collection of contracts from json file'
-      );
-    }
-
-    return contracts.map(buildContract);
-  }
-
-  private getJsonFromEnvKey(key: string): any {
-    const jsonPath: string = pathJoin(ROOT_PATH, process.env[key] || '');
-
-    return readJsonFile(jsonPath);
-  }
 }
+
+const contractsValidation = (contracts: unknown): void => {
+  if (!Array.isArray(contracts)) {
+    throw new Error(
+      'Unable to retrieve a collection of contracts from json file'
+    );
+  }
+};
+
+const buildContracts = (contracts: unknown[]): ContractData[] => {
+  return contracts.map(buildContract);
+};
 
 const buildContract = (obj: any): ContractData => {
   if (!isContract(obj)) {

@@ -26,7 +26,8 @@ export {
   readJsonFile,
   readTextFile,
   writeJsonFile,
-  writeTextFile
+  writeTextFile,
+  getObjFromJson
 } from './utils/files';
 export { watchFile } from './utils/filesystemWatcher';
 export { isType } from './utils/typeGuards';
