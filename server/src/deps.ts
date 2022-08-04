@@ -64,6 +64,8 @@ export {
   Command
 } from 'cli';
 
+export { WorkerPool, WorkerTask } from 'worker-pool';
+
 export { execute } from 'swagger-client-mapper';
 
 // path config

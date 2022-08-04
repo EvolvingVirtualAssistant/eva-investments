@@ -20,7 +20,9 @@ export {
   ContractSendMethod,
   Contract,
   SignedTransaction,
-  BN
+  BN,
+  WorkerPool,
+  WorkerTask
 } from './deps';
 export {
   readJsonFile,
@@ -31,5 +33,6 @@ export {
 } from './utils/files';
 export { watchFile } from './utils/filesystemWatcher';
 export { isType } from './utils/typeGuards';
+export { sleep } from './utils/async';
 export { Dictionary } from './types/types';
 export { getWeb3 } from './appContext';

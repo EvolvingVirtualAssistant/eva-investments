@@ -12,8 +12,8 @@ import {
   buildIpcNodeOptions,
   buildWsNodeOptions
 } from '../../../deps';
-import { isType } from '../../../../src/utils/typeGuards';
-import { BuildNodeAuthPathError } from '../../../../src/node-providers/errors/buildNodeAuthPathError';
+import { isType } from '../../../utils/typeGuards';
+import { BuildNodeAuthPathError } from '../../../node-providers/errors/buildNodeAuthPathError';
 import { unwatchFile, watchFile } from '../../../utils/filesystemWatcher';
 import { Dictionary } from '../../../types/types';
 
