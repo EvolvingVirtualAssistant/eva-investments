@@ -11,7 +11,6 @@ import { NodesConfigFileAdapter } from './node-providers/driven/data-sources/nod
 import { NodesMemoryAdapter } from './node-providers/driven/data-sources/nodesMemoryAdapter';
 import { Web3 } from 'blockchain-communication/deps';
 import { ContractsCliAdapter } from './contracts/drivers/contractsCliAdapter';
-import { subscribeLatestBlock } from './subscribers/domain/services/subscriptionService';
 import { DeployContractService } from './contracts/domain/services/deployContractService';
 import { sleep } from './utils/async';
 import { AccountsRepository } from './wallets/driven/repositories/accountsRepository';
