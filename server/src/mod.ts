@@ -11,7 +11,10 @@ export {
   sendSignedTransaction
 } from './contracts/domain/services/transactionService';
 export { getContractByName } from './contracts/domain/services/contractService';
-export { subscribeLatestBlock } from './subscribers/domain/services/subscriptionService';
+export {
+  subscribeLatestBlock,
+  registerSubscription
+} from './subscribers/domain/services/subscriptionService';
 export { erc20TokenApprove } from './wallets/domain/services/tokensService';
 export {
   Web3,
@@ -22,7 +25,8 @@ export {
   SignedTransaction,
   BN,
   WorkerPool,
-  WorkerTask
+  WorkerTask,
+  BlockHeader
 } from './deps';
 export {
   readJsonFile,
