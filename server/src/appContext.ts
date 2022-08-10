@@ -35,13 +35,21 @@ export async function initAppContext() {
   await initServices();
   appContextReady = true;
   initCliAdapters();
-  await initNonceTrackerEntriesForAccounts();
+  await initMutexesForAccounts();
 }
 
-async function getAppContext(): Promise<AppContext> {
+async function getAsyncAppContext(): Promise<AppContext> {
   while (!appContextReady) {
     console.log('Waiting for app context to be loaded');
     await sleep(10000);
+  }
+
+  return appContext;
+}
+
+function getAppContext(): AppContext {
+  if (!appContextReady) {
+    throw new Error('AppContext is not initialized.');
   }
 
   return appContext;
@@ -77,7 +85,7 @@ async function initBlockchainCommunication(): Promise<BlockchainCommunication> {
   return blockchainCommunication;
 }
 
-async function initNonceTrackerEntriesForAccounts(): Promise<void> {
+async function initMutexesForAccounts(): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const web3 = appContext.blockchainCommunication!.web3;
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -86,20 +94,22 @@ async function initNonceTrackerEntriesForAccounts(): Promise<void> {
   const promises = getAccountsRepository()
     .getAccounts()
     .map((account) => account.address)
-    .map((address) => nonceTracker.initAddress(web3, address));
+    .map((address) => {
+      return nonceTracker.initAddress(web3, address);
+    });
 
   await Promise.all(promises);
 }
 
 export async function getWeb3(): Promise<Web3> {
-  const context = await getAppContext();
+  const context = await getAsyncAppContext();
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return context.blockchainCommunication!.web3;
 }
 
-export async function getNonceTracker(): Promise<NonceTracker> {
-  const context = await getAppContext();
+export function getNonceTracker(): NonceTracker {
+  const context = getAppContext();
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return context.blockchainCommunication!.nonceTracker;

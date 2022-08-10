@@ -2,7 +2,7 @@ import { readJsonFile } from '../../../utils/files';
 import { Unit, Web3, Contract } from '../../../deps';
 import AccountNotFoundError from '../../../wallets/domain/services/errors/accountNotFoundError';
 import ContractContentMissingError from './errors/contractContentMissingError';
-import { sendSignedTransaction, signTransaction } from './transactionService';
+import { sendTransaction } from './transactionService';
 import { getAccountByAccountAddress } from '../../../wallets/domain/services/accountsService';
 
 export class DeployContractService {
@@ -173,7 +173,9 @@ const _deployContract = async (
       arguments: contractArguments
     })
     .encodeABI();
-  const createTransaction = await signTransaction(
+
+  // still need to handle error scenarios
+  const createReceipt = await sendTransaction(
     web3,
     deployerAccount,
     contractTxEncoded,
@@ -181,10 +183,6 @@ const _deployContract = async (
     gasPrice,
     ethereUnit
   );
-
-  // still need to handle error scenarios
-
-  const createReceipt = await sendSignedTransaction(web3, createTransaction);
 
   console.log(`Contract deployed receipt: ${JSON.stringify(createReceipt)}`);
 
