@@ -6,10 +6,7 @@ export {
 } from './contracts/domain/services/deployContractService';
 export type { Account } from './wallets/domain/entities/accounts';
 export { getAccountByAccountAddress } from './wallets/domain/services/accountsService';
-export {
-  signTransaction,
-  sendSignedTransaction
-} from './contracts/domain/services/transactionService';
+export { sendTransaction } from './contracts/domain/services/transactionService';
 export { getContractByName } from './contracts/domain/services/contractService';
 export {
   subscribeLatestBlock,

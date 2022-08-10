@@ -1,10 +1,7 @@
 import { BN, Contract, TransactionReceipt, Unit, Web3 } from '../../../deps';
 import { loadPrecompiledContract } from '../../../contracts/domain/services/deployContractService';
 import { Account } from '../entities/accounts';
-import {
-  sendSignedTransaction,
-  signTransaction
-} from '../../../contracts/domain/services/transactionService';
+import { sendTransaction } from '../../../contracts/domain/services/transactionService';
 import { getContractByName } from '../../../contracts/domain/services/contractService';
 import { EthereUnit } from '../../../app';
 
@@ -23,7 +20,10 @@ export const erc20TokenApprove = async (
     .approve(spenderAddress, tokenAmount)
     .encodeABI();
 
-  const approveTransaction = await signTransaction(
+  console.log(
+    `Approving Spender to transfer ${tokenAmount} token ${tokenAddress}\n`
+  );
+  const transactionReceipt: TransactionReceipt = await sendTransaction(
     web3,
     account,
     approveFnEnconded,
@@ -31,14 +31,6 @@ export const erc20TokenApprove = async (
     gasPrice,
     ethereUnit,
     tokenAddress
-  );
-
-  console.log(
-    `Approving Spender to transfer ${tokenAmount} token ${tokenAddress}`
-  );
-  const transactionReceipt: TransactionReceipt = await sendSignedTransaction(
-    web3,
-    approveTransaction
   );
   const approveResponse = web3.eth.abi.decodeLog(
     [
@@ -52,7 +44,9 @@ export const erc20TokenApprove = async (
     transactionReceipt.logs?.flatMap((log) => log.topics)
   );
   console.log(
-    `Spender contract address ${approveResponse ? '' : 'not '}approved`
+    `\nSpender contract address ${approveResponse ? '' : 'not '}approved ${
+      transactionReceipt.transactionHash
+    }\n`
   );
   //await getApprovalEvent(tokenContract);
 };
