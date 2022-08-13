@@ -77,6 +77,7 @@ async function initServices(): Promise<void> {
 
 async function initBlockchainCommunication(): Promise<BlockchainCommunication> {
   const blockchainCommunication = new BlockchainCommunication(
+    1337,
     NodesConfigFileAdapter.getInstance(),
     NodesMemoryAdapter.getInstance()
   );
@@ -90,9 +91,10 @@ async function initMutexesForAccounts(): Promise<void> {
   const web3 = appContext.blockchainCommunication!.web3;
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const nonceTracker = appContext.blockchainCommunication!.nonceTracker;
+  const chainId = await web3.eth.getChainId();
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const promises = getAccountsRepository()
-    .getAccounts()
+    .getAccounts(chainId)
     .map((account) => account.address)
     .map((address) => {
       return nonceTracker.initAddress(web3, address);

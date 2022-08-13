@@ -17,6 +17,16 @@ import { BuildNodeAuthPathError } from '../../../node-providers/errors/buildNode
 import { unwatchFile, watchFile } from '../../../utils/filesystemWatcher';
 import { Dictionary } from '../../../types/types';
 
+type NodesOptionsByChainId = {
+  chainId: number;
+  nodesOptions: NodeOptions[];
+};
+
+type NodesAuthsByChainId = {
+  chainId: number;
+  nodesAuths: NodeAuth[];
+};
+
 export class NodesConfigFileAdapter implements NodesConfigRepository {
   private static instance: NodesConfigFileAdapter;
 
@@ -34,12 +44,19 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
     return NodesConfigFileAdapter.instance;
   }
 
-  getNodesOptions(): NodeOptions[] {
+  getNodesOptions(chainId: number): NodeOptions[] {
     try {
-      return getObjFromJson(
+      const nodesOptionsByChainId = getObjFromJson(
         BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY,
         ROOT_PATH,
-        buildNodesOptions
+        buildNodesOptions,
+        nodesOptionsValidation
+      );
+
+      return (
+        nodesOptionsByChainId.find(
+          (nodesOptionsByChainId) => nodesOptionsByChainId.chainId === chainId
+        )?.nodesOptions || []
       );
     } catch (e) {
       console.log('Error in NodesFileAdapter - getNodesOptions: ' + e);
@@ -48,12 +65,19 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
     return [];
   }
 
-  getNodesAuth(): NodeAuth[] {
+  getNodesAuth(chainId: number): NodeAuth[] {
     try {
-      return getObjFromJson(
+      const nodesAuthsByChainId = getObjFromJson(
         BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY,
         ROOT_PATH,
-        buildNodesAuth
+        buildNodesAuths,
+        nodesAuthsValidation
+      );
+
+      return (
+        nodesAuthsByChainId.find(
+          (nodesAuthsByChainId) => nodesAuthsByChainId.chainId === chainId
+        )?.nodesAuths || []
       );
     } catch (e) {
       console.log('Error in NodesFileAdapter - getNodesAuth: ' + e);
@@ -95,31 +119,103 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
   }
 }
 
-const buildNodesOptions = (nodesOptions: NodeOptions[]): NodeOptions[] => {
-  return nodesOptions.map((opt) => {
-    if (opt?.type === 'HTTP') {
-      return buildHttpNodeOptions(opt);
-    } else if (opt?.type === 'WS') {
-      return buildWsNodeOptions(opt);
-    } else if (opt?.type === 'IPC') {
-      return buildIpcNodeOptions(opt);
-    }
-
-    throw Error(
-      `The deserialized JSON contains the following invalid node options: ${opt}`
+const nodesOptionsValidation = (nodesOptions: unknown): void => {
+  if (!Array.isArray(nodesOptions)) {
+    throw new Error(
+      'Unable to retrieve a collection of nodes options from json file'
     );
-  });
+  }
 };
 
-const buildNodesAuth = (nodesAuthPaths: unknown[]): NodeAuth[] => {
-  return nodesAuthPaths.map((obj) => {
-    const nodeAuthPath = buildNodeAuthPath(obj);
+const buildNodesOptions = (
+  nodesOptionsByChainId: NodesOptionsByChainId[]
+): NodesOptionsByChainId[] => {
+  return nodesOptionsByChainId.map(buildNodesOptionsByChainId);
+};
 
-    return {
-      url: nodeAuthPath.url,
-      apiKey: getTextFromPath(nodeAuthPath.apiKeyPath)
-    } as NodeAuth;
-  });
+const buildNodesOptionsByChainId = (obj: unknown): NodesOptionsByChainId => {
+  if (!isNodesOptionsByChainId(obj)) {
+    throw new Error(
+      `There was an error building nodes options by chainId from ${obj}`
+    );
+  }
+
+  return {
+    ...(obj as NodesOptionsByChainId),
+    nodesOptions: (obj as NodesOptionsByChainId).nodesOptions.map(
+      buildNodeOptions
+    )
+  };
+};
+
+const buildNodeOptions = (nodesOptions: NodeOptions): NodeOptions => {
+  if (nodesOptions?.type === 'HTTP') {
+    return buildHttpNodeOptions(nodesOptions);
+  } else if (nodesOptions?.type === 'WS') {
+    return buildWsNodeOptions(nodesOptions);
+  } else if (nodesOptions?.type === 'IPC') {
+    return buildIpcNodeOptions(nodesOptions);
+  }
+
+  throw Error(
+    `The deserialized JSON contains the following invalid node options: ${nodesOptions}`
+  );
+};
+
+const isNodesOptionsByChainId = (obj: any): boolean => {
+  return (
+    isType(obj, ['chainId', 'nodesOptions'], []) &&
+    (obj as NodesOptionsByChainId).chainId != null &&
+    !isNaN(Number((obj as NodesOptionsByChainId).chainId)) &&
+    (obj as NodesOptionsByChainId).nodesOptions != null &&
+    Array.isArray((obj as NodesOptionsByChainId).nodesOptions)
+  );
+};
+
+const nodesAuthsValidation = (nodesAuths: unknown): void => {
+  if (!Array.isArray(nodesAuths)) {
+    throw new Error(
+      'Unable to retrieve a collection of nodes auth from json file'
+    );
+  }
+};
+
+const buildNodesAuths = (
+  nodesAuthsByChainId: NodesAuthsByChainId[]
+): NodesAuthsByChainId[] => {
+  return nodesAuthsByChainId.map(buildNodesAuthsByChainId);
+};
+
+const buildNodesAuthsByChainId = (obj: unknown): NodesAuthsByChainId => {
+  if (!isNodesAuthsByChainId(obj)) {
+    throw new Error(
+      `There was an error building nodes options by chainId from ${obj}`
+    );
+  }
+
+  return {
+    ...(obj as NodesAuthsByChainId),
+    nodesAuths: (obj as NodesAuthsByChainId).nodesAuths.map(buildNodesAuth)
+  };
+};
+
+const buildNodesAuth = (nodesAuthPaths: unknown): NodeAuth => {
+  const nodeAuthPath = buildNodeAuthPath(nodesAuthPaths);
+
+  return {
+    url: nodeAuthPath.url,
+    apiKey: getTextFromPath(nodeAuthPath.apiKeyPath)
+  } as NodeAuth;
+};
+
+const isNodesAuthsByChainId = (obj: any): boolean => {
+  return (
+    isType(obj, ['chainId', 'nodesAuths'], []) &&
+    (obj as NodesAuthsByChainId).chainId != null &&
+    !isNaN(Number((obj as NodesAuthsByChainId).chainId)) &&
+    (obj as NodesAuthsByChainId).nodesAuths != null &&
+    Array.isArray((obj as NodesAuthsByChainId).nodesAuths)
+  );
 };
 
 const getTextFromPath = (path: string): string => {

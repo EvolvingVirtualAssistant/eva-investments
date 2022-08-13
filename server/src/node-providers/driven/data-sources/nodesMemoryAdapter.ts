@@ -4,10 +4,10 @@ import { NodesRepository, Node } from '../../../deps';
 export class NodesMemoryAdapter implements NodesRepository {
   private static instance: NodesMemoryAdapter;
 
-  private nodes: Dictionary<Node>;
+  private nodesByChainId: Dictionary<Dictionary<Node>>;
 
   private constructor() {
-    this.nodes = {};
+    this.nodesByChainId = {};
   }
 
   static getInstance(): NodesMemoryAdapter {
@@ -18,30 +18,53 @@ export class NodesMemoryAdapter implements NodesRepository {
     return NodesMemoryAdapter.instance;
   }
 
-  getNodes(): Node[] {
+  getNodes(chainId: number): Node[] {
     const res = [];
-    for (const key in this.nodes) {
-      res.push(this.nodes[key]);
+    const nodes = this.nodesByChainId[chainId] || {};
+    for (const key in nodes) {
+      res.push(nodes[key]);
     }
 
     return res;
   }
 
-  save(node: Node): void {
-    this.nodes[node.id] = node;
+  save(chainId: number, node: Node): void {
+    let nodes = this.nodesByChainId[chainId];
+
+    if (nodes == null) {
+      nodes = {};
+      this.nodesByChainId[chainId] = nodes;
+    }
+
+    nodes[node.id] = node;
   }
 
-  saveAll(nodes: Node[]): void {
-    nodes.forEach((node) => this.save(node));
+  saveAll(chainId: number, nodes: Node[]): void {
+    nodes.forEach((node) => this.save(chainId, node));
   }
 
-  deleteById(id: number): Node {
-    const res = this.nodes[id];
-    delete this.nodes[id];
+  deleteById(chainId: number, id: number): Node {
+    const nodes = this.nodesByChainId[chainId];
+
+    if (nodes == null) {
+      throw new Error(
+        `Unable to find chainId ${chainId} while deleting node with id ${id}`
+      );
+    }
+
+    const res = nodes[id];
+
+    if (res == null) {
+      throw new Error(
+        `Unable to find node with id ${id} in chainId ${chainId} while deleting node`
+      );
+    }
+
+    delete nodes[id];
     return res;
   }
 
-  deleteAll(): void {
-    this.nodes = {};
+  deleteAll(chainId: number): void {
+    this.nodesByChainId[chainId] = {};
   }
 }

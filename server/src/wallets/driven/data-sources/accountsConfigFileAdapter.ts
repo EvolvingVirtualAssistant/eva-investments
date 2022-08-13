@@ -7,10 +7,15 @@ import { getObjFromJson, readTextFile } from '../../../utils/files';
 import NoAccountsProvidedError from './errors/noAccountsProvidedError';
 import { isType } from '../../../utils/typeGuards';
 
+type AccountsByChainId = {
+  chainId: number;
+  accounts: Account[];
+};
+
 export class AccountsConfigFileAdapter implements AccountsRepository {
   private static instance: AccountsConfigFileAdapter;
 
-  private _accounts: Account[];
+  private _accounts: AccountsByChainId[];
   private _refreshAccounts: boolean; // May be a good idea to have this outside of the adapter and let whoever wants decide how to use it
   private _accountsFileWatcher?: FSWatcher;
 
@@ -27,7 +32,7 @@ export class AccountsConfigFileAdapter implements AccountsRepository {
     return AccountsConfigFileAdapter.instance;
   }
 
-  getAccounts(): Account[] {
+  getAccounts(chainId: number): Account[] {
     try {
       if (this._refreshAccounts) {
         try {
@@ -57,7 +62,11 @@ export class AccountsConfigFileAdapter implements AccountsRepository {
         );
       }
 
-      return this._accounts;
+      return (
+        this._accounts.find(
+          (accountsByChainId) => accountsByChainId.chainId === chainId
+        )?.accounts || []
+      );
     } catch (e) {
       console.log('Error in AccountsConfigFileAdapter - getAccounts: ' + e);
     }
@@ -65,19 +74,40 @@ export class AccountsConfigFileAdapter implements AccountsRepository {
     return [];
   }
 
-  getAccount(address: string): Account | undefined {
-    return this._accounts.find((acc) => acc.address === address);
+  getAccount(chainId: number, address: string): Account | undefined {
+    return this._accounts
+      .find((accountsByChainId) => accountsByChainId.chainId === chainId)
+      ?.accounts.find((acc) => acc.address === address);
   }
 }
 
 const accountsValidation = (accounts: unknown): void => {
-  if (!accounts) {
-    throw new Error();
+  if (!Array.isArray(accounts)) {
+    throw new Error(
+      'Unable to retrieve a collection of accounts from json file'
+    );
   }
 };
 
-const buildAccounts = (accounts: unknown[]): Account[] => {
-  return Object.values(accounts).map(buildAccount);
+const buildAccounts = (accounts: unknown[]): AccountsByChainId[] => {
+  return accounts.map(buildAccountsByChainId);
+};
+
+const buildAccountsByChainId = (obj: any): AccountsByChainId => {
+  if (!isAccountsByChainId(obj)) {
+    throw new Error(
+      `There was an error building accounts by chainId from ${JSON.stringify(
+        obj
+      )}`
+    );
+  }
+
+  return {
+    ...(obj as AccountsByChainId),
+    accounts: Object.values((obj as AccountsByChainId).accounts).map(
+      buildAccount
+    )
+  };
 };
 
 const buildAccount = (obj: any): Account => {
@@ -94,6 +124,15 @@ const buildAccount = (obj: any): Account => {
   const privateKey = readTextFile(privateKeyPath);
 
   return { ...account, privateKey };
+};
+
+const isAccountsByChainId = (obj: any): boolean => {
+  return (
+    isType(obj, ['chainId', 'accounts'], []) &&
+    (obj as AccountsByChainId).chainId != null &&
+    !isNaN(Number((obj as AccountsByChainId).chainId)) &&
+    (obj as AccountsByChainId).accounts != null
+  );
 };
 
 const isAccount = (obj: any): boolean => {

@@ -8,5 +8,8 @@ export type ContractDataFilter = {
 };
 
 export interface ContractsRepository {
-  getContractsData(filter?: ContractDataFilter): ContractData[];
+  getContractsData(
+    chainId: number,
+    filter?: ContractDataFilter
+  ): ContractData[];
 }

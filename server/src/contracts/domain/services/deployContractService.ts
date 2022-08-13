@@ -146,9 +146,13 @@ const _deployContract = async (
   ethereUnit: Unit,
   contractArguments: unknown[] = []
 ): Promise<string> => {
-  const deployerAccount = getAccountByAccountAddress(deployerAccountAddress);
+  const chainId = await web3.eth.getChainId();
+  const deployerAccount = getAccountByAccountAddress(
+    chainId,
+    deployerAccountAddress
+  );
   if (!deployerAccount) {
-    throw new AccountNotFoundError(deployerAccountAddress);
+    throw new AccountNotFoundError(chainId, deployerAccountAddress);
   }
   const contractByteCode: string =
     contractJson?.evm?.bytecode?.object || contractJson?.bytecode;
