@@ -2,10 +2,11 @@ import { getContractsRepository } from '../../../appContext';
 import { ContractData } from '../entities/contract';
 
 export const getContractByName = (
+  chainId: number,
   name: string,
   isCompiled = true
 ): ContractData => {
-  const contract = getCompiledContractByName(name);
+  const contract = getCompiledContractByName(chainId, name);
 
   if (!isCompiled && contract.path == null) {
     throw new Error(`${name} contract missing path`);
@@ -16,8 +17,13 @@ export const getContractByName = (
   return contract;
 };
 
-const getCompiledContractByName = (name: string): ContractData => {
-  const contracts = getContractsRepository().getContractsData({ name });
+const getCompiledContractByName = (
+  chainId: number,
+  name: string
+): ContractData => {
+  const contracts = getContractsRepository().getContractsData(chainId, {
+    name
+  });
 
   if (contracts.length != 1) {
     throw new Error(`Found ${contracts.length} ${name} contracts`);

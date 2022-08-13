@@ -2,13 +2,16 @@ import { getAccountsRepository } from '../../../appContext';
 import { Account } from '../entities/accounts';
 import AccountNotFoundError from './errors/accountNotFoundError';
 
-export const getAccountByAccountAddress = (address: string): Account => {
-  const account = getAccountsRepository().getAccount(address);
+export const getAccountByAccountAddress = (
+  chainId: number,
+  address: string
+): Account => {
+  const account = getAccountsRepository().getAccount(chainId, address);
   if (!account) {
-    throw new AccountNotFoundError(address);
+    throw new AccountNotFoundError(chainId, address);
   }
   return account;
 };
 
-export const getAccounts = (): Account[] =>
-  getAccountsRepository().getAccounts();
+export const getAccounts = (chainId: number): Account[] =>
+  getAccountsRepository().getAccounts(chainId);

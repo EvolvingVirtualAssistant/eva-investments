@@ -22,6 +22,7 @@ export let externalDeps: ExternalDeps | undefined;
 export class BlockchainCommunication {
   private _nodesConfigRepository: NodesConfigRepository;
   private _nodesRepository: NodesRepository;
+  private _chainId: number;
 
   private _currentNode: Node | undefined;
 
@@ -62,13 +63,20 @@ export class BlockchainCommunication {
   }
 
   constructor(
+    chainId: number,
     nodesConfigRepository: NodesConfigRepository,
     nodesRepository: NodesRepository
   ) {
     this._nodesConfigRepository = nodesConfigRepository;
     this._nodesRepository = nodesRepository;
+    this._chainId = chainId;
 
-    loadNodes(this._nodesConfigRepository, this._nodesRepository, true);
+    loadNodes(
+      this._chainId,
+      this._nodesConfigRepository,
+      this._nodesRepository,
+      true
+    );
   }
 
   async init(automaticProviders: boolean) {
@@ -102,6 +110,7 @@ export class BlockchainCommunication {
 
     if (this._web3 != null && this._automaticProviders) {
       registerProviderRotation(
+        this._chainId,
         this._web3,
         this._nodesRepository,
         () => this._currentNode,
@@ -115,6 +124,7 @@ export class BlockchainCommunication {
   private setProviderTimeout(): void {
     if (this._web3 != null && this._automaticProviders) {
       this._currentNode = setProvider(
+        this._chainId,
         this._web3,
         this._nodesRepository,
         this._currentNode

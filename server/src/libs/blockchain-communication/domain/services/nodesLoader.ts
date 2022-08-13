@@ -6,6 +6,7 @@ import { NodeAuth } from '../entities/nodeAuth';
 import { NodeOptions } from '../entities/nodeOptions';
 
 export function loadNodes(
+  chainId: number,
   nodesConfigRepository: NodesConfigRepository,
   nodesRepository: NodesRepository,
   keepLoadingNodes = false
@@ -15,15 +16,15 @@ export function loadNodes(
   if (keepLoadingNodes) {
     nodesConfigRepository.callOnChange(() => {
       try {
-        loadNodes(nodesConfigRepository, nodesRepository, false);
+        loadNodes(chainId, nodesConfigRepository, nodesRepository, false);
       } catch (e) {
         console.log(e);
       }
     });
   }
 
-  const nodesOptions = nodesConfigRepository.getNodesOptions();
-  const nodesAuth = nodesConfigRepository.getNodesAuth();
+  const nodesOptions = nodesConfigRepository.getNodesOptions(chainId);
+  const nodesAuth = nodesConfigRepository.getNodesAuth(chainId);
 
   const newNodes = createNodes(nodesOptions, nodesAuth);
 
@@ -32,8 +33,8 @@ export function loadNodes(
   // - May want to store node options (minus the host), and add an id to each one of them, which would help with:
   //   - avoiding data duplication
   //   - able to associate easily an identifiable options with other info, which can be common to different hosts
-  nodesRepository.deleteAll();
-  nodesRepository.saveAll(newNodes);
+  nodesRepository.deleteAll(chainId);
+  nodesRepository.saveAll(chainId, newNodes);
 }
 
 function createNodes(

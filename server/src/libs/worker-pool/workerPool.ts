@@ -71,6 +71,7 @@ export class WorkerPool extends EventEmitter {
       if (worker.workerPoolTask != null) {
         worker.workerPoolTask?.done(null, error);
       } else {
+        console.error('Error received from worker', error);
         this.emit('error', error);
       }
 

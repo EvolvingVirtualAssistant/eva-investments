@@ -9,6 +9,11 @@ import {
 
 const CONTRACTS_ENV_KEY = 'CONTRACTS';
 
+type ContractsByChainId = {
+  chainId: number;
+  contracts: ContractData[];
+};
+
 export class ContractsConfigFileAdapter implements ContractsRepository {
   private static instance: ContractsConfigFileAdapter;
 
@@ -23,7 +28,10 @@ export class ContractsConfigFileAdapter implements ContractsRepository {
     return ContractsConfigFileAdapter.instance;
   }
 
-  getContractsData(filter?: ContractDataFilter): ContractData[] {
+  getContractsData(
+    chainId: number,
+    filter?: ContractDataFilter
+  ): ContractData[] {
     try {
       const contractsData = getObjFromJson(
         CONTRACTS_ENV_KEY,
@@ -32,11 +40,19 @@ export class ContractsConfigFileAdapter implements ContractsRepository {
         contractsValidation
       );
 
-      if (filter == null) {
-        return contractsData;
+      const contractsByChainId = contractsData.find(
+        (contractsByChainId) => contractsByChainId.chainId === chainId
+      );
+
+      if (contractsByChainId == null) {
+        return [];
       }
 
-      return contractsData.filter(
+      if (filter == null) {
+        return contractsByChainId.contracts;
+      }
+
+      return contractsByChainId.contracts.filter(
         (contract) =>
           (filter.name == null || filter.name === contract.name) &&
           (filter.address == null || filter.address === contract.address) &&
@@ -62,8 +78,21 @@ const contractsValidation = (contracts: unknown): void => {
   }
 };
 
-const buildContracts = (contracts: unknown[]): ContractData[] => {
-  return contracts.map(buildContract);
+const buildContracts = (contracts: unknown[]): ContractsByChainId[] => {
+  return contracts.map(buildContractsByChainId);
+};
+
+const buildContractsByChainId = (obj: any): ContractsByChainId => {
+  if (!isContractsByChainId(obj)) {
+    throw new Error(
+      `There was an error building contracts by chainId from ${obj}`
+    );
+  }
+
+  return {
+    ...(obj as ContractsByChainId),
+    contracts: (obj as ContractsByChainId).contracts.map(buildContract)
+  };
 };
 
 const buildContract = (obj: any): ContractData => {
@@ -72,6 +101,16 @@ const buildContract = (obj: any): ContractData => {
   }
 
   return { ...(obj as ContractData) };
+};
+
+const isContractsByChainId = (obj: any): boolean => {
+  return (
+    isType(obj, ['chainId', 'contracts'], []) &&
+    (obj as ContractsByChainId).chainId != null &&
+    !isNaN(Number((obj as ContractsByChainId).chainId)) &&
+    (obj as ContractsByChainId).contracts != null &&
+    Array.isArray((obj as ContractsByChainId).contracts)
+  );
 };
 
 const isContract = (obj: any): boolean => {

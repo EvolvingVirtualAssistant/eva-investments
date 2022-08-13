@@ -19,6 +19,7 @@ export function unregisterProviderRotation(): void {
 }
 
 export function registerProviderRotation(
+  chainId: number,
   web3: Web3,
   nodesRepository: NodesRepository,
   getCurrentNode: () => Node | undefined,
@@ -29,7 +30,7 @@ export function registerProviderRotation(
     let newNode = null;
 
     try {
-      newNode = targetNode || fallbackGetProviderNode(nodesRepository);
+      newNode = targetNode || fallbackGetProviderNode(chainId, nodesRepository);
     } catch (e) {
       throw new ProviderError(`Error getting provider: ${e}`);
     }
@@ -53,11 +54,12 @@ export function registerProviderRotation(
 }
 
 export function setProvider(
+  chainId: number,
   web3: Web3,
   nodesRepository: NodesRepository,
   currNode?: Node
 ): Node | undefined {
-  const newNode = getWeb3ProviderNode(nodesRepository);
+  const newNode = getWeb3ProviderNode(chainId, nodesRepository);
 
   if (equalNodes(currNode, newNode)) {
     return currNode;
@@ -75,11 +77,14 @@ export function setProvider(
   return newNode;
 }
 
-function getWeb3ProviderNode(nodesRepository: NodesRepository): Node {
+function getWeb3ProviderNode(
+  chainId: number,
+  nodesRepository: NodesRepository
+): Node {
   try {
     return (
       externalDeps?.getProviderNode?.(nodesRepository) ||
-      fallbackGetProviderNode(nodesRepository)
+      fallbackGetProviderNode(chainId, nodesRepository)
     );
   } catch (e) {
     throw new ProviderError(`Error getting provider: ${e}`);
@@ -108,8 +113,11 @@ function nodeToProvider(node: Node): provider {
   );
 }
 
-function fallbackGetProviderNode(nodesRepository: NodesRepository): Node {
-  const nodes = nodesRepository?.getNodes();
+function fallbackGetProviderNode(
+  chainId: number,
+  nodesRepository: NodesRepository
+): Node {
+  const nodes = nodesRepository?.getNodes(chainId);
 
   if (nodes.length === 0) {
     throw new NodeError('No nodes available');

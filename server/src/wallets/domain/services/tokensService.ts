@@ -6,6 +6,7 @@ import { getContractByName } from '../../../contracts/domain/services/contractSe
 import { EthereUnit } from '../../../app';
 
 export const erc20TokenApprove = async (
+  chainId: number,
   web3: Web3,
   account: Account,
   tokenAddress: string,
@@ -15,7 +16,12 @@ export const erc20TokenApprove = async (
   gasPrice = '1.2444',
   ethereUnit: Unit = 'gwei' as EthereUnit
 ): Promise<void> => {
-  const tokenContract: Contract = getTokenContract(web3, tokenAddress, false);
+  const tokenContract: Contract = getTokenContract(
+    chainId,
+    web3,
+    tokenAddress,
+    false
+  );
   const approveFnEnconded = tokenContract.methods
     .approve(spenderAddress, tokenAmount)
     .encodeABI();
@@ -51,17 +57,22 @@ export const erc20TokenApprove = async (
   //await getApprovalEvent(tokenContract);
 };
 
-const WETH9Contract = getContractByName('WETH9');
-const ERC20Contract = getContractByName('ERC20');
+const getWETH9Contract = (chainId: number) =>
+  getContractByName(chainId, 'WETH9');
+const getERC20Contract = (chainId: number) =>
+  getContractByName(chainId, 'ERC20');
 
 const getTokenContract = (
+  chainId: number,
   web3: Web3,
   address: string,
   isWeth = false
 ): Contract => {
   return loadPrecompiledContract(
     web3,
-    isWeth ? WETH9Contract.compiledPath : ERC20Contract.compiledPath,
+    isWeth
+      ? getWETH9Contract(chainId).compiledPath
+      : getERC20Contract(chainId).compiledPath,
     address
   );
 };
