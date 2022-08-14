@@ -1,4 +1,4 @@
-export { BlockchainCommunication } from './drivers/api';
+export { Web3Extension, initBlockchainCommunication } from './drivers/api';
 export type { NodesConfigRepository } from './driven/repositories/nodesConfigRepository';
 export type { NodesRepository } from './driven/repositories/nodesRepository';
 export {
@@ -12,7 +12,8 @@ export {
 } from './domain/entities/nodeOptions';
 export { NodeAuth } from './domain/entities/nodeAuth';
 export { Node } from './domain/entities/node';
-export { NonceTracker } from './domain/services/nonceTracker';
+export { NonceTracker, getNonceTracker } from './domain/services/nonceTracker';
+export { nodeToProvider } from './domain/services/providerService';
 export { Web3 } from './deps';
 export type {
   BlockHeader,
@@ -21,5 +22,7 @@ export type {
   TransactionReceipt,
   ContractSendMethod,
   SignedTransaction,
-  Contract
+  Contract,
+  Socket,
+  provider
 } from './deps';

@@ -30,6 +30,7 @@ export const erc20TokenApprove = async (
     `Approving Spender to transfer ${tokenAmount} token ${tokenAddress}\n`
   );
   const transactionReceipt: TransactionReceipt = await sendTransaction(
+    chainId,
     web3,
     account,
     approveFnEnconded,

@@ -15,6 +15,7 @@ export {
 export { erc20TokenApprove } from './wallets/domain/services/tokensService';
 export {
   Web3,
+  Web3Extension,
   Unit as EthereUnit,
   TransactionReceipt,
   ContractSendMethod,
@@ -23,7 +24,9 @@ export {
   BN,
   WorkerPool,
   WorkerTask,
-  BlockHeader
+  BlockHeader,
+  Node,
+  nodeToProvider
 } from './deps';
 export {
   readJsonFile,
@@ -36,4 +39,4 @@ export { watchFile } from './utils/filesystemWatcher';
 export { isType } from './utils/typeGuards';
 export { sleep } from './utils/async';
 export { Dictionary } from './types/types';
-export { getWeb3 } from './appContext';
+export { getAsyncWeb3Extension, getWeb3Extension } from './appContext';

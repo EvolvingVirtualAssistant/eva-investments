@@ -9,6 +9,7 @@ import WebsocketProvider from 'web3-providers-ws';
 import IpcProvider from 'web3-providers-ipc';
 import { Unit } from 'web3-utils';
 import { ContractSendMethod, Contract } from 'web3-eth-contract';
+import { Socket } from 'net';
 
 function findRootFolder(path: string): string {
   let foldersMatched = 0;
@@ -57,5 +58,6 @@ export {
   ContractSendMethod,
   SignedTransaction,
   Subscription,
-  Contract
+  Contract,
+  Socket
 };
