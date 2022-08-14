@@ -10,7 +10,9 @@ export { sendTransaction } from './contracts/domain/services/transactionService'
 export { getContractByName } from './contracts/domain/services/contractService';
 export {
   subscribeLatestBlock,
-  registerSubscription
+  registerSubscription,
+  unsubscribe,
+  unregisterCallback
 } from './subscribers/domain/services/subscriptionService';
 export { erc20TokenApprove } from './wallets/domain/services/tokensService';
 export {

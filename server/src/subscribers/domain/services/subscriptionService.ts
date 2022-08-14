@@ -1,3 +1,4 @@
+import { randomUUID, RandomUUIDOptions } from 'crypto';
 import { Dictionary } from 'src/types/types';
 import { BlockHeader, Subscription, Web3 } from '../../../deps';
 
@@ -40,16 +41,27 @@ export const subscribeLatestBlock = (
   });
 };
 
-export const unsubscribe = (subscriptionId: number): void => {
-  subscriptions[subscriptionId]?.unsubscribe(
-    (error: Error, result: boolean) => {
-      if (result) {
-        console.log(`Successfully unsubscribed - ${subscriptionId}`);
-      } else {
-        console.log(`Error unsubscribing - ${subscriptionId} - ${error}`);
-      }
+export const unsubscribe = async (subscriptionId: string, force = false) => {
+  const sub = subscriptionsByChainEvent[subscriptionId];
+  if (!sub) {
+    return;
+  }
+
+  if (!force) {
+    sub.shouldTerminate = true;
+    await new Promise((resolve, reject) => {
+      sub.terminate = resolve;
+    });
+  }
+
+  await sub.subscription.unsubscribe((error: Error, result: boolean) => {
+    if (result) {
+      delete subscriptionsByChainEvent[subscriptionId];
+      console.log(`Successfully unsubscribed - ${subscriptionId}`);
+    } else {
+      console.log(`Error unsubscribing - ${subscriptionId} - ${error}`);
     }
-  );
+  });
 };
 
 const defaultErrorHandler = (error: Error) => {
@@ -61,15 +73,19 @@ const defaultErrorHandler = (error: Error) => {
 type SubscriptionByChainEvent<T> = {
   subscription: Subscription<BlockHeader>;
   callbacks: Callback<T>[][];
+  shouldTerminate: boolean;
+  terminate?: (value: unknown) => void;
 };
 
 type Callback<T> = {
+  id: string;
   callback: (event: T, ...args: any[]) => any;
   args: any[];
   priority: number;
   isAsyncCallback: boolean;
   skipOnUnfinishedEvent: boolean;
   lastEventFinished: boolean;
+  terminated: boolean;
 };
 
 const getSubscriptionByChainEventKey = (
@@ -87,7 +103,7 @@ export const registerSubscription = async <T>(
   isAsyncCallback: boolean,
   callback: (event: T, ...args: any[]) => any,
   ...args: any[]
-): Promise<void> => {
+): Promise<{ subscriptionId: string; callbackId: string }> => {
   const key = getSubscriptionByChainEventKey(chainId, eventType);
 
   let sub = subscriptionsByChainEvent[key];
@@ -111,12 +127,13 @@ export const registerSubscription = async <T>(
 
     sub = {
       subscription,
-      callbacks: []
+      callbacks: [],
+      shouldTerminate: false
     };
     subscriptionsByChainEvent[key] = sub;
   }
 
-  addCallbackToSubscription(
+  const callbackId = addCallbackToSubscription(
     sub,
     priority,
     skipOnUnfinishedEvent,
@@ -124,6 +141,8 @@ export const registerSubscription = async <T>(
     callback,
     ...args
   );
+
+  return { subscriptionId: key, callbackId };
 };
 
 const addCallbackToSubscription = <T>(
@@ -133,30 +152,35 @@ const addCallbackToSubscription = <T>(
   isAsyncCallback: boolean,
   callback: (event: T, ...args: any[]) => any,
   ...args: any[]
-): void => {
+): string => {
   let inserted = false;
+  const id = randomUUID();
   for (let i = 0; !inserted && i < sub.callbacks.length; i++) {
     if (priority < sub.callbacks[i][0].priority) {
       const removedElems = sub.callbacks.splice(i, sub.callbacks.length - i, [
         {
+          id,
           callback,
           args,
           priority,
           skipOnUnfinishedEvent,
           isAsyncCallback,
-          lastEventFinished: true
+          lastEventFinished: true,
+          terminated: false
         }
       ]);
       sub.callbacks = sub.callbacks.concat(removedElems);
       inserted = true;
     } else if (sub.callbacks[i][0].priority === priority) {
       sub.callbacks[i].push({
+        id,
         callback,
         args,
         priority,
         skipOnUnfinishedEvent,
         isAsyncCallback,
-        lastEventFinished: true
+        lastEventFinished: true,
+        terminated: false
       });
       inserted = true;
     }
@@ -165,15 +189,34 @@ const addCallbackToSubscription = <T>(
   if (!inserted) {
     sub.callbacks.push([
       {
+        id,
         callback,
         args,
         priority,
         skipOnUnfinishedEvent,
         isAsyncCallback,
-        lastEventFinished: true
+        lastEventFinished: true,
+        terminated: false
       }
     ]);
   }
+
+  return id;
+};
+
+export const unregisterCallback = (
+  subscriptionId: string,
+  callbackId: string
+) => {
+  const sub = subscriptionsByChainEvent[subscriptionId];
+
+  if (!sub) {
+    return;
+  }
+
+  sub.callbacks = sub.callbacks.map((callbacks) => {
+    return callbacks.filter((callback) => callback.id !== callbackId);
+  });
 };
 
 const getDataHandlerBlockHeader = (subscriptionKey: string) => {
@@ -184,10 +227,12 @@ const getDataHandlerBlockHeader = (subscriptionKey: string) => {
       return;
     }
 
+    let callbacksByPriorityTerminated = 0;
     for (let i = 0; i < sub.callbacks.length; i++) {
       const promsByPriority: Promise<any>[] = [];
 
       sub.callbacks[i]
+        .filter(({ terminated }) => !terminated)
         .filter(
           ({ skipOnUnfinishedEvent, lastEventFinished }) =>
             !skipOnUnfinishedEvent ||
@@ -207,6 +252,9 @@ const getDataHandlerBlockHeader = (subscriptionKey: string) => {
               )
               .finally(() => {
                 callback.lastEventFinished = true;
+                if (sub.shouldTerminate) {
+                  callback.terminated = true;
+                }
               });
             promsByPriority.push(prom);
             return;
@@ -221,9 +269,22 @@ const getDataHandlerBlockHeader = (subscriptionKey: string) => {
             promsByPriority.push(Promise.reject(e));
           } finally {
             callback.lastEventFinished = true;
+            if (sub.shouldTerminate) {
+              callback.terminated = true;
+            }
           }
         });
       await Promise.allSettled(promsByPriority);
+      callbacksByPriorityTerminated =
+        callbacksByPriorityTerminated + (promsByPriority.length === 0 ? 1 : 0);
+    }
+
+    if (
+      sub.shouldTerminate &&
+      callbacksByPriorityTerminated === sub.callbacks.length
+    ) {
+      sub.terminate?.('');
+      sub.terminate = undefined;
     }
   };
 };

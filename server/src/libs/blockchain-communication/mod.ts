@@ -26,3 +26,4 @@ export type {
   Socket,
   provider
 } from './deps';
+export { attemptImport } from './utils/import';
