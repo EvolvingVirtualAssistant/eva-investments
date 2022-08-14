@@ -1,11 +1,11 @@
-import { Dictionary } from 'src/types/types';
-import { getNonceTracker } from '../../../appContext';
+import { Dictionary } from '../../../types/types';
 import {
   BN,
   SignedTransaction,
   TransactionReceipt,
   Unit as EthereUnit,
-  Web3
+  Web3,
+  getNonceTracker
 } from '../../../deps';
 import { Account } from '../../../wallets/domain/entities/accounts';
 import { TRANSACTION_TIMEOUT } from '../constants/contractConstants';
@@ -26,6 +26,7 @@ type TransactionsQueue = {
 const transactionsQueuesByAccountAddress: Dictionary<TransactionsQueue> = {};
 
 export const sendTransaction = async (
+  chainId: number,
   web3: Web3,
   account: Account,
   sendMethodEncoded: string,
@@ -36,6 +37,7 @@ export const sendTransaction = async (
   value?: BN
 ): Promise<TransactionReceipt> => {
   return sendPartialLockTransaction(
+    chainId,
     web3,
     account,
     sendMethodEncoded,
@@ -48,6 +50,7 @@ export const sendTransaction = async (
 };
 
 const sendLockTransaction = async (
+  chainId: number,
   web3: Web3,
   account: Account,
   sendMethodEncoded: string,
@@ -70,6 +73,7 @@ const sendLockTransaction = async (
 
   try {
     const signedTransaction = await signTransaction(
+      chainId,
       web3,
       account,
       sendMethodEncoded,
@@ -94,7 +98,7 @@ const sendLockTransaction = async (
     } else {
       //recovering nonce value
       const { syncLocalNonce } = getNonceTracker();
-      await syncLocalNonce(web3, account.address);
+      await syncLocalNonce(web3, chainId, account.address);
     }
 
     throw e;
@@ -122,6 +126,7 @@ const getOrCreateTransactionsQueue = (web3: Web3, account: Account) => {
 };
 
 const sendNoLockTransaction = async (
+  chainId: number,
   web3: Web3,
   account: Account,
   sendMethodEncoded: string,
@@ -133,6 +138,7 @@ const sendNoLockTransaction = async (
 ): Promise<TransactionReceipt> => {
   try {
     const signedTransaction = await signTransaction(
+      chainId,
       web3,
       account,
       sendMethodEncoded,
@@ -158,7 +164,7 @@ const sendNoLockTransaction = async (
     } else {
       //recovering nonce value
       const { syncLocalNonce } = getNonceTracker();
-      await syncLocalNonce(web3, account.address);
+      await syncLocalNonce(web3, chainId, account.address);
     }
 
     throw e;
@@ -166,6 +172,7 @@ const sendNoLockTransaction = async (
 };
 
 const sendPartialLockTransaction = async (
+  chainId: number,
   web3: Web3,
   account: Account,
   sendMethodEncoded: string,
@@ -188,6 +195,7 @@ const sendPartialLockTransaction = async (
 
   try {
     const signedTransaction = await signTransaction(
+      chainId,
       web3,
       account,
       sendMethodEncoded,
@@ -225,7 +233,7 @@ const sendPartialLockTransaction = async (
       //recovering nonce value
       //console.log('Syncing nonce');
       const { syncLocalNonce } = getNonceTracker();
-      await syncLocalNonce(web3, account.address);
+      await syncLocalNonce(web3, chainId, account.address);
     }
 
     throw e;
@@ -244,6 +252,7 @@ type SignedTransactionWithNonce = {
 };
 
 const signTransaction = async (
+  chainId: number,
   web3: Web3,
   account: Account,
   sendMethodEncoded: string,
@@ -259,17 +268,17 @@ const signTransaction = async (
 
   try {
     nonce = mutexNonce
-      ? await nonceTracker.getNextNonce(web3, account.address)
-      : nonceTracker.getNextUnsafeNonce(web3, account.address);
+      ? await nonceTracker.getNextNonce(chainId, account.address)
+      : nonceTracker.getNextUnsafeNonce(chainId, account.address);
   } catch (e) {
     console.error(
       `Could not obtain next nonce while signing transaction. Will create new entry for account ${account.address}`,
       e
     );
-    await nonceTracker.initAddress(web3, account.address);
+    await nonceTracker.initAddress(web3, chainId, account.address);
     nonce = mutexNonce
-      ? await nonceTracker.getNextNonce(web3, account.address)
-      : nonceTracker.getNextUnsafeNonce(web3, account.address);
+      ? await nonceTracker.getNextNonce(chainId, account.address)
+      : nonceTracker.getNextUnsafeNonce(chainId, account.address);
   }
 
   const gasPriceInWei = web3.utils.toWei(gasPrice, ethereUnit);

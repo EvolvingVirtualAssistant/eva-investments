@@ -3,8 +3,8 @@ import {
   assertEquals,
   test
 } from '../../../../../wrap/testWrapper';
-import getNonceTracker from '../../../../../../src/libs/blockchain-communication/domain/services/nonceTracker';
 import { Web3Mock } from '../../mocks/web3Mock';
+import { getNonceTracker } from '../../../../../../src/libs/blockchain-communication/domain/services/nonceTracker';
 
 test('should generate unique nonces for one address', async () => {
   const { web3, mockGetTransactionCount } = Web3Mock();
@@ -14,10 +14,11 @@ test('should generate unique nonces for one address', async () => {
   });
 
   const address = 'mockAddress';
-  const { initAddress, getNextNonce } = await getNonceTracker();
+  const chainId = 1337;
+  const { initAddress, getNextNonce } = getNonceTracker();
 
   // init address in NonceTracker
-  await initAddress(web3, address);
+  await initAddress(web3, chainId, address);
 
   const nIterations = 30;
 
@@ -28,7 +29,7 @@ test('should generate unique nonces for one address', async () => {
     Array(nIterations)
   ).map(() => {
     return async () => {
-      const nonce = await getNextNonce(web3, address);
+      const nonce = await getNextNonce(chainId, address);
       nonces.push(nonce);
     };
   });
@@ -53,19 +54,20 @@ test('should generate unique nonces in each address', async () => {
 
   const address1 = 'mockAddress1';
   const address2 = 'mockAddress2';
-  const { initAddress, getNextNonce } = await getNonceTracker();
+  const chainId = 1337;
+  const { initAddress, getNextNonce } = getNonceTracker();
 
   // init address in NonceTracker
   mockGetTransactionCount(() => {
     return Promise.resolve(1);
   });
-  await initAddress(web3, address1);
+  await initAddress(web3, chainId, address1);
 
   // init address in NonceTracker
   mockGetTransactionCount(() => {
     return Promise.resolve(10);
   });
-  await initAddress(web3, address2);
+  await initAddress(web3, chainId, address2);
 
   const nIterations = 30;
   const halfNIterations = 15;
@@ -79,7 +81,10 @@ test('should generate unique nonces in each address', async () => {
   ).map((_, idx) => {
     return async () => {
       const isAddress1 = idx < halfNIterations ? true : false;
-      const nonce = await getNextNonce(web3, isAddress1 ? address1 : address2);
+      const nonce = await getNextNonce(
+        chainId,
+        isAddress1 ? address1 : address2
+      );
       isAddress1 ? noncesAddress1.push(nonce) : noncesAddress2.push(nonce);
     };
   });

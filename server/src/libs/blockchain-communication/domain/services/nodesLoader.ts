@@ -9,11 +9,11 @@ export function loadNodes(
   chainId: number,
   nodesConfigRepository: NodesConfigRepository,
   nodesRepository: NodesRepository,
-  keepLoadingNodes = false
+  refreshNodes = false
 ): void {
   // Get notified in case of changes on the nodes config repository
   // In case something changes we should reload nodes
-  if (keepLoadingNodes) {
+  if (refreshNodes) {
     nodesConfigRepository.callOnChange(() => {
       try {
         loadNodes(chainId, nodesConfigRepository, nodesRepository, false);

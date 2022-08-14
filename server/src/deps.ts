@@ -30,7 +30,8 @@ export { BN };
 import { Web3 } from 'blockchain-communication';
 export { Web3 }; // without this, Web3 was undefined in certain tests
 export {
-  BlockchainCommunication,
+  initBlockchainCommunication,
+  Web3Extension,
   BlockHeader,
   Node,
   NodesConfigRepository,
@@ -49,7 +50,11 @@ export {
   ContractSendMethod,
   SignedTransaction,
   Contract,
-  NonceTracker
+  NonceTracker,
+  getNonceTracker,
+  Socket,
+  provider,
+  nodeToProvider
 } from 'blockchain-communication';
 
 export {

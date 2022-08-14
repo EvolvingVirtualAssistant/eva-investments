@@ -1,12 +1,11 @@
 import {
-  Web3,
   provider,
   HttpProvider,
   IpcProvider,
   WebsocketProvider
 } from '../../deps';
 import { NodesRepository } from '../../driven/repositories/nodesRepository';
-import { externalDeps } from '../../drivers/api';
+import { externalDeps, Web3Extension } from '../../drivers/api';
 import { ProviderType } from '../../types/blockchainCommunication.types';
 import { NodeOptions } from '../entities/nodeOptions';
 import { equalNodes, Node } from '../entities/node';
@@ -20,7 +19,7 @@ export function unregisterProviderRotation(): void {
 
 export function registerProviderRotation(
   chainId: number,
-  web3: Web3,
+  web3: Web3Extension,
   nodesRepository: NodesRepository,
   getCurrentNode: () => Node | undefined,
   setCurrentNode: (node: Node) => void
@@ -55,7 +54,7 @@ export function registerProviderRotation(
 
 export function setProvider(
   chainId: number,
-  web3: Web3,
+  web3: Web3Extension,
   nodesRepository: NodesRepository,
   currNode?: Node
 ): Node | undefined {
@@ -91,7 +90,7 @@ function getWeb3ProviderNode(
   }
 }
 
-function nodeToProvider(node: Node): provider {
+export function nodeToProvider(node: Node): provider {
   const nodeOptions = node.options[0];
 
   // Initialize provider

@@ -9,19 +9,14 @@ import {
   CliConstants,
   ContractsCliConstants
 } from '../../constants/cliConstants';
-import { DeployContractService } from '../domain/services/deployContractService';
+import { deployContract } from '../domain/services/deployContractService';
+import { getAsyncWeb3Extension } from '../../appContext';
 
 @cliAdapter({
   tokens: [ContractsCliConstants.ADAPTER_TOKEN],
   description: ContractsCliConstants.ADAPTER_DESCRIPTION
 })
 export class ContractsCliAdapter {
-  private deployContractService: DeployContractService;
-
-  constructor(deployContractService: DeployContractService) {
-    this.deployContractService = deployContractService;
-  }
-
   @cliEntrypoint(
     {
       tokens: [
@@ -59,6 +54,7 @@ export class ContractsCliAdapter {
     description: ContractsCliConstants.CONTRACTS_DEPLOY_DESCRIPTION
   })
   async deployContract(
+    chainId: number,
     contractPath: string,
     contractName: string,
     compiledContractPath: string,
@@ -73,18 +69,18 @@ export class ContractsCliAdapter {
       const contractArgs = contractArgsJson
         ? Object.values(JSON.parse(contractArgsJson))
         : undefined;
-      const deployedContractAddress =
-        await this.deployContractService.deployContract(
-          contractPath,
-          contractName,
-          compiledContractPath,
-          deployerAccountAddress,
-          host,
-          gas,
-          gasPrice,
-          ethereUnit as Unit,
-          contractArgs
-        );
+      const deployedContractAddress = await deployContract(
+        await getAsyncWeb3Extension(chainId),
+        contractPath,
+        contractName,
+        compiledContractPath,
+        deployerAccountAddress,
+        host,
+        gas,
+        gasPrice,
+        ethereUnit as Unit,
+        contractArgs
+      );
       await println(`Deployed contract address: ${deployedContractAddress}`);
     } catch (e) {
       console.error(e);

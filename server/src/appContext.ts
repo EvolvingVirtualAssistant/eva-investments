@@ -1,22 +1,22 @@
 import {
-  execute,
-  BlockchainCommunication,
-  NonceTracker,
+  initBlockchainCommunication,
   initCli,
-  Unit
+  Web3Extension,
+  Socket,
+  provider,
+  getNonceTracker
 } from './deps';
 import { RootCliAdapter } from './rootCliAdapter';
 import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter';
 import { NodesConfigFileAdapter } from './node-providers/driven/data-sources/nodesConfigFileAdapter';
 import { NodesMemoryAdapter } from './node-providers/driven/data-sources/nodesMemoryAdapter';
-import { Web3 } from 'blockchain-communication/deps';
 import { ContractsCliAdapter } from './contracts/drivers/contractsCliAdapter';
-import { DeployContractService } from './contracts/domain/services/deployContractService';
 import { sleep } from './utils/async';
 import { AccountsRepository } from './wallets/driven/repositories/accountsRepository';
 import { AccountsConfigFileAdapter } from './wallets/driven/data-sources/accountsConfigFileAdapter';
 import { ContractsConfigFileAdapter } from './contracts/driven/data-sources/contractsConfigFileAdapter';
 import { ContractsRepository } from './contracts/driven/repositories/contractsRepository';
+import { Dictionary } from './types/types';
 
 // Furthermore as things start to grow, and I may have logging and other utilitary libs in the middle and if these
 // are not completly stateless (or need to be instantiated) it may be nice to actually pass as parameter an object containing
@@ -24,18 +24,20 @@ import { ContractsRepository } from './contracts/driven/repositories/contractsRe
 // may make sense to have types for these objects in each folder for that specific domain (i.e., wallets, subscribers, node-providers, ...) NOT SURE ABOUT THIS
 
 type AppContext = {
-  blockchainCommunication?: BlockchainCommunication;
-  deployContractService?: DeployContractService;
+  adapters: any[];
+  web3Extensions: Dictionary<Web3Extension>;
 };
 
-const appContext: AppContext = {};
+const appContext: AppContext = {
+  adapters: [],
+  web3Extensions: {}
+};
 let appContextReady = false;
 
 export async function initAppContext() {
   await initServices();
   appContextReady = true;
   initCliAdapters();
-  await initMutexesForAccounts();
 }
 
 async function getAsyncAppContext(): Promise<AppContext> {
@@ -61,60 +63,28 @@ function initCliAdapters() {
   return {
     rootCliAdapter: new RootCliAdapter(),
     walletsCliAdapter: new WalletsCliAdapter(),
-    contractsCliAdapter: new ContractsCliAdapter(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      appContext.deployContractService!
-    )
+    contractsCliAdapter: new ContractsCliAdapter()
   };
 }
 
 async function initServices(): Promise<void> {
-  appContext.blockchainCommunication = await initBlockchainCommunication();
-  appContext.deployContractService = new DeployContractService(
-    appContext.blockchainCommunication.web3
-  );
-}
-
-async function initBlockchainCommunication(): Promise<BlockchainCommunication> {
-  const blockchainCommunication = new BlockchainCommunication(
-    1337,
+  await initBlockchainCommunication(
     NodesConfigFileAdapter.getInstance(),
     NodesMemoryAdapter.getInstance()
   );
-
-  await blockchainCommunication.init(true);
-  return blockchainCommunication;
 }
 
-async function initMutexesForAccounts(): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const web3 = appContext.blockchainCommunication!.web3;
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const nonceTracker = appContext.blockchainCommunication!.nonceTracker;
-  const chainId = await web3.eth.getChainId();
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+async function initMutexesForAccounts(web3: Web3Extension): Promise<void> {
+  const nonceTracker = getNonceTracker();
+  const chainId = web3.chainId;
   const promises = getAccountsRepository()
     .getAccounts(chainId)
     .map((account) => account.address)
     .map((address) => {
-      return nonceTracker.initAddress(web3, address);
+      return nonceTracker.initAddress(web3, chainId, address);
     });
 
   await Promise.all(promises);
-}
-
-export async function getWeb3(): Promise<Web3> {
-  const context = await getAsyncAppContext();
-
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return context.blockchainCommunication!.web3;
-}
-
-export function getNonceTracker(): NonceTracker {
-  const context = getAppContext();
-
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return context.blockchainCommunication!.nonceTracker;
 }
 
 export function getAccountsRepository(): AccountsRepository {
@@ -123,4 +93,47 @@ export function getAccountsRepository(): AccountsRepository {
 
 export function getContractsRepository(): ContractsRepository {
   return ContractsConfigFileAdapter.getInstance();
+}
+
+// This will return a singleton if it was already created for this chainId
+// so, if you pass params for a case where the singleton already exists,
+// the params are ignored and you get the singleton as is (not ideal, but should suffice for now)
+export async function getAsyncWeb3Extension(
+  chainId: number,
+  automaticProviders = true,
+  provider?: provider,
+  socket?: Socket,
+  proxyCallbacksFilePath?: string
+): Promise<Web3Extension> {
+  const { web3Extensions } = await getAsyncAppContext();
+
+  let web3Extension = web3Extensions[chainId];
+  if (web3Extension == null) {
+    web3Extension = new Web3Extension(
+      chainId,
+      automaticProviders,
+      provider,
+      socket,
+      proxyCallbacksFilePath
+    );
+
+    await initMutexesForAccounts(web3Extension);
+
+    web3Extensions[chainId] = web3Extension;
+  }
+
+  return web3Extension;
+}
+
+export function getWeb3Extension(chainId: number): Web3Extension {
+  const { web3Extensions } = getAppContext();
+
+  const web3Extension = web3Extensions[chainId];
+  if (web3Extension == null) {
+    throw new Error(
+      `Web3 extension for chain id ${chainId} has not been initialized yet`
+    );
+  }
+
+  return web3Extension;
 }

@@ -21,8 +21,11 @@ type ObjCallbacksPath = Dictionary<
 
 export const PROXY_CALLBACKS_PATH_ENV_KEY = 'PROXY_CALLBACKS_PATH';
 
-export async function loadCallbacks(): Promise<ObjCallbacks | undefined> {
-  const proxyCallbacksPath = process.env[PROXY_CALLBACKS_PATH_ENV_KEY];
+export async function loadCallbacks(
+  proxyCallbacksFilePath?: string
+): Promise<ObjCallbacks | undefined> {
+  const proxyCallbacksPath =
+    proxyCallbacksFilePath || process.env[PROXY_CALLBACKS_PATH_ENV_KEY];
 
   if (proxyCallbacksPath == null) {
     return undefined;

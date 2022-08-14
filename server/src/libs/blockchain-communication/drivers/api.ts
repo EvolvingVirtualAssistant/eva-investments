@@ -1,5 +1,5 @@
 import { setupProxy } from '../domain/services/proxy';
-import { Web3 } from '../deps';
+import { Web3, provider, Socket } from '../deps';
 import { NodesConfigRepository } from '../driven/repositories/nodesConfigRepository';
 import { NodesRepository } from '../driven/repositories/nodesRepository';
 import { Node } from '../domain/entities/node';
@@ -11,27 +11,105 @@ import {
   unregisterProviderRotation,
   setProvider
 } from '../domain/services/providerService';
-import type { NonceTracker } from '../domain/services/nonceTracker';
-import getNonceTracker from '../domain/services/nonceTracker';
 import { ExternalDeps, getExternalImports } from '../externalDeps';
 
 const AUTOMATIC_PROVIDER_ROTATION_TNTERVAL = 60000; // ms
 
 export let externalDeps: ExternalDeps | undefined;
 
-export class BlockchainCommunication {
-  private _nodesConfigRepository: NodesConfigRepository;
-  private _nodesRepository: NodesRepository;
-  private _chainId: number;
+let _nodesConfigRepository: NodesConfigRepository;
+let _nodesRepository: NodesRepository;
 
+export const initBlockchainCommunication = async (
+  nodesConfigRepository: NodesConfigRepository,
+  nodesRepository: NodesRepository
+): Promise<void> => {
+  _nodesConfigRepository = nodesConfigRepository;
+  _nodesRepository = nodesRepository;
+
+  if (externalDeps == null) {
+    externalDeps = await getExternalImports();
+  }
+};
+
+const setupWeb3Proxy = async (
+  web3: Web3,
+  proxyCallbacksFilePath?: string
+): Promise<void> => {
+  const callbacksByProps = await loadCallbacks(proxyCallbacksFilePath);
+
+  if (callbacksByProps != null) {
+    web3 = setupProxy(web3, callbacksByProps);
+  }
+};
+
+export class Web3Extension extends Web3 {
+  private _chainId: number;
   private _currentNode: Node | undefined;
 
-  private _web3?: Web3;
-  get web3(): Web3 {
-    if (this._web3 === undefined) {
+  constructor(
+    chainId: number,
+    automaticProviders: boolean,
+    provider: provider,
+    socket: Socket,
+    proxyCallbacksFilePath?: string
+  );
+  constructor(
+    chainId: number,
+    automaticProviders: boolean,
+    provider: provider,
+    socket?: Socket,
+    proxyCallbacksFilePath?: string
+  );
+  constructor(
+    chainId: number,
+    automaticProviders: boolean,
+    provider?: provider,
+    socket?: Socket,
+    proxyCallbacksFilePath?: string
+  );
+  constructor(
+    chainId: number,
+    automaticProviders: boolean,
+    provider?: provider,
+    socket?: Socket,
+    proxyCallbacksFilePath?: string
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    super(provider!, socket!);
+    this._chainId = chainId;
+
+    if (_nodesConfigRepository == null || _nodesRepository == null) {
       throw new UninitializedError();
     }
-    return this._web3;
+
+    loadNodes(this._chainId, _nodesConfigRepository, _nodesRepository, true);
+
+    if (proxyCallbacksFilePath != null) {
+      setupWeb3Proxy(this, proxyCallbacksFilePath);
+    }
+
+    this.setProvider = new Proxy(this.setProvider, {
+      // eslint-disable-next-line @typescript-eslint/ban-types
+      apply: (targetObj: Function, thisArg: any, argumentsList: any[]) => {
+        const res = Reflect.apply(targetObj, thisArg, argumentsList);
+        this.eth.getChainId().then((chainId) => (this._chainId = chainId));
+        return res;
+      }
+    }) as (provider: provider) => boolean;
+
+    this.automaticProviders = automaticProviders;
+  }
+
+  get chainId(): number {
+    return this._chainId;
+  }
+
+  get currentNode(): Node {
+    if (this._currentNode == null) {
+      throw new UninitializedError();
+    }
+    return this._currentNode;
   }
 
   private _timeoutId?: NodeJS.Timer;
@@ -54,65 +132,21 @@ export class BlockchainCommunication {
     }
   }
 
-  private _nonceTracker?: NonceTracker;
-  get nonceTracker(): NonceTracker {
-    if (this._nonceTracker === undefined) {
-      throw new UninitializedError();
-    }
-    return this._nonceTracker;
-  }
-
-  constructor(
-    chainId: number,
-    nodesConfigRepository: NodesConfigRepository,
-    nodesRepository: NodesRepository
-  ) {
-    this._nodesConfigRepository = nodesConfigRepository;
-    this._nodesRepository = nodesRepository;
-    this._chainId = chainId;
-
-    loadNodes(
-      this._chainId,
-      this._nodesConfigRepository,
-      this._nodesRepository,
-      true
-    );
-  }
-
-  async init(automaticProviders: boolean) {
-    this._web3 = await this.setupWeb3Proxy();
-
-    if (externalDeps == null) {
-      externalDeps = await getExternalImports();
-    }
-
-    this.automaticProviders = automaticProviders;
-    this._nonceTracker = getNonceTracker();
-  }
-
-  private async setupWeb3Proxy(): Promise<Web3> {
-    const res = new Web3();
-
-    const callbacksByProps = await loadCallbacks();
-
-    if (callbacksByProps != null) {
-      return setupProxy(res, callbacksByProps);
-    }
-
-    return res;
-  }
-
   private rotateProvider(): void {
     if (this._timeoutId != null) {
       clearTimeout(this._timeoutId);
       this._timeoutId = undefined;
     }
 
-    if (this._web3 != null && this._automaticProviders) {
+    if (this._automaticProviders) {
+      if (_nodesRepository == null) {
+        throw new UninitializedError();
+      }
+
       registerProviderRotation(
         this._chainId,
-        this._web3,
-        this._nodesRepository,
+        this,
+        _nodesRepository,
         () => this._currentNode,
         (node: Node) => (this._currentNode = node)
       );
@@ -122,11 +156,15 @@ export class BlockchainCommunication {
   }
 
   private setProviderTimeout(): void {
-    if (this._web3 != null && this._automaticProviders) {
+    if (this._automaticProviders) {
+      if (_nodesRepository == null) {
+        throw new UninitializedError();
+      }
+
       this._currentNode = setProvider(
         this._chainId,
-        this._web3,
-        this._nodesRepository,
+        this,
+        _nodesRepository,
         this._currentNode
       );
     }

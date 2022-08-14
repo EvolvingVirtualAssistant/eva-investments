@@ -5,86 +5,6 @@ import ContractContentMissingError from './errors/contractContentMissingError';
 import { sendTransaction } from './transactionService';
 import { getAccountByAccountAddress } from '../../../wallets/domain/services/accountsService';
 
-export class DeployContractService {
-  private web3: Web3;
-
-  constructor(web3: Web3) {
-    this.web3 = web3;
-  }
-
-  async deployPrecompiledContract(
-    precompiledContractPath: any,
-    deployerAccountAddress: string,
-    host: string,
-    gas: number,
-    gasPrice: string,
-    ethereUnit: Unit,
-    contractArguments?: unknown[]
-  ): Promise<string> {
-    return await deployPrecompiledContract(
-      this.web3,
-      precompiledContractPath,
-      deployerAccountAddress,
-      host,
-      gas,
-      gasPrice,
-      ethereUnit,
-      contractArguments
-    );
-  }
-
-  async deployContract(
-    contractPath: string,
-    contractName: string,
-    compiledContractPath: string,
-    deployerAccountAddress: string,
-    host: string,
-    gas: number,
-    gasPrice: string,
-    ethereUnit: Unit,
-    contractArguments?: unknown[]
-  ): Promise<string> {
-    return await deployContract(
-      this.web3,
-      contractPath,
-      contractName,
-      compiledContractPath,
-      deployerAccountAddress,
-      host,
-      gas,
-      gasPrice,
-      ethereUnit,
-      contractArguments
-    );
-  }
-
-  loadContract(
-    compiledContractPath: string,
-    contractPath: string,
-    contractName: string,
-    contractAddress: string
-  ): Contract {
-    return loadContract(
-      this.web3,
-      compiledContractPath,
-      contractPath,
-      contractName,
-      contractAddress
-    );
-  }
-
-  loadPrecompiledContract(
-    compiledContractPath: string,
-    contractAddress: string
-  ): Contract {
-    return loadPrecompiledContract(
-      this.web3,
-      compiledContractPath,
-      contractAddress
-    );
-  }
-}
-
 export const deployPrecompiledContract = async (
   web3: Web3,
   precompiledContractPath: any,
@@ -146,6 +66,8 @@ const _deployContract = async (
   ethereUnit: Unit,
   contractArguments: unknown[] = []
 ): Promise<string> => {
+  web3.setProvider(host); //"http://localhost:8545"
+
   const chainId = await web3.eth.getChainId();
   const deployerAccount = getAccountByAccountAddress(
     chainId,
@@ -168,8 +90,6 @@ const _deployContract = async (
     );
   }
 
-  web3.setProvider(host); //"http://localhost:8545"
-
   const contract = new web3.eth.Contract(abi);
   const contractTxEncoded = contract
     .deploy({
@@ -180,6 +100,7 @@ const _deployContract = async (
 
   // still need to handle error scenarios
   const createReceipt = await sendTransaction(
+    chainId,
     web3,
     deployerAccount,
     contractTxEncoded,
