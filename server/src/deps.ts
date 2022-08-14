@@ -54,7 +54,8 @@ export {
   getNonceTracker,
   Socket,
   provider,
-  nodeToProvider
+  nodeToProvider,
+  attemptImport
 } from 'blockchain-communication';
 
 export {

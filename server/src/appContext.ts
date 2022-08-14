@@ -17,6 +17,8 @@ import { AccountsConfigFileAdapter } from './wallets/driven/data-sources/account
 import { ContractsConfigFileAdapter } from './contracts/driven/data-sources/contractsConfigFileAdapter';
 import { ContractsRepository } from './contracts/driven/repositories/contractsRepository';
 import { Dictionary } from './types/types';
+import { ExternalDeps, getExternalImports } from './externalDeps';
+import { ArbitrageCliAdapter } from './arbitrage/drivers/arbitrageCliAdapter';
 
 // Furthermore as things start to grow, and I may have logging and other utilitary libs in the middle and if these
 // are not completly stateless (or need to be instantiated) it may be nice to actually pass as parameter an object containing
@@ -26,6 +28,7 @@ import { Dictionary } from './types/types';
 type AppContext = {
   adapters: any[];
   web3Extensions: Dictionary<Web3Extension>;
+  externalDeps?: ExternalDeps;
 };
 
 const appContext: AppContext = {
@@ -36,6 +39,11 @@ let appContextReady = false;
 
 export async function initAppContext() {
   await initServices();
+
+  if (appContext.externalDeps == null) {
+    appContext.externalDeps = await getExternalImports();
+  }
+
   appContextReady = true;
   initCliAdapters();
 }
@@ -63,7 +71,8 @@ function initCliAdapters() {
   return {
     rootCliAdapter: new RootCliAdapter(),
     walletsCliAdapter: new WalletsCliAdapter(),
-    contractsCliAdapter: new ContractsCliAdapter()
+    contractsCliAdapter: new ContractsCliAdapter(),
+    arbitrageCliAdapter: new ArbitrageCliAdapter()
   };
 }
 
@@ -136,4 +145,10 @@ export function getWeb3Extension(chainId: number): Web3Extension {
   }
 
   return web3Extension;
+}
+
+export function getExternalDeps(): ExternalDeps {
+  const context = getAppContext();
+
+  return context.externalDeps!;
 }

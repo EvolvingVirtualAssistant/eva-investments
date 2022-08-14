@@ -1,4 +1,4 @@
-function taggedTemplate(strings: TemplateStringsArray, ..._keys: any[]) {
+export function taggedTemplate(strings: TemplateStringsArray, ..._keys: any[]) {
   return function (...values: any[]) {
     return strings.map((elem, i) => `${elem}${values[i] || ''}`).join('');
   };
