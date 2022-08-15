@@ -47,8 +47,8 @@ export const erc20TokenApprove = async (
         type: 'bool'
       }
     ],
-    transactionReceipt.logs[0].data,
-    transactionReceipt.logs?.flatMap((log) => log.topics)
+    transactionReceipt.logs?.[0]?.data,
+    transactionReceipt.logs?.flatMap((log: any) => log.topics)
   );
   console.log(
     `\nSpender contract address ${approveResponse ? '' : 'not '}approved ${

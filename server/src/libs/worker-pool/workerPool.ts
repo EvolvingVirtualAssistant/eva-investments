@@ -58,9 +58,19 @@ export class WorkerPool extends EventEmitter {
       )
     };
 
-    worker.worker.on('message', (result) => {
-      worker.workerPoolTask?.done(result, null);
-      worker.workerPoolTask = undefined;
+    worker.worker.on('message', ({ result, error }) => {
+      if (result != null) {
+        worker.workerPoolTask?.done(result, null);
+        worker.workerPoolTask = undefined;
+      } else {
+        console.error(
+          'Received msg with error from worker',
+          error,
+          worker.workerPoolTask
+        );
+        worker.workerPoolTask?.done(null, error);
+        worker.workerPoolTask = undefined;
+      }
 
       // Notify there is a new free worker
       this.freeWorkers.push(worker);
@@ -68,11 +78,13 @@ export class WorkerPool extends EventEmitter {
     });
 
     worker.worker.on('error', (error) => {
-      if (worker.workerPoolTask != null) {
-        worker.workerPoolTask?.done(null, error);
-      } else {
-        console.error('Error received from worker', error);
+      console.error('Error received from worker', error, worker.workerPoolTask);
+      if (worker.workerPoolTask == null) {
         this.emit('error', error);
+      } else {
+        console.error(
+          'worker should be calling postMessage instead of not catching an exception'
+        );
       }
 
       // Delete worker and create a new one
