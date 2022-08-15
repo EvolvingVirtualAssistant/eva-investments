@@ -10,7 +10,18 @@ export class WorkerPoolTask extends AsyncResource {
   }
 
   done(result: any, error: any) {
-    this.runInAsyncScope(this.doneCallback, null, result, error);
+    this.runInAsyncScope(
+      async (res: any, err: any) => {
+        try {
+          await this.doneCallback(res, err);
+        } catch (e) {
+          console.error('workerPoolTask - runInAsyncScope', e);
+        }
+      },
+      null,
+      result,
+      error
+    );
     this.emitDestroy();
   }
 }

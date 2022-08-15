@@ -104,10 +104,7 @@ export class ArbitrageCliAdapter {
   }
 
   @cliEntrypoint({
-    tokens: [
-      ArbitrageCliConstants.ARBITRAGE_START_TOKEN,
-      ArbitrageCliConstants.ARBITRAGE_ALL_OPTION_TOKEN
-    ],
+    tokens: [ArbitrageCliConstants.ARBITRAGE_START_ALL_TOKEN],
     description: ArbitrageCliConstants.ARBITRAGE_START_ALL_DESCRIPTION
   })
   async startAllArbitrages(arbitrageConfigsFilePath: string): Promise<void> {
@@ -215,64 +212,53 @@ export class ArbitrageCliAdapter {
     tokens: [ArbitrageCliConstants.ARBITRAGE_STOP_TOKEN],
     description: ArbitrageCliConstants.ARBITRAGE_STOP_DESCRIPTION
   })
-  async stopArbitrage(arbitrageId: string, forceFlag?: string): Promise<void> {
+  async stopArbitrage(arbitrageId: string): Promise<void> {
     try {
-      let force = false;
-      if (
-        forceFlag &&
-        forceFlag !== ArbitrageCliConstants.ARBITRAGE_FORCE_OPTION_TOKEN
-      ) {
-        throw Error(
-          `Could not stop arbitrage with id: ${arbitrageId} , ${forceFlag} is not a valid flag. Please use ${ArbitrageCliConstants.ARBITRAGE_FORCE_OPTION_TOKEN} instead`
-        );
-      } else if (
-        forceFlag &&
-        forceFlag === ArbitrageCliConstants.ARBITRAGE_FORCE_OPTION_TOKEN
-      ) {
-        force = true;
-      }
+      await stopArbitrage(arbitrageId);
 
-      await stopArbitrage(arbitrageId, force);
-
-      await println(
-        `Stopped arbitrage with id:${arbitrageId} ${
-          force ? 'immediately' : 'gracefully'
-        }`
-      );
+      await println(`Stopped arbitrage with id:${arbitrageId} gracefully`);
     } catch (e) {
       console.error(e);
     }
   }
 
   @cliEntrypoint({
-    tokens: [
-      ArbitrageCliConstants.ARBITRAGE_STOP_TOKEN,
-      ArbitrageCliConstants.ARBITRAGE_ALL_OPTION_TOKEN
-    ],
+    tokens: [ArbitrageCliConstants.ARBITRAGE_STOP_FORCE_TOKEN],
+    description: ArbitrageCliConstants.ARBITRAGE_STOP_FORCE_DESCRIPTION
+  })
+  async forceStopArbitrage(arbitrageId: string): Promise<void> {
+    try {
+      await stopArbitrage(arbitrageId, true);
+
+      await println(`Stopped arbitrage with id:${arbitrageId} immediately`);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  @cliEntrypoint({
+    tokens: [ArbitrageCliConstants.ARBITRAGE_STOP_ALL_TOKEN],
     description: ArbitrageCliConstants.ARBITRAGE_STOP_ALL_DESCRIPTION
   })
-  async stopAllArbitrages(forceFlag?: string): Promise<void> {
+  async stopAllArbitrages(): Promise<void> {
     try {
-      let force = false;
-      if (
-        forceFlag &&
-        forceFlag !== ArbitrageCliConstants.ARBITRAGE_FORCE_OPTION_TOKEN
-      ) {
-        throw Error(
-          `Could not stop all arbitrages, ${forceFlag} is not a valid flag. Please use ${ArbitrageCliConstants.ARBITRAGE_FORCE_OPTION_TOKEN} instead`
-        );
-      } else if (
-        forceFlag &&
-        forceFlag === ArbitrageCliConstants.ARBITRAGE_FORCE_OPTION_TOKEN
-      ) {
-        force = true;
-      }
-
       await stopAllArbitrages();
 
-      await println(
-        `Stopped all arbitrages ${force ? 'immediately' : 'gracefully'}`
-      );
+      await println('Stopped all arbitrages gracefully');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  @cliEntrypoint({
+    tokens: [ArbitrageCliConstants.ARBITRAGE_STOP_ALL_FORCE_TOKEN],
+    description: ArbitrageCliConstants.ARBITRAGE_STOP_ALL_FORCE_DESCRIPTION
+  })
+  async forceStopAllArbitrages(): Promise<void> {
+    try {
+      await stopAllArbitrages(true);
+
+      await println('Stopped all arbitrages immediately');
     } catch (e) {
       console.error(e);
     }
