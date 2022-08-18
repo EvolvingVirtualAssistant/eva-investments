@@ -1,3 +1,5 @@
+import { Unit } from '../deps';
+
 export function isType<T>(
   obj: any,
   requiredProperties: (keyof T)[],
@@ -24,4 +26,36 @@ export function isType<T>(
       return false;
     })
   );
+}
+
+export function isOfEthereUnitType(value: string): value is Unit {
+  return [
+    'noether',
+    'wei',
+    'kwei',
+    'Kwei',
+    'babbage',
+    'femtoether',
+    'mwei',
+    'Mwei',
+    'lovelace',
+    'picoether',
+    'gwei',
+    'Gwei',
+    'shannon',
+    'nanoether',
+    'nano',
+    'szabo',
+    'microether',
+    'micro',
+    'finney',
+    'milliether',
+    'milli',
+    'ether',
+    'kether',
+    'grand',
+    'mether',
+    'gether',
+    'tether'
+  ].includes(value);
 }

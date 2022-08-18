@@ -38,7 +38,7 @@ export {
   getObjFromJson
 } from './utils/files';
 export { watchFile } from './utils/filesystemWatcher';
-export { isType } from './utils/typeGuards';
+export { isType, isOfEthereUnitType } from './utils/typeGuards';
 export { sleep } from './utils/async';
 export { Dictionary } from './types/types';
 export { getAsyncWeb3Extension, getWeb3Extension } from './appContext';
