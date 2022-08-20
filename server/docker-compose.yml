@@ -13,6 +13,6 @@ services:
 
 secrets:
   test_acc1_priv_key:
-    file: 'resources/accounts/.secrets/test_acc1_priv_key'
+    file: '../../eva-investments-resources/accounts/.secrets/test_acc1_priv_key'
   test_acc2_priv_key:
-    file: 'resources/accounts/.secrets/test_acc2_priv_key'
+    file: '../../eva-investments-resources/accounts/.secrets/test_acc2_priv_key'

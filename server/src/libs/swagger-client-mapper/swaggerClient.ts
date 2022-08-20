@@ -1,4 +1,4 @@
-import { readdir, readFile, SwaggerClient } from './deps';
+import { pathJoin, readdir, readFile, ROOT_PATH, SwaggerClient } from './deps';
 import SwaggerSchemaMapper from './mapper/swaggerSchemaMapper';
 
 interface OperationsCallableMap {
@@ -196,7 +196,10 @@ export async function execute() {
   for (const dirEntry of dirFiles) {
     console.log(dirEntry);
   }
-  const specPath = 'server/resources/exchanges/open_api_schemas/kraken.json';
+  const specPath = pathJoin(
+    ROOT_PATH,
+    '../../eva-investments-resources/exchanges/open_api_schemas/kraken.json'
+  );
   const swaggerClientWrapper = await new SwaggerClientWrapper().init(specPath);
   const marketResponse: RestResponse<{ result?: Array<{ id: string }> }> =
     await swaggerClientWrapper.dispatchRESTRequest('fetchMarkets');

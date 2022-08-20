@@ -19,8 +19,10 @@ const accountsPath: string = pathJoin(
   ROOT_PATH,
   process.env[ACCOUNTS_KEY] || ''
 );
-const contractPath =
-  'd:/Projetos/eva/eva-investments/server/tests/resources/contracts/domain/services/Counter.sol';
+const contractPath = pathJoin(
+  ROOT_PATH,
+  '/tests/resources/contracts/domain/services/Counter.sol'
+);
 const contractName = 'Counter';
 const host = 'http://localhost:8545';
 const gas = 750000;
