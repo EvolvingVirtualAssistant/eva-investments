@@ -74,6 +74,16 @@ export {
 
 export { WorkerPool, WorkerTask } from 'worker-pool';
 
+export {
+  wrapWithLogger,
+  logInfo,
+  logDebug,
+  logWarn,
+  logError,
+  LoggerOptions,
+  LoggerOutputType
+} from 'logger';
+
 export { execute } from 'swagger-client-mapper';
 
 // path config

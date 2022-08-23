@@ -29,7 +29,14 @@ export {
   WorkerTask,
   BlockHeader,
   Node,
-  nodeToProvider
+  nodeToProvider,
+  wrapWithLogger,
+  logInfo,
+  logDebug,
+  logWarn,
+  logError,
+  LoggerOptions,
+  LoggerOutputType
 } from './deps';
 export {
   readJsonFile,
