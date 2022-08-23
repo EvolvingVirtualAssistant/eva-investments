@@ -1,0 +1,15 @@
+{
+  "extends": "../../../tsconfig",
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "outDir": "dist",
+    "allowJs": true
+  },
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
