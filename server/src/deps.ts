@@ -58,6 +58,8 @@ export {
   attemptImport
 } from 'blockchain-communication';
 
+export { EventData } from 'web3-eth-contract';
+
 export {
   cliAdapter,
   cliEntrypoint,
