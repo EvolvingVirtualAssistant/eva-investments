@@ -1,5 +1,5 @@
 import { readJsonFile } from '../../../utils/files';
-import { Unit, Web3, Contract } from '../../../deps';
+import { Unit, Web3, Contract, logDebug } from '../../../deps';
 import AccountNotFoundError from '../../../wallets/domain/services/errors/accountNotFoundError';
 import ContractContentMissingError from './errors/contractContentMissingError';
 import { sendTransaction } from './transactionService';
@@ -109,7 +109,7 @@ const _deployContract = async (
     ethereUnit
   );
 
-  console.log(`Contract deployed receipt: ${JSON.stringify(createReceipt)}`);
+  logDebug(`Contract deployed receipt: ${JSON.stringify(createReceipt)}`);
 
   if (!createReceipt.contractAddress) {
     throw new Error('Contract address not available');

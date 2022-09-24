@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs';
+import { config as dotEnvConfig } from 'dotenv';
 import { pathJoin, ROOT_PATH } from '../../deps';
 import { LogsRepository } from '../repositories/logsRepository';
 
@@ -56,6 +57,12 @@ export class LogsFileAdapter implements LogsRepository {
 }
 
 const getLogsFolderPath = (): string => {
+  if (process.env[LOG_OUTPUT_FOLDER_ENV_KEY] == null) {
+    dotEnvConfig({
+      path: pathJoin(ROOT_PATH, '/resources/env/.env')
+    });
+  }
+
   const logsFolderPath = pathJoin(
     ROOT_PATH,
     process.env[LOG_OUTPUT_FOLDER_ENV_KEY] || ''

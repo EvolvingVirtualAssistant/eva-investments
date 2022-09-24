@@ -31,6 +31,6 @@
   },
   "dependencies": {
     "server": "file:../../..",
-    "worker-pool": "file:src/libs/worker-pool"
+    "worker-pool": "file:../worker-pool"
   }
 }

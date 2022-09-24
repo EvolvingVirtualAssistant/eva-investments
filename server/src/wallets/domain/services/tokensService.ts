@@ -1,4 +1,11 @@
-import { BN, Contract, TransactionReceipt, Unit, Web3 } from '../../../deps';
+import {
+  BN,
+  Contract,
+  logDebug,
+  TransactionReceipt,
+  Unit,
+  Web3
+} from '../../../deps';
 import { loadPrecompiledContract } from '../../../contracts/domain/services/deployContractService';
 import { Account } from '../entities/accounts';
 import { sendTransaction } from '../../../contracts/domain/services/transactionService';
@@ -26,36 +33,65 @@ export const erc20TokenApprove = async (
     .approve(spenderAddress, tokenAmount)
     .encodeABI();
 
-  console.log(
-    `Approving Spender to transfer ${tokenAmount} token ${tokenAddress}\n`
-  );
-  const transactionReceipt: TransactionReceipt = await sendTransaction(
+  let approveResponse;
+  let transactionReceipt: TransactionReceipt | undefined;
+  try {
+    transactionReceipt = await sendTransaction(
+      chainId,
+      web3,
+      account,
+      approveFnEnconded,
+      gas,
+      gasPrice,
+      ethereUnit,
+      tokenAddress
+    );
+    approveResponse = web3.eth.abi.decodeLog(
+      [
+        {
+          internalType: 'bool',
+          name: '',
+          type: 'bool'
+        }
+      ],
+      transactionReceipt.logs?.[0]?.data,
+      transactionReceipt.logs?.flatMap((log: any) => log.topics)
+    );
+  } finally {
+    logDebug(
+      `\nSpender contract address ${
+        approveResponse ? '' : 'not '
+      }approved amount=${tokenAmount} token=${tokenAddress} tx=${
+        transactionReceipt?.transactionHash
+      }\n`
+    );
+  }
+};
+
+export const getErc20TokenAllowance = async (
+  chainId: number,
+  web3: Web3,
+  accountAddress: string,
+  tokenAddress: string,
+  ownerAddress: string,
+  spenderAddress: string
+): Promise<BN> => {
+  const tokenContract: Contract = getTokenContract(
     chainId,
     web3,
-    account,
-    approveFnEnconded,
-    gas,
-    gasPrice,
-    ethereUnit,
-    tokenAddress
+    tokenAddress,
+    false
   );
-  const approveResponse = web3.eth.abi.decodeLog(
-    [
-      {
-        internalType: 'bool',
-        name: '',
-        type: 'bool'
-      }
-    ],
-    transactionReceipt.logs?.[0]?.data,
-    transactionReceipt.logs?.flatMap((log: any) => log.topics)
-  );
-  console.log(
-    `\nSpender contract address ${approveResponse ? '' : 'not '}approved ${
-      transactionReceipt.transactionHash
-    }\n`
-  );
-  //await getApprovalEvent(tokenContract);
+
+  const ethCallOptions = {
+    from: accountAddress
+  };
+
+  const allowance = await tokenContract.methods
+    .allowance(ownerAddress, spenderAddress)
+    .call(ethCallOptions);
+
+  return Web3.utils.toBN(allowance);
 };
 
 const getWETH9Contract = (chainId: number) =>

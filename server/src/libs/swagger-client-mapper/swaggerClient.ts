@@ -1,4 +1,11 @@
-import { pathJoin, readdir, readFile, ROOT_PATH, SwaggerClient } from './deps';
+import {
+  logDebug,
+  pathJoin,
+  readdir,
+  readFile,
+  ROOT_PATH,
+  SwaggerClient
+} from './deps';
 import SwaggerSchemaMapper from './mapper/swaggerSchemaMapper';
 
 interface OperationsCallableMap {
@@ -97,6 +104,12 @@ export class SwaggerClientWrapper {
         parameters
       );
 
+      if (requestBody == null) {
+        throw new Error(
+          `dispatchRESTRequest: requestBody is ${requestBody}. Contact devs`
+        );
+      }
+
       const mappedRequestBody: Record<string, any> | undefined =
         this.swaggerSchemaMapper.mapRequestBody(operationId, requestBody);
 
@@ -173,7 +186,7 @@ export class SwaggerClientWrapper {
     }
 
     //TODO: Need to add proper logging
-    console.log(`Interface level request interceptor, request: ${request}`);
+    logDebug(`Interface level request interceptor, request: ${request}`);
     //should add mapping to map parameters
     return request;
   }
@@ -184,7 +197,7 @@ export class SwaggerClientWrapper {
   ) {
     response.operationId = this.operationId;
     //TODO: Need to add proper logging
-    console.log(
+    logDebug(
       `Top level response interceptor interceptor, response: ${response}`
     );
     return response;
@@ -194,7 +207,7 @@ export class SwaggerClientWrapper {
 export async function execute() {
   const dirFiles = await readdir('.');
   for (const dirEntry of dirFiles) {
-    console.log(dirEntry);
+    logDebug(dirEntry);
   }
   const specPath = pathJoin(
     ROOT_PATH,
@@ -203,7 +216,7 @@ export async function execute() {
   const swaggerClientWrapper = await new SwaggerClientWrapper().init(specPath);
   const marketResponse: RestResponse<{ result?: Array<{ id: string }> }> =
     await swaggerClientWrapper.dispatchRESTRequest('fetchMarkets');
-  console.log(marketResponse);
+  logDebug(marketResponse);
   const orderBookResponse = await swaggerClientWrapper.dispatchRESTRequest(
     'fetchOrderBook',
     {
@@ -211,5 +224,5 @@ export async function execute() {
       limit: 25
     }
   );
-  console.log(orderBookResponse);
+  logDebug(orderBookResponse);
 }

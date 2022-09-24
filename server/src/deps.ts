@@ -74,6 +74,7 @@ export {
 
 export { WorkerPool, WorkerTask } from 'worker-pool';
 
+import { logDebug } from 'logger';
 export {
   wrapWithLogger,
   logInfo,
@@ -88,15 +89,13 @@ export { execute } from 'swagger-client-mapper';
 
 // path config
 const currentWorkingDir = __dirname + '/../'; //process.cwd();
-console.log('currentWorkingDir', currentWorkingDir);
 export const ROOT_PATH = findRootFolder(currentWorkingDir);
-console.log('ROOT_PATH', ROOT_PATH);
 
-console.log('Loading env file...');
+logDebug('Loading env file...');
 export const envConfig = dotEnvConfig({
   path: pathJoin(ROOT_PATH, '/resources/env/.env')
 });
-console.log(envConfig);
+logDebug(envConfig);
 
 function findRootFolder(path: string): string {
   let foldersMatched = 0;

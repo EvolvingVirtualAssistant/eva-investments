@@ -15,7 +15,10 @@ export {
   unsubscribe,
   unregisterCallback
 } from './subscribers/domain/services/subscriptionService';
-export { erc20TokenApprove } from './wallets/domain/services/tokensService';
+export {
+  erc20TokenApprove,
+  getErc20TokenAllowance
+} from './wallets/domain/services/tokensService';
 export {
   Web3,
   Web3Extension,
