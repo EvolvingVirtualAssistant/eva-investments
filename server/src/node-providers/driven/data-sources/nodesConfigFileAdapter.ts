@@ -1,4 +1,4 @@
-import { FSWatcher, pathJoin, ROOT_PATH } from '../../../deps';
+import { FSWatcher, logWarn, pathJoin, ROOT_PATH } from '../../../deps';
 import { getObjFromJson, readTextFile } from '../../../utils/files';
 import {
   BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY,
@@ -59,7 +59,7 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
         )?.nodesOptions || []
       );
     } catch (e) {
-      console.log('Error in NodesFileAdapter - getNodesOptions: ' + e);
+      logWarn('Error in NodesFileAdapter - getNodesOptions: ' + e);
     }
 
     return [];
@@ -80,7 +80,7 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
         )?.nodesAuths || []
       );
     } catch (e) {
-      console.log('Error in NodesFileAdapter - getNodesAuth: ' + e);
+      logWarn('Error in NodesFileAdapter - getNodesAuth: ' + e);
     }
 
     return [];

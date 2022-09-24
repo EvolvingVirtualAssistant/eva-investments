@@ -4,6 +4,7 @@ import { NodeError } from './errors/nodeError';
 import { Node } from '../entities/node';
 import { NodeAuth } from '../entities/nodeAuth';
 import { NodeOptions } from '../entities/nodeOptions';
+import { logWarn } from '../../deps';
 
 export function loadNodes(
   chainId: number,
@@ -18,7 +19,7 @@ export function loadNodes(
       try {
         loadNodes(chainId, nodesConfigRepository, nodesRepository, false);
       } catch (e) {
-        console.log(e);
+        logWarn(e);
       }
     });
   }

@@ -44,8 +44,6 @@ test('Should get only existent imports', async () => {
     'testFunc1'
   ]);
 
-  console.log(importedDeps[0].name);
-
   assertEquals(importedDeps.length, 1);
   assertEquals(importedDeps[0].name, 'testFunc1');
 });

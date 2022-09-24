@@ -30,7 +30,7 @@ const _getNetworkNonce = async (
 const _syncMutex = async (web3: Web3, address: string): Promise<Mutex> => {
   const networkNonce = await _getNetworkNonce(web3, address);
 
-  //console.log(
+  //logDebug(
   //  'Setting nonce for address with value',
   //  address,
   //  networkNonce - 1
@@ -63,7 +63,7 @@ const getNextNonce = async (
   }
 
   nonceMutex.mutex = nonceMutex.mutex.then((nonce) => {
-    //console.log(`getNextNonce (${nonce + 1}) for address ${address}`);
+    //logDebug(`getNextNonce (${nonce + 1}) for address ${address}`);
     return nonce + 1;
   });
 

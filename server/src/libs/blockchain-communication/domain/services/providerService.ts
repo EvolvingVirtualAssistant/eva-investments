@@ -2,7 +2,8 @@ import {
   provider,
   HttpProvider,
   IpcProvider,
-  WebsocketProvider
+  WebsocketProvider,
+  logDebug
 } from '../../deps';
 import { NodesRepository } from '../../driven/repositories/nodesRepository';
 import { externalDeps, Web3Extension } from '../../drivers/api';
@@ -42,7 +43,7 @@ export function registerProviderRotation(
 
     web3?.setProvider(provider);
     setCurrentNode(newNode);
-    console.log(
+    logDebug(
       `New provider was set (by callback): ${
         typeof provider === 'string' ? provider : jsonStringify(provider)
       }`
@@ -67,7 +68,7 @@ export function setProvider(
   const provider = nodeToProvider(newNode);
 
   web3?.setProvider(provider);
-  console.log(
+  logDebug(
     `New provider was set: ${
       typeof provider === 'string' ? provider : jsonStringify(provider)
     }`

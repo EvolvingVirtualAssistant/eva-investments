@@ -83,7 +83,7 @@ export class ContractsCliAdapter {
       );
       await println(`Deployed contract address: ${deployedContractAddress}`);
     } catch (e) {
-      console.error(e);
+      println(`${e}`);
     }
   }
 }

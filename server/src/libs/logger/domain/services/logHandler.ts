@@ -1,3 +1,8 @@
+import {
+  LOG_ID_REGEX,
+  LOG_ID_SEPARATOR,
+  LOG_MSG_SEPARATOR
+} from '../../constants/loggerConstants';
 import { parentPort, WorkerTask } from '../../deps';
 import { LogsConsoleAdapter } from '../../driven/data-sources/logsConsoleAdapter';
 import { LogsFileAdapter } from '../../driven/data-sources/logsFileAdapter';
@@ -10,10 +15,6 @@ import {
   LoggerLevel,
   LoggerOutputType
 } from '../../types/logger.types';
-
-const LOG_ID_REGEX = /Object\.logger\.<computed>.*\[as (.*)\]/;
-const LOG_ID_SEPARATOR = ' > ';
-const LOG_MSG_SEPARATOR = ' , ';
 
 parentPort?.on('message', async (task: WorkerTask) => {
   try {
@@ -58,6 +59,7 @@ const saveLog = (
   );
 
   const logger = loggers[logId];
+
   const logGroups =
     logger == null || logger.logGroups.length === 0
       ? [DEFAULT_LOG_GROUP]
@@ -96,9 +98,7 @@ const buildLog = (
   const msg =
     optionalParams.length === 0
       ? message + ''
-      : message +
-        LOG_MSG_SEPARATOR.trimStart() +
-        optionalParams.join(LOG_MSG_SEPARATOR);
+      : message + LOG_MSG_SEPARATOR + optionalParams.join(LOG_MSG_SEPARATOR);
 
   const [logId, logIdChain] = getLogId(stack);
 

@@ -10,6 +10,7 @@ import IpcProvider from 'web3-providers-ipc';
 import { Unit } from 'web3-utils';
 import { ContractSendMethod, Contract } from 'web3-eth-contract';
 import { Socket } from 'net';
+import { logError, logDebug, logWarn } from 'logger';
 
 function findRootFolder(path: string): string {
   let foldersMatched = 0;
@@ -59,5 +60,8 @@ export {
   SignedTransaction,
   Subscription,
   Contract,
-  Socket
+  Socket,
+  logError,
+  logDebug,
+  logWarn
 };

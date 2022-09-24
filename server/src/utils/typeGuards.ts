@@ -1,4 +1,4 @@
-import { Unit } from '../deps';
+import { logWarn, Unit } from '../deps';
 
 export function isType<T>(
   obj: any,
@@ -18,7 +18,7 @@ export function isType<T>(
           requiredProperties.includes(prop as keyof T)
         );
       } catch (e) {
-        console.log(
+        logWarn(
           'typeGuards - isType - Error while casting property to keyof T: ' + e
         );
       }

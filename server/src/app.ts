@@ -1,5 +1,10 @@
 import { initAppContext } from './appContext';
-import { terminateCli } from './deps';
+import {
+  logError,
+  LoggerOutputType,
+  terminateCli,
+  wrapWithLogger
+} from './deps';
 import { sleep } from './utils/async';
 
 async function main() {
@@ -14,7 +19,9 @@ async function main() {
 (async () => {
   await main();
 })().catch((e) => {
-  console.log(e);
+  wrapWithLogger(() => logError(e), {
+    outputTypes: [LoggerOutputType.CONSOLE, LoggerOutputType.FILE]
+  })();
   terminateCli();
 });
 

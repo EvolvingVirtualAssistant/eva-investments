@@ -4,7 +4,8 @@ import {
   Web3Extension,
   Socket,
   provider,
-  getNonceTracker
+  getNonceTracker,
+  logInfo
 } from './deps';
 import { RootCliAdapter } from './rootCliAdapter';
 import { WalletsCliAdapter } from './wallets/drivers/walletsCliAdapter';
@@ -50,7 +51,7 @@ export async function initAppContext() {
 
 async function getAsyncAppContext(): Promise<AppContext> {
   while (!appContextReady) {
-    console.log('Waiting for app context to be loaded');
+    logInfo('Waiting for app context to be loaded');
     await sleep(10000);
   }
 

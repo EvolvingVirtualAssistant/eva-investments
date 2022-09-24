@@ -1,3 +1,4 @@
+import { logWarn } from '../../deps';
 import { Dictionary } from '../../types/blockchainCommunication.types';
 
 export type FnCallback = (
@@ -193,7 +194,7 @@ async function processCallbacks(
       // because each callback is indepent of the others
       await callbacks[i](targetObj, thisArg, argumentsList);
     } catch (e) {
-      console.log(
+      logWarn(
         `Error while processing callback ${
           callbacks[i].name || ''
         } in apply proxy: ${e}`

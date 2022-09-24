@@ -1,5 +1,5 @@
 import { ACCOUNTS_KEY } from '../../constants/walletsConstants';
-import { FSWatcher, pathJoin, ROOT_PATH } from '../../../deps';
+import { FSWatcher, logWarn, pathJoin, ROOT_PATH } from '../../../deps';
 import { Account } from '../../domain/entities/accounts';
 import { AccountsRepository } from '../repositories/accountsRepository';
 import { watchFile } from '../../../utils/filesystemWatcher';
@@ -68,7 +68,7 @@ export class AccountsConfigFileAdapter implements AccountsRepository {
         )?.accounts || []
       );
     } catch (e) {
-      console.log('Error in AccountsConfigFileAdapter - getAccounts: ' + e);
+      logWarn('Error in AccountsConfigFileAdapter - getAccounts: ' + e);
     }
 
     return [];

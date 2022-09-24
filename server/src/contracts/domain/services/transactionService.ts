@@ -5,7 +5,11 @@ import {
   TransactionReceipt,
   Unit as EthereUnit,
   Web3,
-  getNonceTracker
+  getNonceTracker,
+  logError,
+  logDebug,
+  logWarn,
+  wrapWithLogger
 } from '../../../deps';
 import { Account } from '../../../wallets/domain/entities/accounts';
 import { TRANSACTION_TIMEOUT } from '../constants/contractConstants';
@@ -64,12 +68,12 @@ const sendLockTransaction = async (
 
   if (transactionsQueue.lock) {
     await new Promise((resolve, reject) => {
-      //console.debug('Waiting for lock', transactionsQueue.lockRequests.length);
+      //logDebug('Waiting for lock', transactionsQueue.lockRequests.length);
       transactionsQueue.lockRequests.push(resolve);
     });
   }
   transactionsQueue.lock = true;
-  //console.debug('Acquired lock', sendMethodEncoded);
+  //logDebug('Acquired lock', sendMethodEncoded);
 
   try {
     const signedTransaction = await signTransaction(
@@ -85,7 +89,7 @@ const sendLockTransaction = async (
     );
     return await sendSignedTransaction(web3, signedTransaction);
   } catch (e) {
-    console.error('Error executing send transaction', e);
+    logWarn('Error executing send transaction', e);
 
     if (e instanceof TransactionTimeoutError) {
       cancelTransaction(
@@ -103,7 +107,7 @@ const sendLockTransaction = async (
 
     throw e;
   } finally {
-    //console.debug('Releasing lock', transactionsQueue.lockRequests.length);
+    //logDebug('Releasing lock', transactionsQueue.lockRequests.length);
     transactionsQueue.lock = false;
     transactionsQueue.lockRequests.shift()?.('');
   }
@@ -151,7 +155,7 @@ const sendNoLockTransaction = async (
     );
     return sendSignedTransaction(web3, signedTransaction);
   } catch (e) {
-    console.error('Error executing send transaction', e);
+    logWarn('Error executing send transaction', e);
 
     if (e instanceof TransactionTimeoutError) {
       cancelTransaction(
@@ -186,12 +190,12 @@ const sendPartialLockTransaction = async (
 
   if (transactionsQueue.lock) {
     await new Promise((resolve, reject) => {
-      //console.debug('Waiting for lock', transactionsQueue.lockRequests.length);
+      //logDebug('Waiting for lock', transactionsQueue.lockRequests.length);
       transactionsQueue.lockRequests.push(resolve);
     });
   }
   transactionsQueue.lock = true;
-  //console.debug('Acquired lock', sendMethodEncoded);
+  //logDebug('Acquired lock', sendMethodEncoded);
 
   try {
     const signedTransaction = await signTransaction(
@@ -219,7 +223,7 @@ const sendPartialLockTransaction = async (
       throw e;
     });
   } catch (e) {
-    console.error('Error executing send transaction', e);
+    logWarn('Error executing send transaction', e);
 
     if (e instanceof TransactionTimeoutError) {
       cancelTransaction(
@@ -231,14 +235,14 @@ const sendPartialLockTransaction = async (
       );
     } else {
       //recovering nonce value
-      //console.log('Syncing nonce');
+      //logDebug('Syncing nonce');
       const { syncLocalNonce } = getNonceTracker();
       await syncLocalNonce(web3, chainId, account.address);
     }
 
     throw e;
   } finally {
-    //console.debug('Releasing lock', transactionsQueue.lockRequests.length);
+    //logDebug('Releasing lock', transactionsQueue.lockRequests.length);
     transactionsQueue.lock = false;
     transactionsQueue.lockRequests.shift()?.('');
   }
@@ -271,7 +275,7 @@ const signTransaction = async (
       ? await nonceTracker.getNextNonce(chainId, account.address)
       : nonceTracker.getNextUnsafeNonce(chainId, account.address);
   } catch (e) {
-    console.error(
+    logWarn(
       `Could not obtain next nonce while signing transaction. Will create new entry for account ${account.address}`,
       e
     );
@@ -319,24 +323,21 @@ const sendSignedTransaction = async (
       .sendSignedTransaction(signedTransaction.rawTransaction!)
       .once(
         'confirmation',
-        (
-          confirmationNumber: number,
-          receipt: TransactionReceipt,
-          latestBlockHash?: string
-        ) => {
-          /* console.log(
-            `Transaction confirmed. ConfirmationNumber: ${confirmationNumber} , LatestBlockHash: ${latestBlockHash} , Receipt: ${JSON.stringify(
-              receipt
-            )}`
-          ); */
-          console.log(
-            `Transaction confirmed. ConfirmationNumber: ${confirmationNumber} , LatestBlockHash: ${latestBlockHash} , 
-            TxHash: ${receipt.transactionHash}, ContractAddress: ${receipt.contractAddress}, 
-            GasUsed: ${receipt.gasUsed}, CumulativeGasUsed: ${receipt.cumulativeGasUsed}`
-          );
-          clearTimeout(timeoutId);
-          resolve(receipt);
-        }
+        wrapWithLogger(
+          (
+            confirmationNumber: number,
+            receipt: TransactionReceipt,
+            latestBlockHash?: string
+          ) => {
+            logDebug(
+              `Transaction confirmed. ConfirmationNumber: ${confirmationNumber} , LatestBlockHash: ${latestBlockHash} , 
+        TxHash: ${receipt.transactionHash}, ContractAddress: ${receipt.contractAddress}, 
+        GasUsed: ${receipt.gasUsed}, CumulativeGasUsed: ${receipt.cumulativeGasUsed}`
+            );
+            clearTimeout(timeoutId);
+            resolve(receipt);
+          }
+        )
       )
       .catch((e) => {
         clearTimeout(timeoutId);

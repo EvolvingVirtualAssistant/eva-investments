@@ -1,5 +1,5 @@
 import { Dictionary } from '../types/types';
-import { FSWatcher, watch, WatchEventType } from '../deps';
+import { FSWatcher, logWarn, watch, WatchEventType } from '../deps';
 
 interface FileTime {
   callTime?: number;
@@ -18,7 +18,7 @@ export function watchFile(filePath: string, callback: () => void): FSWatcher {
       return;
     }
 
-    console.log(
+    logWarn(
       `filesystemWatcher - Ignored event ${event} received for file ${filename} (${filePath})`
     );
   });

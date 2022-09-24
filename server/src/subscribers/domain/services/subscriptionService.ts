@@ -1,6 +1,12 @@
-import { randomUUID, RandomUUIDOptions } from 'crypto';
+import { randomUUID } from 'crypto';
 import { Dictionary } from 'src/types/types';
-import { BlockHeader, Subscription, Web3 } from '../../../deps';
+import {
+  BlockHeader,
+  logDebug,
+  logWarn,
+  Subscription,
+  Web3
+} from '../../../deps';
 
 /**
  * @deprecated
@@ -22,8 +28,6 @@ export const subscribeLatestBlock = (
 
     subscription
       .on('connected', (subscriptionId: string) => {
-        console.log(`Successfully subscribed ${subscriptionId}`);
-
         connected = true;
         subscriptions[subscriptionId] = subscription;
 
@@ -57,15 +61,15 @@ export const unsubscribe = async (subscriptionId: string, force = false) => {
   await sub.subscription.unsubscribe((error: Error, result: boolean) => {
     if (result) {
       delete subscriptionsByChainEvent[subscriptionId];
-      console.log(`Successfully unsubscribed - ${subscriptionId}`);
+      logDebug(`Successfully unsubscribed - ${subscriptionId}`);
     } else {
-      console.log(`Error unsubscribing - ${subscriptionId} - ${error}`);
+      logWarn(`Error unsubscribing - ${subscriptionId} - ${error}`);
     }
   });
 };
 
 const defaultErrorHandler = (error: Error) => {
-  console.log(`Subscription error - ${error}`);
+  logWarn(`Subscription error - ${error}`);
 };
 
 // ---------------- Register callbacks for chainId and event type ----------------
@@ -115,9 +119,7 @@ export const registerSubscription = async <T>(
           web3,
           getDataHandlerBlockHeader(key)
         );
-        console.log(
-          `New subscription on newBlockHeaders, for chain ${chainId}`
-        );
+        logDebug(`New subscription on newBlockHeaders, for chain ${chainId}`);
         break;
       default:
         throw new Error(
@@ -245,10 +247,7 @@ const getDataHandlerBlockHeader = (subscriptionKey: string) => {
             const prom = callback
               .callback(data, ...callback.args)
               .catch((reason: any) =>
-                console.error(
-                  'getDataHandlerBlockHeader async callback: ',
-                  reason
-                )
+                logWarn('getDataHandlerBlockHeader async callback: ', reason)
               )
               .finally(() => {
                 callback.lastEventFinished = true;
@@ -265,7 +264,7 @@ const getDataHandlerBlockHeader = (subscriptionKey: string) => {
               Promise.resolve(callback.callback(data, ...callback.args))
             );
           } catch (e) {
-            console.error('getDataHandlerBlockHeader callback: ', e);
+            logWarn('getDataHandlerBlockHeader callback: ', e);
             promsByPriority.push(Promise.reject(e));
           } finally {
             callback.lastEventFinished = true;

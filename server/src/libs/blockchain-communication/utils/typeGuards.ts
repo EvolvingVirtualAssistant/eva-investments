@@ -1,3 +1,5 @@
+import { logWarn } from '../deps';
+
 export function isType<T>(
   obj: any,
   requiredProperties: (keyof T)[],
@@ -16,7 +18,7 @@ export function isType<T>(
           requiredProperties.includes(prop as keyof T)
         );
       } catch (e) {
-        console.log(
+        logWarn(
           'typeGuards - isType - Error while casting property to keyof T: ' + e
         );
       }

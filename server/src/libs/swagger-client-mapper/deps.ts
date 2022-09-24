@@ -42,3 +42,4 @@ function findRootFolder(path: string): string {
 // path config
 const currentWorkingDir = __dirname + '/../../../../'; //process.cwd();
 export const ROOT_PATH = findRootFolder(currentWorkingDir);
+export { logDebug } from 'logger';

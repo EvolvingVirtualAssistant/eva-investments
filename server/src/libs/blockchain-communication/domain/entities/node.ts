@@ -18,6 +18,12 @@ export function equalNodes(node1?: Node, node2?: Node): boolean {
 }
 
 function concatObjProperties<T>(obj: T): string {
+  if (obj == null) {
+    throw new Error(
+      `concatObjProperties: error concatenating obj properties, due to obj being ${obj}`
+    );
+  }
+
   // Test what happens when obj is null or undefined (actually do unit tests for all possible primitive types aside from just object)
   if (typeof obj != 'object') {
     return obj + '';

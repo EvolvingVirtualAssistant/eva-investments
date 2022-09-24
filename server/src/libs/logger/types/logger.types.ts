@@ -3,9 +3,10 @@ export interface Dictionary<T> {
 }
 
 export type LoggerOptions = {
-  logGroups: string[];
+  logGroups?: string[];
+  outputTypes?: LoggerOutputType[];
   id?: string;
-  outputTypes: LoggerOutputType[];
+  isAsyncFn?: boolean;
 };
 
 export type Logger = {

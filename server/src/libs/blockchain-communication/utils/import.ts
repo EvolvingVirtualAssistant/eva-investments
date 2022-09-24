@@ -1,3 +1,5 @@
+import { logWarn } from '../deps';
+
 export async function attemptImport(
   path: string,
   importProps: string[] = [],
@@ -7,7 +9,7 @@ export async function attemptImport(
   try {
     imported = await import(path);
   } catch (e) {
-    console.log(e);
+    logWarn(e);
     imported = fallbackImport;
   }
 

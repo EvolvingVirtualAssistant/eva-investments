@@ -1,5 +1,5 @@
 import { isType } from '../../../utils/typeGuards';
-import { ROOT_PATH } from '../../../deps';
+import { logWarn, ROOT_PATH } from '../../../deps';
 import { getObjFromJson } from '../../../utils/files';
 import { ContractData } from '../../domain/entities/contract';
 import {
@@ -61,9 +61,7 @@ export class ContractsConfigFileAdapter implements ContractsRepository {
             filter.compiledPath === contract.compiledPath)
       );
     } catch (e) {
-      console.log(
-        'Error in ContractsConfigFileAdapter - getContractsData: ' + e
-      );
+      logWarn('Error in ContractsConfigFileAdapter - getContractsData: ' + e);
     }
 
     return [];

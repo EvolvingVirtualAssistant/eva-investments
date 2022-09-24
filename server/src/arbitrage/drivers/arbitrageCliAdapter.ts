@@ -79,7 +79,7 @@ export class ArbitrageCliAdapter {
     try {
       await this._startArbitrage(arbitrageConfigFilePath);
     } catch (e) {
-      console.error(e);
+      println(`${e}`);
     }
   }
 
@@ -161,7 +161,7 @@ export class ArbitrageCliAdapter {
         );
       });
     } catch (e) {
-      console.error(e);
+      println(`${e}`);
     }
   }
 
@@ -204,7 +204,7 @@ export class ArbitrageCliAdapter {
         .join('\n');
       await println(`Running arbitrages:\n${arbitrageProcessesList}`);
     } catch (e) {
-      console.error(e);
+      println(`${e}`);
     }
   }
 
@@ -218,7 +218,7 @@ export class ArbitrageCliAdapter {
 
       await println(`Stopped arbitrage with id:${arbitrageId} gracefully`);
     } catch (e) {
-      console.error(e);
+      println(`${e}`);
     }
   }
 
@@ -232,7 +232,7 @@ export class ArbitrageCliAdapter {
 
       await println(`Stopped arbitrage with id:${arbitrageId} immediately`);
     } catch (e) {
-      console.error(e);
+      println(`${e}`);
     }
   }
 
@@ -246,7 +246,7 @@ export class ArbitrageCliAdapter {
 
       await println('Stopped all arbitrages gracefully');
     } catch (e) {
-      console.error(e);
+      println(`${e}`);
     }
   }
 
@@ -260,7 +260,7 @@ export class ArbitrageCliAdapter {
 
       await println('Stopped all arbitrages immediately');
     } catch (e) {
-      console.error(e);
+      println(`${e}`);
     }
   }
 }
