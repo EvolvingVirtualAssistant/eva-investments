@@ -39,7 +39,8 @@ export {
   logWarn,
   logError,
   LoggerOptions,
-  LoggerOutputType
+  LoggerOutputType,
+  EventData
 } from './deps';
 export {
   readJsonFile,
