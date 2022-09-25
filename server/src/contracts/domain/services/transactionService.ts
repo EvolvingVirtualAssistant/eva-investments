@@ -305,6 +305,26 @@ const sendSignedTransaction = async (
   web3: Web3,
   { signedTransaction, nonce, gasPriceInWei, gas }: SignedTransactionWithNonce
 ): Promise<TransactionReceipt> => {
+  const onConfirmation = wrapWithLogger(
+    (
+      resolve: (
+        value: TransactionReceipt | PromiseLike<TransactionReceipt>
+      ) => void,
+      timeoutId: NodeJS.Timeout,
+      confirmationNumber: number,
+      receipt: TransactionReceipt,
+      latestBlockHash?: string
+    ) => {
+      logDebug(
+        `Transaction confirmed. ConfirmationNumber: ${confirmationNumber} , LatestBlockHash: ${latestBlockHash} , 
+  TxHash: ${receipt.transactionHash}, ContractAddress: ${receipt.contractAddress}, 
+  GasUsed: ${receipt.gasUsed}, CumulativeGasUsed: ${receipt.cumulativeGasUsed}`
+      );
+      clearTimeout(timeoutId);
+      resolve(receipt);
+    }
+  );
+
   return await new Promise((resolve, reject) => {
     const timeoutId = setTimeout(
       () =>
@@ -323,21 +343,18 @@ const sendSignedTransaction = async (
       .sendSignedTransaction(signedTransaction.rawTransaction!)
       .once(
         'confirmation',
-        wrapWithLogger(
-          (
-            confirmationNumber: number,
-            receipt: TransactionReceipt,
-            latestBlockHash?: string
-          ) => {
-            logDebug(
-              `Transaction confirmed. ConfirmationNumber: ${confirmationNumber} , LatestBlockHash: ${latestBlockHash} , 
-        TxHash: ${receipt.transactionHash}, ContractAddress: ${receipt.contractAddress}, 
-        GasUsed: ${receipt.gasUsed}, CumulativeGasUsed: ${receipt.cumulativeGasUsed}`
-            );
-            clearTimeout(timeoutId);
-            resolve(receipt);
-          }
-        )
+        (
+          confirmationNumber: number,
+          receipt: TransactionReceipt,
+          latestBlockHash?: string
+        ) =>
+          onConfirmation(
+            resolve,
+            timeoutId,
+            confirmationNumber,
+            receipt,
+            latestBlockHash
+          )
       )
       .catch((e) => {
         clearTimeout(timeoutId);
