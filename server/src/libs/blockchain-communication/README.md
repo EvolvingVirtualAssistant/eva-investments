@@ -128,13 +128,10 @@ Type of node used for websocket based connections.
     ...
 
     // Optional fields:
-    headers: [
-        {
-            name: string // header key
-            value: string // header value
-        },
+    headers: {
+        key: value  // header key: header value (string: string)
         ...
-    ] // pairs of keys and values used as headers for the underlying connection
+    } // pairs of keys and values used as headers for the underlying connection
     protocol: string // Underlying websocket sub-protocol
                      // default: undefined
     reconnectOptions: {
@@ -173,12 +170,9 @@ Example:
     "type": "WS",
     "keepAlive": true,
     "timeout": 30000,
-    "headers": [
-        {
-            "name": "authorization",
-            "value": "Basic username:password"
-        }
-    ],
+    "headers": {
+        "authorization": "Basic username:password"
+    },
     "protocol": "some-protocol-v1",
     "reconnectOptions": {
         "auto": true,
