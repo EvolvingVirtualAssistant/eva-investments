@@ -1,6 +1,9 @@
 import { isType } from '../../utils/typeGuards';
 import { BuildNodeError } from './errors/buildNodeError';
-import { NodeType } from '../../types/blockchainCommunication.types';
+import {
+  Dictionary,
+  NodeType
+} from '../../types/blockchainCommunication.types';
 
 export interface NodeOptions {
   host: string;
@@ -126,7 +129,7 @@ function validAgent(agent: Agent | undefined) {
 // --------------------------------- Websocket --------------------------------
 
 export interface WsNodeOptions extends NodeOptions {
-  headers?: Header[];
+  headers?: Dictionary<string>;
 
   protocol?: string;
 
@@ -166,8 +169,6 @@ export function isWsNodeOptions(obj: any): boolean {
         'reconnectOptions'
       ]
     ) &&
-    ((obj as unknown as WsNodeOptions).headers === undefined ||
-      validHeaders((obj as unknown as WsNodeOptions).headers)) &&
     ((obj as unknown as WsNodeOptions).reconnectOptions === undefined ||
       isReconnectOptions((obj as unknown as WsNodeOptions).reconnectOptions)) &&
     (obj as unknown as WsNodeOptions).type === 'WS'
