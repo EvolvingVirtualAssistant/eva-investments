@@ -52,5 +52,6 @@ export {
 export { watchFile } from './utils/filesystemWatcher';
 export { isType, isOfEthereUnitType } from './utils/typeGuards';
 export { sleep } from './utils/async';
+export { lazyMapFind } from './utils/collections';
 export { Dictionary } from './types/types';
 export { getAsyncWeb3Extension, getWeb3Extension } from './appContext';
