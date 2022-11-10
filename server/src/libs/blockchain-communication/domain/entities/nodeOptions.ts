@@ -8,6 +8,7 @@ import {
 export interface NodeOptions {
   host: string;
   type: NodeType;
+  isFree?: boolean;
 
   // Http, Ws (clientConfig), Ipc (server listener connections -> sockets)
   keepAlive?: boolean;
@@ -49,7 +50,7 @@ export function isHttpNodeOptions(obj: any): boolean {
     isType(
       obj,
       ['host', 'type'],
-      ['keepAlive', 'agent', 'timeout', 'withCredentials', 'headers']
+      ['isFree', 'keepAlive', 'agent', 'timeout', 'withCredentials', 'headers']
     ) &&
     ((obj as unknown as HttpNodeOptions).headers === undefined ||
       validHeaders((obj as unknown as HttpNodeOptions).headers)) &&
@@ -160,6 +161,7 @@ export function isWsNodeOptions(obj: any): boolean {
       obj,
       ['host', 'type'],
       [
+        'isFree',
         'keepAlive',
         'timeout',
         'headers',
@@ -205,7 +207,7 @@ export function buildIpcNodeOptions(obj: any): IpcNodeOptions {
 
 export function isIpcNodeOptions(obj: any): boolean {
   return (
-    isType(obj, ['host', 'type'], ['keepAlive', 'timeout']) &&
+    isType(obj, ['host', 'type'], ['isFree', 'keepAlive', 'timeout']) &&
     (obj as unknown as IpcNodeOptions).type === 'IPC'
   );
 }
