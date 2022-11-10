@@ -2,7 +2,6 @@ import {
   BN,
   Contract,
   logDebug,
-  logError,
   TransactionReceipt,
   Unit,
   Web3,
