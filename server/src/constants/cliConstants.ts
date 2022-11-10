@@ -34,13 +34,6 @@ export const RootCliConstants = {
   HELP_COMMAND_TEMPLATE: taggedTemplate`\nUsage:\n\t${0}\n\nOptions:\n${1}\n\nCommands:\n${2}\n\nRun 'COMMAND --help' for more information on a command.\n`
 } as const;
 
-export const WalletsCliConstants = {
-  USAGE: 'wallets [COMMAND]',
-  HELP_COMMAND_TEMPLATE: taggedTemplate`\nUsage:\n\t${0}\n\nOptions:\n${1}\n\nRun 'wallets --help' for more information on the wallets command.\n`,
-  ADAPTER_TOKEN: 'wallets',
-  ADAPTER_DESCRIPTION: 'Wallets related operations'
-} as const;
-
 export const ExperimentalCliConstants = {
   USAGE: 'experimental [COMMAND]',
   HELP_COMMAND_TEMPLATE: taggedTemplate`\nUsage:\n\t${0}\n\nOptions:\n${1}\n\nRun 'experimental --help' for more information on the experimental command.\n`,

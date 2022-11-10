@@ -2,15 +2,18 @@ import {
   BN,
   Contract,
   logDebug,
+  logError,
   TransactionReceipt,
   Unit,
-  Web3
+  Web3,
+  Web3Extension
 } from '../../../deps';
 import { loadPrecompiledContract } from '../../../contracts/domain/services/deployContractService';
 import { Account } from '../entities/accounts';
 import { sendTransaction } from '../../../contracts/domain/services/transactionService';
 import { getContractByName } from '../../../contracts/domain/services/contractService';
-import { EthereUnit } from '../../../app';
+import { Dictionary, EthereUnit } from '../../../app';
+import { TokenAllowances } from '../entities/allowances';
 
 export const erc20TokenApprove = async (
   chainId: number,
@@ -112,4 +115,97 @@ const getTokenContract = (
       : getERC20Contract(chainId).compiledPath,
     address
   );
+};
+
+export const getAllTokensAllowances = async (
+  web3: Web3Extension,
+  ownerAddress: string,
+  nDays: number
+): Promise<TokenAllowances[]> => {
+  blockOperationIfPaidNodeProvider(web3);
+
+  const currBlock = await web3.eth.getBlockNumber();
+  const blockAvgTime = await calculateBlockAvgTime(web3, currBlock);
+  const daysInSec = nDays * 24 * 60 * 60;
+  const prevBlocks = Math.round(daysInSec / Math.floor(blockAvgTime));
+
+  const logs = await web3.eth.getPastLogs({
+    fromBlock: web3.utils.numberToHex(currBlock - prevBlocks),
+    toBlock: 'latest',
+    topics: [
+      web3.utils.soliditySha3('Approval(address,address,uint256)'),
+      `0x000000000000000000000000${ownerAddress.substring(2)}`
+    ]
+  });
+
+  const tokensAllowances: Dictionary<TokenAllowances> = {};
+
+  logs.forEach((log) => {
+    const newTokenAllowance = {
+      tokenAddress: log.address,
+      amount: web3.utils.hexToNumberString(log.data),
+      toAddress:
+        log.topics.length === 3 ? '0x' + log.topics[2].substring(26) : '',
+      block: log.blockNumber
+    };
+
+    let tokenAllowances = tokensAllowances[newTokenAllowance.tokenAddress];
+
+    if (tokenAllowances == null) {
+      tokenAllowances = {
+        tokenAddress: newTokenAllowance.tokenAddress,
+        allowances: []
+      };
+      tokensAllowances[newTokenAllowance.tokenAddress] = tokenAllowances;
+    }
+
+    const idx = tokenAllowances.allowances.findIndex(
+      (allowance) => allowance.toAddress === newTokenAllowance.toAddress
+    );
+
+    if (idx < 0 && newTokenAllowance.amount != '0') {
+      tokenAllowances.allowances.push(newTokenAllowance);
+    } else if (
+      idx >= 0 &&
+      tokenAllowances.allowances[idx].block < newTokenAllowance.block
+    ) {
+      // Revoke
+      if (newTokenAllowance.amount == '0') {
+        tokenAllowances.allowances.splice(idx, 1);
+      } else {
+        tokenAllowances.allowances[idx] = newTokenAllowance;
+      }
+    }
+  });
+
+  return Object.values(tokensAllowances).filter(
+    (tokenAllowances) => tokenAllowances.allowances.length > 0
+  );
+};
+
+const calculateBlockAvgTime = async (
+  web3: Web3,
+  currBlock: number
+): Promise<number> => {
+  const nBlocks = 1000;
+  const currentTs = await web3.eth
+    .getBlock('latest')
+    .then((block) => block.timestamp);
+
+  const oldTs = await web3.eth
+    .getBlock(Number.parseInt(currBlock + '') - nBlocks)
+    .then((block) => block.timestamp);
+
+  return (
+    (Number.parseInt(currentTs + '') - Number.parseInt(oldTs + '')) / nBlocks
+  );
+};
+
+const blockOperationIfPaidNodeProvider = (web3: Web3Extension) => {
+  // TODO: Maybe better to find a way that as blocking as the one below
+  if (web3.currentNode.options.some((opt) => !opt.isFree)) {
+    throw new Error(
+      'Current node provider selected is not free, making this operation very costly. You should use a free node instead. No token allowances were retrieved.'
+    );
+  }
 };
