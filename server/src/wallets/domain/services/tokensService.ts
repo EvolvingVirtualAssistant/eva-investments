@@ -101,7 +101,7 @@ const getWETH9Contract = (chainId: number) =>
 const getERC20Contract = (chainId: number) =>
   getContractByName(chainId, 'ERC20');
 
-const getTokenContract = (
+export const getTokenContract = (
   chainId: number,
   web3: Web3,
   address: string,

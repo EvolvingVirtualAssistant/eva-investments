@@ -17,7 +17,8 @@ export {
 } from './subscribers/domain/services/subscriptionService';
 export {
   erc20TokenApprove,
-  getErc20TokenAllowance
+  getErc20TokenAllowance,
+  getTokenContract
 } from './wallets/domain/services/tokensService';
 export {
   Web3,
