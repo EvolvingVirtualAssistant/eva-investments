@@ -5,7 +5,8 @@ import {
   logDebug,
   logWarn,
   Subscription,
-  Web3
+  Web3,
+  wrapWithLogger
 } from '../../../deps';
 
 /**
@@ -117,7 +118,9 @@ export const registerSubscription = async <T>(
       case 'newBlockHeaders':
         subscription = await subscribeLatestBlock(
           web3,
-          getDataHandlerBlockHeader(key)
+          await wrapWithLogger(getDataHandlerBlockHeader(key), {
+            isAsyncFn: true
+          })
         );
         logDebug(`New subscription on newBlockHeaders, for chain ${chainId}`);
         break;
@@ -222,6 +225,9 @@ export const unregisterCallback = (
 };
 
 const getDataHandlerBlockHeader = (subscriptionKey: string) => {
+  const asyncCallbackCatchWarn = wrapWithLogger((reason: any) =>
+    logWarn('getDataHandlerBlockHeader async callback: ', reason)
+  );
   return async (data: BlockHeader): Promise<void> => {
     const sub = subscriptionsByChainEvent[subscriptionKey];
 
@@ -246,9 +252,7 @@ const getDataHandlerBlockHeader = (subscriptionKey: string) => {
           if (callback.isAsyncCallback) {
             const prom = callback
               .callback(data, ...callback.args)
-              .catch((reason: any) =>
-                logWarn('getDataHandlerBlockHeader async callback: ', reason)
-              )
+              .catch(asyncCallbackCatchWarn)
               .finally(() => {
                 callback.lastEventFinished = true;
                 if (sub.shouldTerminate) {
