@@ -53,6 +53,28 @@ export const sendTransaction = async (
   );
 };
 
+export const estimateGas = async (
+  chainId: number,
+  web3: Web3,
+  account: Account,
+  fromAddress: string,
+  gasForEstimateCall: number,
+  value: BN | undefined,
+  method: any,
+  ...methodArgs: any[]
+): Promise<number> => {
+  return estimateGasPartialLock(
+    chainId,
+    web3,
+    account,
+    fromAddress,
+    gasForEstimateCall,
+    value,
+    method,
+    ...methodArgs
+  );
+};
+
 const sendLockTransaction = async (
   chainId: number,
   web3: Web3,
@@ -248,6 +270,56 @@ const sendPartialLockTransaction = async (
   }
 };
 
+const estimateGasPartialLock = async (
+  chainId: number,
+  web3: Web3,
+  account: Account,
+  fromAddress: string,
+  gasForEstimateCall: number,
+  value: BN | undefined,
+  method: any,
+  ...methodArgs: any[]
+): Promise<number> => {
+  const transactionsQueue = getOrCreateTransactionsQueue(web3, account);
+
+  if (transactionsQueue.lock) {
+    await new Promise((resolve, reject) => {
+      //logDebug('Waiting for lock', transactionsQueue.lockRequests.length);
+      transactionsQueue.lockRequests.push(resolve);
+    });
+  }
+  transactionsQueue.lock = true;
+  //logDebug('Acquired lock', sendMethodEncoded);
+
+  try {
+    return await _estimateGas(
+      chainId,
+      web3,
+      account,
+      false,
+      fromAddress,
+      gasForEstimateCall,
+      value,
+      method,
+      ...methodArgs
+    );
+  } catch (e) {
+    logWarn('Error executing estimate gas', e);
+
+    throw e;
+  } finally {
+    //recovering nonce value since estimateGas consists in performing a transaction and reverting it
+    //which results in not actually incrementing the nonce
+    //logDebug('Syncing nonce');
+    const { syncLocalNonce } = getNonceTracker();
+    await syncLocalNonce(web3, chainId, account.address);
+
+    //logDebug('Releasing lock', transactionsQueue.lockRequests.length);
+    transactionsQueue.lock = false;
+    transactionsQueue.lockRequests.shift()?.('');
+  }
+};
+
 type SignedTransactionWithNonce = {
   signedTransaction: SignedTransaction;
   nonce: number;
@@ -360,6 +432,43 @@ const sendSignedTransaction = async (
         clearTimeout(timeoutId);
         reject(e);
       });
+  });
+};
+
+const _estimateGas = async (
+  chainId: number,
+  web3: Web3,
+  account: Account,
+  mutexNonce = false,
+  fromAddress: string,
+  gasForEstimateCall: number,
+  value: BN | undefined,
+  method: any,
+  ...methodArgs: any[]
+): Promise<number> => {
+  const nonceTracker = getNonceTracker();
+  let nonce;
+
+  try {
+    nonce = mutexNonce
+      ? await nonceTracker.getNextNonce(chainId, account.address)
+      : nonceTracker.getNextUnsafeNonce(chainId, account.address);
+  } catch (e) {
+    logWarn(
+      `Could not obtain next nonce while estimating gas. Will create new entry for account ${account.address}`,
+      e
+    );
+    await nonceTracker.initAddress(web3, chainId, account.address);
+    nonce = mutexNonce
+      ? await nonceTracker.getNextNonce(chainId, account.address)
+      : nonceTracker.getNextUnsafeNonce(chainId, account.address);
+  }
+
+  return method?.(...methodArgs).estimateGas?.({
+    from: fromAddress,
+    gas: gasForEstimateCall,
+    nonce,
+    value
   });
 };
 
