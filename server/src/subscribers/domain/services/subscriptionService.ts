@@ -91,6 +91,11 @@ type Callback<T> = {
   skipOnUnfinishedEvent: boolean;
   lastEventFinished: boolean;
   terminated: boolean;
+  log: (
+    logFn: (message?: any, ...optionalParams: any[]) => void,
+    message?: any,
+    ...optionalParams: any[]
+  ) => void;
 };
 
 const getSubscriptionByChainEventKey = (
@@ -118,9 +123,7 @@ export const registerSubscription = async <T>(
       case 'newBlockHeaders':
         subscription = await subscribeLatestBlock(
           web3,
-          await wrapWithLogger(getDataHandlerBlockHeader(key), {
-            isAsyncFn: true
-          })
+          getDataHandlerBlockHeader(key)
         );
         logDebug(`New subscription on newBlockHeaders, for chain ${chainId}`);
         break;
@@ -160,6 +163,16 @@ const addCallbackToSubscription = <T>(
 ): string => {
   let inserted = false;
   const id = randomUUID();
+
+  const log = wrapWithLogger(
+    (
+      logFn: (message?: any, ...optionalParams: any[]) => void,
+      message?: any,
+      ...optionalParams: any[]
+    ) => {
+      logFn(message, ...optionalParams);
+    }
+  );
   for (let i = 0; !inserted && i < sub.callbacks.length; i++) {
     if (priority < sub.callbacks[i][0].priority) {
       const removedElems = sub.callbacks.splice(i, sub.callbacks.length - i, [
@@ -171,7 +184,8 @@ const addCallbackToSubscription = <T>(
           skipOnUnfinishedEvent,
           isAsyncCallback,
           lastEventFinished: true,
-          terminated: false
+          terminated: false,
+          log
         }
       ]);
       sub.callbacks = sub.callbacks.concat(removedElems);
@@ -185,7 +199,8 @@ const addCallbackToSubscription = <T>(
         skipOnUnfinishedEvent,
         isAsyncCallback,
         lastEventFinished: true,
-        terminated: false
+        terminated: false,
+        log
       });
       inserted = true;
     }
@@ -201,7 +216,8 @@ const addCallbackToSubscription = <T>(
         skipOnUnfinishedEvent,
         isAsyncCallback,
         lastEventFinished: true,
-        terminated: false
+        terminated: false,
+        log
       }
     ]);
   }
@@ -225,9 +241,6 @@ export const unregisterCallback = (
 };
 
 const getDataHandlerBlockHeader = (subscriptionKey: string) => {
-  const asyncCallbackCatchWarn = wrapWithLogger((reason: any) =>
-    logWarn('getDataHandlerBlockHeader async callback: ', reason)
-  );
   return async (data: BlockHeader): Promise<void> => {
     const sub = subscriptionsByChainEvent[subscriptionKey];
 
@@ -252,7 +265,13 @@ const getDataHandlerBlockHeader = (subscriptionKey: string) => {
           if (callback.isAsyncCallback) {
             const prom = callback
               .callback(data, ...callback.args)
-              .catch(asyncCallbackCatchWarn)
+              .catch((reason: any) => {
+                callback.log(
+                  logWarn,
+                  'getDataHandlerBlockHeader async callback: ',
+                  reason
+                );
+              })
               .finally(() => {
                 callback.lastEventFinished = true;
                 if (sub.shouldTerminate) {
@@ -268,7 +287,7 @@ const getDataHandlerBlockHeader = (subscriptionKey: string) => {
               Promise.resolve(callback.callback(data, ...callback.args))
             );
           } catch (e) {
-            logWarn('getDataHandlerBlockHeader callback: ', e);
+            callback.log(logWarn, 'getDataHandlerBlockHeader callback: ', e);
             promsByPriority.push(Promise.reject(e));
           } finally {
             callback.lastEventFinished = true;
