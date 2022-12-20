@@ -20,6 +20,8 @@ import { ContractsRepository } from './contracts/driven/repositories/contractsRe
 import { Dictionary } from './types/types';
 import { ExternalDeps, getExternalImports } from './externalDeps';
 import { ArbitrageCliAdapter } from './arbitrage/drivers/arbitrageCliAdapter';
+import { BlocksMemoryAdapter } from './chains/driven/data-sources/blocksMemoryAdapter';
+import { BlocksRepository } from './chains/driven/repositories/blocksRepository';
 
 // Furthermore as things start to grow, and I may have logging and other utilitary libs in the middle and if these
 // are not completly stateless (or need to be instantiated) it may be nice to actually pass as parameter an object containing
@@ -103,6 +105,10 @@ export function getAccountsRepository(): AccountsRepository {
 
 export function getContractsRepository(): ContractsRepository {
   return ContractsConfigFileAdapter.getInstance();
+}
+
+export function getBlocksRepository(): BlocksRepository {
+  return BlocksMemoryAdapter.getInstance();
 }
 
 // This will return a singleton if it was already created for this chainId

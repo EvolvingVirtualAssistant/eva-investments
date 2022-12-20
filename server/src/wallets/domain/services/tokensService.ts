@@ -11,7 +11,7 @@ import { loadPrecompiledContract } from '../../../contracts/domain/services/depl
 import { Account } from '../entities/accounts';
 import { sendTransaction } from '../../../contracts/domain/services/transactionService';
 import { getContractByName } from '../../../contracts/domain/services/contractService';
-import { Dictionary, EthereUnit } from '../../../app';
+import { Dictionary, EthereUnit, getLatestBlockNumber } from '../../../app';
 import { TokenAllowances } from '../entities/allowances';
 
 export const erc20TokenApprove = async (
@@ -118,12 +118,13 @@ export const getTokenContract = (
 
 export const getAllTokensAllowances = async (
   web3: Web3Extension,
+  chainId: number,
   ownerAddress: string,
   nDays: number
 ): Promise<TokenAllowances[]> => {
   blockOperationIfPaidNodeProvider(web3);
 
-  const currBlock = await web3.eth.getBlockNumber();
+  const currBlock = await getLatestBlockNumber(web3, chainId);
   const blockAvgTime = await calculateBlockAvgTime(web3, currBlock);
   const daysInSec = nDays * 24 * 60 * 60;
   const prevBlocks = Math.round(daysInSec / Math.floor(blockAvgTime));
