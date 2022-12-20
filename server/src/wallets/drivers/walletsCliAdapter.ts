@@ -62,6 +62,7 @@ export class WalletsCliAdapter {
     try {
       const allowances = await getAllTokensAllowances(
         await getAsyncWeb3Extension(chainId),
+        chainId,
         ownerAddress,
         nDays
       );
