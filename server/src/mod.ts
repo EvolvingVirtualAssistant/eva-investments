@@ -24,6 +24,11 @@ export {
   getTokenContract
 } from './wallets/domain/services/tokensService';
 export {
+  getLatestBlockNumber,
+  getPendingBlockNumber,
+  getBlockNumberTrackerSubscriptionCallback
+} from './chains/domain/services/blocksService';
+export {
   Web3,
   Web3Extension,
   Unit as EthereUnit,
