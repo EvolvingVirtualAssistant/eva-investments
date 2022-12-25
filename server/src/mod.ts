@@ -13,6 +13,7 @@ export {
 export { getContractByName } from './contracts/domain/services/contractService';
 export { getContractEvents } from './contracts/domain/services/contractEventsService';
 export {
+  emitCustomEvent,
   subscribeLatestBlock,
   registerSubscription,
   unsubscribe,
