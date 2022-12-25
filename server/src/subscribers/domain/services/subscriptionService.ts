@@ -14,6 +14,17 @@ import {
  */
 const subscriptions: Dictionary<Subscription<BlockHeader>> = {};
 
+export interface CustomSubscription<T> {
+  eventType: string;
+  eventHandler: (event: T) => Promise<void>;
+  errorHandler: (error: Error) => void;
+  unsubscribe: (
+    callback?: ((error: Error, result: boolean) => void) | undefined
+  ) => void;
+}
+
+const customEventsSubs: Dictionary<CustomSubscription<any>> = {};
+
 export const subscribeLatestBlock = (
   web3: Web3,
   dataHandler: (data: BlockHeader) => void,
@@ -46,6 +57,83 @@ export const subscribeLatestBlock = (
   });
 };
 
+const subscribePendingTransaction = (
+  web3: Web3,
+  dataHandler: (data: string) => void,
+  errorHandler?: (error: Error) => void
+): Promise<Subscription<string>> => {
+  const subscription = web3.eth
+    .subscribe('pendingTransactions')
+    .on('data', dataHandler);
+
+  // Return promise of subscription on connected
+  return new Promise<Subscription<string>>((resolve, reject) => {
+    let connected = false;
+
+    subscription
+      .on('connected', (subscriptionId: string) => {
+        connected = true;
+        resolve(subscription);
+      })
+      .on('error', (error: Error) => {
+        if (!connected) {
+          reject(error);
+        } else if (errorHandler != null) {
+          errorHandler(error);
+        } else {
+          defaultErrorHandler(error);
+        }
+      });
+  });
+};
+
+const subscribeCustomEvent = <T>(
+  chainId: number,
+  eventType: string,
+  eventHandler: (data: T) => Promise<void>,
+  errorHandler?: (error: Error) => void
+): CustomSubscription<T> => {
+  const key = getSubscriptionByChainEventKey(chainId, eventType);
+  let eventSub = customEventsSubs[key];
+
+  if (eventSub != null) {
+    throw new Error(
+      `Unable to subscribe to event ${eventType} for chain ${chainId}. A subscription for this event already exists`
+    );
+  }
+
+  eventSub = {
+    eventType,
+    eventHandler,
+    errorHandler: errorHandler != null ? errorHandler : defaultErrorHandler,
+    unsubscribe: (callback?: (error: Error, result: boolean) => void) => {
+      delete customEventsSubs[key];
+      callback?.(new Error(), true);
+    }
+  };
+  customEventsSubs[key] = eventSub;
+
+  return eventSub;
+};
+
+export const emitCustomEvent = (
+  chainId: number,
+  eventType: string,
+  event: any
+) => {
+  const key = getSubscriptionByChainEventKey(chainId, eventType);
+  const customSub = customEventsSubs[key];
+
+  if (customSub == null) {
+    logWarn(
+      `Failed to emit event ${event}. Unable to find subscription for event ${eventType} and chain ${chainId}`
+    );
+    return;
+  }
+
+  customSub.eventHandler(event);
+};
+
 export const unsubscribe = async (subscriptionId: string, force = false) => {
   const sub = subscriptionsByChainEvent[subscriptionId];
   if (!sub) {
@@ -75,8 +163,8 @@ const defaultErrorHandler = (error: Error) => {
 
 // ---------------- Register callbacks for chainId and event type ----------------
 
-type SubscriptionByChainEvent<T> = {
-  subscription: Subscription<BlockHeader>;
+type SubscriptionByChainEvent<T, S> = {
+  subscription: Subscription<S> | CustomSubscription<S>;
   callbacks: Callback<T>[][];
   shouldTerminate: boolean;
   terminate?: (value: unknown) => void;
@@ -102,7 +190,9 @@ const getSubscriptionByChainEventKey = (
   chainId: number,
   eventType: string
 ): string => chainId + eventType;
-const subscriptionsByChainEvent: Dictionary<SubscriptionByChainEvent<any>> = {};
+const subscriptionsByChainEvent: Dictionary<
+  SubscriptionByChainEvent<any, any>
+> = {};
 
 export const registerSubscription = async <T>(
   web3: Web3,
@@ -121,16 +211,26 @@ export const registerSubscription = async <T>(
     let subscription;
     switch (eventType) {
       case 'newBlockHeaders':
-        subscription = await subscribeLatestBlock(
-          web3,
-          getDataHandlerBlockHeader(key)
-        );
+        subscription = await subscribeLatestBlock(web3, getDataHandler(key));
         logDebug(`New subscription on newBlockHeaders, for chain ${chainId}`);
         break;
-      default:
-        throw new Error(
-          `registerSubscription: Unsupported eventType ${eventType}`
+      case 'pendingTransactions':
+        subscription = await subscribePendingTransaction(
+          web3,
+          getDataHandler(key)
         );
+        logDebug(
+          `New subscription on pendingTransactions, for chain ${chainId}`
+        );
+        break;
+      default:
+        subscription = await subscribeCustomEvent(
+          chainId,
+          eventType,
+          getDataHandler(key)
+        );
+        logDebug(`New subscription on ${eventType}, for chain ${chainId}`);
+        break;
     }
 
     sub = {
@@ -153,8 +253,8 @@ export const registerSubscription = async <T>(
   return { subscriptionId: key, callbackId };
 };
 
-const addCallbackToSubscription = <T>(
-  sub: SubscriptionByChainEvent<T>,
+const addCallbackToSubscription = <T, S>(
+  sub: SubscriptionByChainEvent<T, S>,
   priority: number,
   skipOnUnfinishedEvent: boolean,
   isAsyncCallback: boolean,
@@ -240,8 +340,8 @@ export const unregisterCallback = (
   });
 };
 
-const getDataHandlerBlockHeader = (subscriptionKey: string) => {
-  return async (data: BlockHeader): Promise<void> => {
+const getDataHandler = <S>(subscriptionKey: string) => {
+  return async (data: S): Promise<void> => {
     const sub = subscriptionsByChainEvent[subscriptionKey];
 
     if (sub == null) {
@@ -268,7 +368,7 @@ const getDataHandlerBlockHeader = (subscriptionKey: string) => {
               .catch((reason: any) => {
                 callback.log(
                   logWarn,
-                  'getDataHandlerBlockHeader async callback: ',
+                  'getDataHandler async callback: ',
                   reason
                 );
               })
@@ -287,7 +387,7 @@ const getDataHandlerBlockHeader = (subscriptionKey: string) => {
               Promise.resolve(callback.callback(data, ...callback.args))
             );
           } catch (e) {
-            callback.log(logWarn, 'getDataHandlerBlockHeader callback: ', e);
+            callback.log(logWarn, 'getDataHandler callback: ', e);
             promsByPriority.push(Promise.reject(e));
           } finally {
             callback.lastEventFinished = true;
