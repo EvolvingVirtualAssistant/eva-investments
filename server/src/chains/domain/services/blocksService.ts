@@ -28,3 +28,10 @@ export const getBlockNumberTrackerSubscriptionCallback =
       getBlocksRepository().setLatestBlockNumber(chainId, event.number);
     }
   };
+
+export const getBlockTransactionHashes = (
+  web3: Web3,
+  blockNumber: number
+): Promise<string[]> => {
+  return web3.eth.getBlock(blockNumber).then((block) => block.transactions);
+};
