@@ -27,7 +27,8 @@ export {
 export {
   getLatestBlockNumber,
   getPendingBlockNumber,
-  getBlockNumberTrackerSubscriptionCallback
+  getBlockNumberTrackerSubscriptionCallback,
+  getBlockTransactionHashes
 } from './chains/domain/services/blocksService';
 export {
   Web3,
@@ -62,6 +63,11 @@ export {
 export { watchFile } from './utils/filesystemWatcher';
 export { isType, isOfEthereUnitType } from './utils/typeGuards';
 export { sleep } from './utils/async';
-export { lazyMapFind } from './utils/collections';
+export {
+  lazyMapFind,
+  getNewOrderedDoublyLinkedSet,
+  OrderedDoublyLinkedSet,
+  DoublyLinkedNode
+} from './utils/collections';
 export { Dictionary } from './types/types';
 export { getAsyncWeb3Extension, getWeb3Extension } from './appContext';

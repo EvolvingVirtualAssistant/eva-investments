@@ -93,6 +93,18 @@ export function assertArrayIncludes(
   }
 }
 
+export function assertNull(actual: unknown, msg?: string) {
+  try {
+    expect(actual).toBeNull();
+  } catch (e) {
+    if (msg == null) {
+      throw e;
+    }
+
+    throw new Error(msg);
+  }
+}
+
 export function assertNotNull(actual: unknown, msg?: string) {
   try {
     expect(actual).not.toBeNull();
@@ -105,6 +117,29 @@ export function assertNotNull(actual: unknown, msg?: string) {
   }
 }
 
+export function assertUndefined(actual: unknown, msg?: string) {
+  try {
+    expect(actual).toBeUndefined();
+  } catch (e) {
+    if (msg == null) {
+      throw e;
+    }
+
+    throw new Error(msg);
+  }
+}
+
+export function assertNotUndefined(actual: unknown, msg?: string) {
+  try {
+    expect(actual).not.toBeUndefined();
+  } catch (e) {
+    if (msg == null) {
+      throw e;
+    }
+
+    throw new Error(msg);
+  }
+}
 //still missing
 //toBeLessThan
 //toBeGreaterThanOrEqual
