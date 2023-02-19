@@ -3,7 +3,7 @@ import {
   LOG_ID_SEPARATOR,
   LOG_MSG_SEPARATOR
 } from '../../constants/loggerConstants';
-import { parentPort, WorkerTask } from '../../deps';
+import { WorkerTask } from '../../deps';
 import { LogsConsoleAdapter } from '../../driven/data-sources/logsConsoleAdapter';
 import { LogsFileAdapter } from '../../driven/data-sources/logsFileAdapter';
 import { LogsRepository } from '../../driven/repositories/logsRepository';
@@ -16,7 +16,7 @@ import {
   LoggerOutputType
 } from '../../types/logger.types';
 
-parentPort?.on('message', async (task: WorkerTask) => {
+export const onMessage = (task: WorkerTask): { result: any; error: any } => {
   try {
     switch (task.fn) {
       case LoggerLevel.INFO:
@@ -37,10 +37,10 @@ parentPort?.on('message', async (task: WorkerTask) => {
     }
   } catch (e) {
     saveLoggingError(e);
-  } finally {
-    parentPort?.postMessage({ result: '', error: undefined });
   }
-});
+
+  return { result: '', error: undefined };
+};
 
 const saveLog = (
   level: LoggerLevel,
