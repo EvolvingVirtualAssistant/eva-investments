@@ -1,5 +1,9 @@
 import { EventEmitter, pathJoin, ROOT_PATH, Worker } from './deps';
-import { WorkerTask } from './workerPool.types';
+import {
+  Dictionary,
+  GENERIC_WORKER_FILE_PATH,
+  WorkerTask
+} from './workerPool.types';
 import { WorkerPoolTask } from './workerPoolTask';
 
 type WorkerWithPoolTask = {
@@ -17,44 +21,49 @@ const FREE_WORKER_EVENT = 'freedWorker';
 // Based on https://nodejs.org/api/async_context.html#using-asyncresource-for-a-worker-thread-pool
 
 export class WorkerPool extends EventEmitter {
-  private _numThreads: number;
-  private _workerFilePath: string;
-  private workers: WorkerWithPoolTask[];
-  private freeWorkers: WorkerWithPoolTask[];
+  private static instance: WorkerPool;
+
+  private workers: Dictionary<WorkerWithPoolTask[]>;
   private tasks: TaskDoneCallback[];
 
-  constructor(numThreads: number, workerFilePath: string) {
+  private constructor() {
     super();
-    this._numThreads = numThreads;
-    this._workerFilePath = workerFilePath;
-    this.workers = [];
-    this.freeWorkers = [];
+    this.workers = {};
     this.tasks = [];
 
-    for (let i = 0; i < this._numThreads; i++) {
-      this.addWorker();
-    }
+    this.on(FREE_WORKER_EVENT, (workerFilePath: string) => {
+      const taskIndex = this.tasks.findIndex(
+        (t) => t.task.workerFilePath == workerFilePath
+      );
 
-    this.on(FREE_WORKER_EVENT, () => {
-      if (this.tasks.length > 0) {
-        const task = this.tasks.shift();
+      if (taskIndex >= 0) {
+        const task = this.tasks.splice(taskIndex, 1)[0];
 
         if (task != null) {
-          this.runTask(task.doneCallback, task.task.fn, task.task.args);
+          this.runTask(
+            workerFilePath,
+            task.doneCallback,
+            task.task.fn,
+            task.task.args
+          );
         }
       }
     });
   }
 
-  private addWorker() {
+  static getInstance(): WorkerPool {
+    if (WorkerPool.instance == null) {
+      WorkerPool.instance = new WorkerPool();
+    }
+
+    return WorkerPool.instance;
+  }
+
+  private initializeWorker(workerFilePath: string): WorkerWithPoolTask {
     const worker: WorkerWithPoolTask = {
       worker: new Worker(
         pathJoin(ROOT_PATH, './src/libs/worker-pool/workerImporter.js'),
-        {
-          workerData: {
-            workerFilePath: this._workerFilePath
-          }
-        }
+        { workerData: { workerFilePath } }
       )
     };
 
@@ -73,8 +82,7 @@ export class WorkerPool extends EventEmitter {
       }
 
       // Notify there is a new free worker
-      this.freeWorkers.push(worker);
-      this.emit(FREE_WORKER_EVENT);
+      this.emit(FREE_WORKER_EVENT, workerFilePath);
     });
 
     worker.worker.on('error', (error) => {
@@ -88,39 +96,75 @@ export class WorkerPool extends EventEmitter {
       }
 
       // Delete worker and create a new one
-      this.workers.splice(this.workers.indexOf(worker), 1);
-      this.addWorker();
+      this.workers[workerFilePath].splice(
+        this.workers[workerFilePath].indexOf(worker),
+        1
+      );
+      this.addWorker(workerFilePath);
     });
 
-    this.workers.push(worker);
-    this.freeWorkers.push(worker);
-    this.emit(FREE_WORKER_EVENT);
+    return worker;
+  }
+
+  addWorker(workerFilePath: string, shareWorker = true) {
+    let workerElems = this.workers[workerFilePath];
+
+    if (workerElems == null) {
+      workerElems = [];
+    }
+
+    if (workerElems.length > 0 && shareWorker) {
+      return;
+    }
+
+    if (workerElems.length === 0 || !shareWorker) {
+      const worker = this.initializeWorker(workerFilePath);
+      workerElems.push(worker);
+    }
+
+    this.workers[workerFilePath] = workerElems;
+    this.emit(FREE_WORKER_EVENT, workerFilePath);
   }
 
   runTask(
+    workerFilePath: string,
     doneCallback: (result: any, error: any) => void,
     fn: string,
     args: any[]
   ) {
-    const task: WorkerTask = { fn, args };
-    if (this.freeWorkers.length === 0) {
+    let workerElems = this.workers[workerFilePath];
+    if (workerElems == null) {
+      workerElems = this.workers[GENERIC_WORKER_FILE_PATH];
+
+      if (workerElems == null) {
+        throw new Error(
+          `Unrecognized worker file path: ${workerFilePath} and no generic worker was created in the pool`
+        );
+      }
+    }
+
+    const task: WorkerTask = { workerFilePath, fn, args };
+    const freeWorker = workerElems.find((w) => w.workerPoolTask == null);
+    if (freeWorker == null) {
       // queue up a new task
       this.tasks.push({ task, doneCallback });
       return;
     }
 
-    const worker = this.freeWorkers.pop();
-
-    if (worker != null) {
-      worker.workerPoolTask = new WorkerPoolTask(doneCallback);
-      worker.worker.postMessage(task);
-    }
+    freeWorker.workerPoolTask = new WorkerPoolTask(doneCallback);
+    freeWorker.worker.postMessage(task);
   }
 
   async terminate() {
-    const workersTermination = this.workers.map((worker) =>
-      worker.worker.terminate()
-    );
+    const workersTermination = Object.values(this.workers)
+      .flatMap((workerElems) => workerElems)
+      .map((worker) => worker.worker.terminate());
     await Promise.allSettled(workersTermination);
+  }
+
+  getWorkersSize(workerFilePath = ''): number {
+    return workerFilePath === ''
+      ? Object.values(this.workers).flatMap((workerElems) => workerElems).length
+      : this.workers[workerFilePath]?.length || 0;
   }
 }

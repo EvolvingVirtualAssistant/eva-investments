@@ -2,7 +2,7 @@ import { readdirSync } from 'fs';
 import { join as pathJoin } from 'path';
 export { pathJoin };
 export { parentPort } from 'worker_threads';
-export { WorkerPool, WorkerTask } from 'worker-pool';
+export { GENERIC_WORKER_FILE_PATH, WorkerPool, WorkerTask } from 'worker-pool';
 
 function findRootFolder(path: string): string {
   let foldersMatched = 0;

@@ -3,7 +3,7 @@ import {
   LOG_WRAP_FUNCTION_END,
   LOG_WRAP_FUNCTION_START
 } from '../../constants/loggerConstants';
-import { WorkerPool } from '../../deps';
+import { GENERIC_WORKER_FILE_PATH, WorkerPool } from '../../deps';
 import {
   DEFAULT_LOG_GROUP,
   DEFAULT_OUTPUT_TYPE,
@@ -11,7 +11,8 @@ import {
   Logger,
   LoggerLevel,
   LoggerOptions,
-  LoggerOutputType
+  LoggerOutputType,
+  LOGGER_WORKER_HANDLER_FILE_PATH
 } from '../../types/logger.types';
 
 let _workerPool: WorkerPool;
@@ -29,10 +30,8 @@ export const wrapWithLogger = <T>(
   }
 ): ((...args: any[]) => T) => {
   if (_workerPool == null) {
-    _workerPool = new WorkerPool(
-      1,
-      './src/libs/logger/domain/services/logHandler.ts'
-    );
+    _workerPool = WorkerPool.getInstance();
+    _workerPool.addWorker(GENERIC_WORKER_FILE_PATH);
   }
 
   const id = getId(options.id);
@@ -149,22 +148,19 @@ export const logError = (message?: any, ...optionalParams: any[]) =>
 
 const log = (level: LoggerLevel, message?: any, ...optionalParams: any[]) => {
   if (_workerPool == null) {
-    _workerPool = new WorkerPool(
-      1,
-      './src/libs/logger/domain/services/logHandler.ts'
-    );
+    _workerPool = WorkerPool.getInstance();
+    _workerPool.addWorker(GENERIC_WORKER_FILE_PATH);
   }
 
   const e: { [x: string]: any } = {};
   Error.captureStackTrace(e);
 
-  _workerPool.runTask(workerDoneCallback, level, [
-    _loggers,
-    e.stack,
-    Date.now(),
-    message,
-    optionalParams
-  ]);
+  _workerPool.runTask(
+    LOGGER_WORKER_HANDLER_FILE_PATH,
+    workerDoneCallback,
+    level,
+    [_loggers, e.stack, Date.now(), message, optionalParams]
+  );
 };
 
 const workerDoneCallback = (result: any, error: any) => {

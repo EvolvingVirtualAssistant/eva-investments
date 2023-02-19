@@ -28,3 +28,8 @@ export enum LoggerOutputType {
 
 export const DEFAULT_LOG_GROUP = 'general';
 export const DEFAULT_OUTPUT_TYPE = LoggerOutputType.FILE;
+
+export const LOGGER_WORKER_FILE_PATH =
+  './src/libs/logger/domain/services/loggerWorker.ts';
+export const LOGGER_WORKER_HANDLER_FILE_PATH =
+  './src/libs/logger/domain/services/logHandler.ts';
