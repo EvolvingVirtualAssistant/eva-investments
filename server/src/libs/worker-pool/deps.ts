@@ -4,6 +4,7 @@ export { pathJoin };
 export { Worker, MessagePort, parentPort } from 'worker_threads';
 export { EventEmitter } from 'events';
 export { AsyncResource } from 'async_hooks';
+export { randomUUID } from 'crypto';
 
 function findRootFolder(path: string): string {
   let foldersMatched = 0;
