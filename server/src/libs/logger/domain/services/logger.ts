@@ -3,7 +3,7 @@ import {
   LOG_WRAP_FUNCTION_END,
   LOG_WRAP_FUNCTION_START
 } from '../../constants/loggerConstants';
-import { GENERIC_WORKER_FILE_PATH, WorkerPool } from '../../deps';
+import { WorkerPool } from '../../deps';
 import {
   DEFAULT_LOG_GROUP,
   DEFAULT_OUTPUT_TYPE,
@@ -31,7 +31,7 @@ export const wrapWithLogger = <T>(
 ): ((...args: any[]) => T) => {
   if (_workerPool == null) {
     _workerPool = WorkerPool.getInstance();
-    _workerPool.addWorker(GENERIC_WORKER_FILE_PATH);
+    _workerPool.addWorker();
   }
 
   const id = getId(options.id);
@@ -149,7 +149,7 @@ export const logError = (message?: any, ...optionalParams: any[]) =>
 const log = (level: LoggerLevel, message?: any, ...optionalParams: any[]) => {
   if (_workerPool == null) {
     _workerPool = WorkerPool.getInstance();
-    _workerPool.addWorker(GENERIC_WORKER_FILE_PATH);
+    _workerPool.addWorker();
   }
 
   const e: { [x: string]: any } = {};
