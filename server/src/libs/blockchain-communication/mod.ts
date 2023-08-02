@@ -17,6 +17,7 @@ export { nodeToProvider } from './domain/services/providerService';
 export { Web3 } from './deps';
 export type {
   BlockHeader,
+  BlockTransactionString,
   Subscription,
   Unit,
   TransactionReceipt,
