@@ -33,6 +33,7 @@ export {
   initBlockchainCommunication,
   Web3Extension,
   BlockHeader,
+  BlockTransactionString,
   Node,
   NodesConfigRepository,
   NodesRepository,

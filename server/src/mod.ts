@@ -28,7 +28,9 @@ export {
   getLatestBlockNumber,
   getPendingBlockNumber,
   getBlockNumberTrackerSubscriptionCallback,
-  getBlockTransactionHashes
+  getBlockSubscriptionCallback,
+  getBlockTransactionHashes,
+  getNextBlockBaseFee
 } from './chains/domain/services/blocksService';
 export {
   Web3,
