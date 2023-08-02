@@ -30,8 +30,11 @@ export {
   getBlockNumberTrackerSubscriptionCallback,
   getBlockSubscriptionCallback,
   getBlockTransactionHashes,
-  getNextBlockBaseFee
+  getNextBlockBaseFee,
+  getBlockGasLimit
 } from './chains/domain/services/blocksService';
+export { decodeInput } from './chains/domain/services/decodeInputService';
+export { DecodedInput } from './chains/domain/entities/transaction';
 export {
   Web3,
   Web3Extension,
@@ -39,6 +42,7 @@ export {
   TransactionReceipt,
   ContractSendMethod,
   Contract,
+  Transaction,
   SignedTransaction,
   BN,
   WorkerPool,
