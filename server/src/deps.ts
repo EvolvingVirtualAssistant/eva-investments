@@ -58,7 +58,7 @@ export {
   nodeToProvider,
   attemptImport
 } from 'blockchain-communication';
-
+export { Transaction } from 'web3-core';
 export { EventData } from 'web3-eth-contract';
 
 export {

@@ -62,6 +62,9 @@ export const getNextBlockBaseFee = (chainId: number): number | undefined => {
   return getNextBlockBaseFeeEthNetwork(baseFeePerGas, gasLimit, gasUsed);
 };
 
+export const getBlockGasLimit = (chainId: number): number | undefined =>
+  getBlocksRepository().getLatestBlock(chainId)?.gasLimit;
+
 const getNextBlockBaseFeeEthNetwork = (
   baseFeePerGas: number,
   gasLimit: number,

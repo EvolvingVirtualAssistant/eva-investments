@@ -12,4 +12,6 @@ export interface ContractsRepository {
     chainId: number,
     filter?: ContractDataFilter
   ): ContractData[];
+
+  callOnChange(callback: () => void): void;
 }

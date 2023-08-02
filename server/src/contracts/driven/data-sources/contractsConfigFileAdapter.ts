@@ -1,11 +1,13 @@
 import { isType } from '../../../utils/typeGuards';
-import { logWarn, ROOT_PATH } from '../../../deps';
+import { FSWatcher, logWarn, pathJoin, ROOT_PATH } from '../../../deps';
 import { getObjFromJson } from '../../../utils/files';
 import { ContractData } from '../../domain/entities/contract';
 import {
   ContractDataFilter,
   ContractsRepository
 } from '../repositories/contractsRepository';
+import { Dictionary } from '../../../types/types';
+import { unwatchFile, watchFile } from '../../../utils/filesystemWatcher';
 
 const CONTRACTS_ENV_KEY = 'CONTRACTS';
 
@@ -17,8 +19,11 @@ type ContractsByChainId = {
 export class ContractsConfigFileAdapter implements ContractsRepository {
   private static instance: ContractsConfigFileAdapter;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
+  private watchedFiles: Dictionary<FSWatcher[]>;
+
+  private constructor() {
+    this.watchedFiles = {};
+  }
 
   static getInstance(): ContractsConfigFileAdapter {
     if (!ContractsConfigFileAdapter.instance) {
@@ -65,6 +70,30 @@ export class ContractsConfigFileAdapter implements ContractsRepository {
     }
 
     return [];
+  }
+
+  callOnChange(callback: () => void): void {
+    this.disableCallOnChange();
+
+    this.watchFileChanges(callback, process.env[CONTRACTS_ENV_KEY]);
+  }
+
+  disableCallOnChange(): void {
+    for (const [file, watchers] of Object.entries(this.watchedFiles)) {
+      unwatchFile(file, watchers);
+    }
+
+    this.watchedFiles = {};
+  }
+
+  private watchFileChanges(callback: () => void, filepath?: string): void {
+    if (filepath) {
+      const path = pathJoin(ROOT_PATH, filepath);
+      const watchers = this.watchedFiles[path] || [];
+      const watcher = watchFile(path, callback);
+      watchers.push(watcher);
+      this.watchedFiles[path] = watchers;
+    }
   }
 }
 
