@@ -2,7 +2,7 @@ import { join as pathJoin } from 'path';
 import { readdirSync, readFileSync } from 'fs';
 import Web3 from 'web3';
 import { provider, TransactionReceipt, SignedTransaction } from 'web3-core';
-import { BlockHeader } from 'web3-eth';
+import { BlockHeader, BlockTransactionString } from 'web3-eth';
 import { Subscription } from 'web3-core-subscriptions';
 import HttpProvider from 'web3-providers-http';
 import WebsocketProvider from 'web3-providers-ws';
@@ -47,6 +47,7 @@ export const ROOT_PATH = findRootFolder(currentWorkingDir);
 
 export {
   BlockHeader,
+  BlockTransactionString,
   pathJoin,
   readFileSync,
   Web3,
