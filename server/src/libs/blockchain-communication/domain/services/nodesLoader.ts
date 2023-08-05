@@ -7,7 +7,7 @@ import { NodeOptions } from '../entities/nodeOptions';
 import { logWarn } from '../../deps';
 
 export function loadNodes(
-  chainId: number,
+  chainId: string,
   nodesConfigRepository: NodesConfigRepository,
   nodesRepository: NodesRepository,
   refreshNodes = false

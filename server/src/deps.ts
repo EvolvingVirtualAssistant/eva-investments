@@ -32,9 +32,15 @@ export { Web3 }; // without this, Web3 was undefined in certain tests
 export {
   initBlockchainCommunication,
   Web3Extension,
-  BlockHeader,
-  BlockTransactionString,
-  TransactionConfig,
+  BlockHeaderOutput,
+  GetBlockOutput,
+  GetTransactionOutput,
+  TypedTransaction,
+  Address,
+  FeeMarketEIP1559Transaction,
+  ContractAbi,
+  ContractEvents,
+  ContractConstructorArgs,
   Node,
   NodesConfigRepository,
   NodesRepository,
@@ -43,24 +49,24 @@ export {
   HttpNodeOptions,
   IpcNodeOptions,
   WsNodeOptions,
-  Subscription,
+  Web3Subscription,
   buildHttpNodeOptions,
   buildIpcNodeOptions,
   buildWsNodeOptions,
-  Unit,
+  EtherUnits,
   TransactionReceipt,
-  ContractSendMethod,
-  SignedTransaction,
+  SignTransactionResult,
   Contract,
   NonceTracker,
   getNonceTracker,
-  Socket,
-  provider,
+  Web3BaseProvider,
   nodeToProvider,
-  attemptImport
+  attemptImport,
+  HexString,
+  Web3EventMap
 } from 'blockchain-communication';
-export { Transaction } from 'web3-core';
-export { EventData } from 'web3-eth-contract';
+export { Transaction } from 'web3-types';
+export { EventLog } from 'web3-eth-contract';
 
 export {
   cliAdapter,

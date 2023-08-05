@@ -1,6 +1,6 @@
 import { getChainsRepository } from '../../../appContext';
 
-export const getGasWrappedTokenAddress = (chaindId: number): string => {
+export const getGasWrappedTokenAddress = (chaindId: string): string => {
   const gasTokenAddress =
     getChainsRepository().getGasWrappedTokenAddress(chaindId);
 
@@ -12,7 +12,7 @@ export const getGasWrappedTokenAddress = (chaindId: number): string => {
   return gasTokenAddress;
 };
 
-export const getNativeTokenSymbol = (chaindId: number): string => {
+export const getNativeTokenSymbol = (chaindId: string): string => {
   const nativeTokenSymbol =
     getChainsRepository().getNativeTokenSymbol(chaindId);
 
@@ -22,7 +22,7 @@ export const getNativeTokenSymbol = (chaindId: number): string => {
   return nativeTokenSymbol;
 };
 
-export const getMempoolBlockAge = (chaindId: number): number => {
+export const getMempoolBlockAge = (chaindId: string): number => {
   const mempoolBlockAge = getChainsRepository().getMempoolBlockAge(chaindId);
 
   if (mempoolBlockAge == null) {

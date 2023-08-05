@@ -1,13 +1,13 @@
 import { Node } from '../../domain/entities/node';
 
 export interface NodesRepository {
-  getNodes(chainId: number): Node[];
+  getNodes(chainId: string): Node[];
 
-  save(chainId: number, node: Node): void;
+  save(chainId: string, node: Node): void;
 
-  saveAll(chainId: number, nodes: Node[]): void;
+  saveAll(chainId: string, nodes: Node[]): void;
 
-  deleteById(chainId: number, id: number): Node;
+  deleteById(chainId: string, id: number): Node;
 
-  deleteAll(chainId: number): void;
+  deleteAll(chainId: string): void;
 }

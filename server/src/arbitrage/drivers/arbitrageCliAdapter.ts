@@ -19,7 +19,7 @@ import {
 type StartArbitrageParams = {
   pools: string;
   accountAddress: string;
-  chainId: number;
+  chainId: string;
   inputAmountsByToken: Dictionary<string>;
   outputAmountsByToken: Dictionary<string>;
   slippagePercentage: number;

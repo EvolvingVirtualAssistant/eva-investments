@@ -1,5 +1,5 @@
 import {
-  provider,
+  Web3BaseProvider,
   HttpProvider,
   IpcProvider,
   WebsocketProvider,
@@ -8,7 +8,11 @@ import {
 import { NodesRepository } from '../../driven/repositories/nodesRepository';
 import { externalDeps, Web3Extension } from '../../drivers/api';
 import { ProviderType } from '../../types/blockchainCommunication.types';
-import { NodeOptions } from '../entities/nodeOptions';
+import {
+  IpcNodeOptions,
+  WsNodeOptions,
+  HttpNodeOptions
+} from '../entities/nodeOptions';
 import { equalNodes, Node } from '../entities/node';
 import { NodeError } from './errors/nodeError';
 import { ProviderError } from './errors/providerError';
@@ -19,7 +23,7 @@ export function unregisterProviderRotation(): void {
 }
 
 export function registerProviderRotation(
-  chainId: number,
+  chainId: string,
   web3: Web3Extension,
   nodesRepository: NodesRepository,
   getCurrentNode: () => Node | undefined,
@@ -54,7 +58,7 @@ export function registerProviderRotation(
 }
 
 export function setProvider(
-  chainId: number,
+  chainId: string,
   web3: Web3Extension,
   nodesRepository: NodesRepository,
   currNode?: Node
@@ -78,7 +82,7 @@ export function setProvider(
 }
 
 function getWeb3ProviderNode(
-  chainId: number,
+  chainId: string,
   nodesRepository: NodesRepository
 ): Node {
   try {
@@ -91,21 +95,27 @@ function getWeb3ProviderNode(
   }
 }
 
-export function nodeToProvider(node: Node): provider {
+export function nodeToProvider(node: Node): Web3BaseProvider {
   const nodeOptions = node.options[0];
 
   // Initialize provider
   switch (nodeOptions.type) {
     case ProviderType.HTTP:
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      return new HttpProvider(nodeOptions.host, { ...nodeOptions });
+      return new HttpProvider(nodeOptions.host, {
+        ...(nodeOptions as HttpNodeOptions)
+      });
     case ProviderType.WS:
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      return new WebsocketProvider(nodeOptions.host, { ...nodeOptions });
+      return new WebsocketProvider(
+        nodeOptions.host,
+        { ...nodeOptions },
+        (nodeOptions as WsNodeOptions).reconnectOptions
+      );
     case ProviderType.IPC:
-      return buildIpcProvider(nodeOptions);
+      return new IpcProvider(
+        nodeOptions.host,
+        { ...(nodeOptions as IpcNodeOptions) },
+        (nodeOptions as IpcNodeOptions).reconnectOptions
+      );
   }
 
   throw new ProviderError(
@@ -114,7 +124,7 @@ export function nodeToProvider(node: Node): provider {
 }
 
 function fallbackGetProviderNode(
-  chainId: number,
+  chainId: string,
   nodesRepository: NodesRepository
 ): Node {
   const nodes = nodesRepository?.getNodes(chainId);
@@ -130,29 +140,4 @@ function fallbackGetProviderNode(
   }
 
   return nodes[0];
-}
-
-// To support in the future (for now we can just have an idea of how it can look)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-function buildIpcProvider(nodeOptions: NodeOptions): IpcProvider {
-  throw new Error('IPC Providers are not yet supported');
-  // import { Server, ServerOpts, Socket } from 'net';
-  /*const server = new Server(
-    { ...nodeOptions } as ServerOpts,
-    (socket: Socket) => {
-      if (nodeOptions.keepAlive != null) {
-        socket.setKeepAlive(nodeOptions.keepAlive);
-      }
-
-      if (nodeOptions.timeout != null) {
-        socket.setTimeout(nodeOptions.timeout);
-      }
-
-      // Do something here
-    }
-  );
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  return new IpcProvider(nodeOptions.host, server);*/
 }

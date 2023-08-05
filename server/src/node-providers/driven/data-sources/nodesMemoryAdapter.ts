@@ -18,7 +18,7 @@ export class NodesMemoryAdapter implements NodesRepository {
     return NodesMemoryAdapter.instance;
   }
 
-  getNodes(chainId: number): Node[] {
+  getNodes(chainId: string): Node[] {
     const res = [];
     const nodes = this.nodesByChainId[chainId] || {};
     for (const key in nodes) {
@@ -28,7 +28,7 @@ export class NodesMemoryAdapter implements NodesRepository {
     return res;
   }
 
-  save(chainId: number, node: Node): void {
+  save(chainId: string, node: Node): void {
     let nodes = this.nodesByChainId[chainId];
 
     if (nodes == null) {
@@ -39,11 +39,11 @@ export class NodesMemoryAdapter implements NodesRepository {
     nodes[node.id] = node;
   }
 
-  saveAll(chainId: number, nodes: Node[]): void {
+  saveAll(chainId: string, nodes: Node[]): void {
     nodes.forEach((node) => this.save(chainId, node));
   }
 
-  deleteById(chainId: number, id: number): Node {
+  deleteById(chainId: string, id: number): Node {
     const nodes = this.nodesByChainId[chainId];
 
     if (nodes == null) {
@@ -64,7 +64,7 @@ export class NodesMemoryAdapter implements NodesRepository {
     return res;
   }
 
-  deleteAll(chainId: number): void {
+  deleteAll(chainId: string): void {
     this.nodesByChainId[chainId] = {};
   }
 }

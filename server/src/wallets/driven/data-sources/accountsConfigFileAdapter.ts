@@ -8,7 +8,7 @@ import NoAccountsProvidedError from './errors/noAccountsProvidedError';
 import { isType } from '../../../utils/typeGuards';
 
 type AccountsByChainId = {
-  chainId: number;
+  chainId: string;
   accounts: Account[];
 };
 
@@ -32,7 +32,7 @@ export class AccountsConfigFileAdapter implements AccountsRepository {
     return AccountsConfigFileAdapter.instance;
   }
 
-  getAccounts(chainId: number): Account[] {
+  getAccounts(chainId: string): Account[] {
     try {
       if (this._refreshAccounts) {
         try {
@@ -74,7 +74,7 @@ export class AccountsConfigFileAdapter implements AccountsRepository {
     return [];
   }
 
-  getAccount(chainId: number, address: string): Account | undefined {
+  getAccount(chainId: string, address: string): Account | undefined {
     return this._accounts
       .find((accountsByChainId) => accountsByChainId.chainId === chainId)
       ?.accounts.find((acc) => acc.address === address);

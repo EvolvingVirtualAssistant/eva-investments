@@ -18,12 +18,12 @@ import { unwatchFile, watchFile } from '../../../utils/filesystemWatcher';
 import { Dictionary } from '../../../types/types';
 
 type NodesOptionsByChainId = {
-  chainId: number;
+  chainId: string;
   nodesOptions: NodeOptions[];
 };
 
 type NodesAuthsByChainId = {
-  chainId: number;
+  chainId: string;
   nodesAuths: NodeAuth[];
 };
 
@@ -44,7 +44,7 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
     return NodesConfigFileAdapter.instance;
   }
 
-  getNodesOptions(chainId: number): NodeOptions[] {
+  getNodesOptions(chainId: string): NodeOptions[] {
     try {
       const nodesOptionsByChainId = getObjFromJson(
         BLOCKCHAIN_COMMUNICATION_NODES_OPTIONS_ENV_KEY,
@@ -65,7 +65,7 @@ export class NodesConfigFileAdapter implements NodesConfigRepository {
     return [];
   }
 
-  getNodesAuth(chainId: number): NodeAuth[] {
+  getNodesAuth(chainId: string): NodeAuth[] {
     try {
       const nodesAuthsByChainId = getObjFromJson(
         BLOCKCHAIN_COMMUNICATION_NODES_AUTH_ENV_KEY,

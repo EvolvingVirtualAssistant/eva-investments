@@ -2,8 +2,7 @@ import {
   initBlockchainCommunication,
   initCli,
   Web3Extension,
-  Socket,
-  provider,
+  Web3BaseProvider,
   getNonceTracker,
   logInfo
 } from './deps';
@@ -90,7 +89,7 @@ async function initServices(): Promise<void> {
 
 async function initMutexesForAccounts(web3: Web3Extension): Promise<void> {
   const nonceTracker = getNonceTracker();
-  const chainId = web3.chainId;
+  const chainId = web3.chainId.toString();
   const promises = getAccountsRepository()
     .getAccounts(chainId)
     .map((account) => account.address)
@@ -121,10 +120,9 @@ export function getBlocksRepository(): BlocksRepository {
 // so, if you pass params for a case where the singleton already exists,
 // the params are ignored and you get the singleton as is (not ideal, but should suffice for now)
 export async function getAsyncWeb3Extension(
-  chainId: number,
+  chainId: string,
   automaticProviders = true,
-  provider?: provider,
-  socket?: Socket,
+  provider?: Web3BaseProvider,
   proxyCallbacksFilePath?: string
 ): Promise<Web3Extension> {
   const { web3Extensions } = await getAsyncAppContext();
@@ -135,7 +133,6 @@ export async function getAsyncWeb3Extension(
       chainId,
       automaticProviders,
       provider,
-      socket,
       proxyCallbacksFilePath
     );
 
@@ -147,7 +144,7 @@ export async function getAsyncWeb3Extension(
   return web3Extension;
 }
 
-export function getWeb3Extension(chainId: number): Web3Extension {
+export function getWeb3Extension(chainId: string): Web3Extension {
   const { web3Extensions } = getAppContext();
 
   const web3Extension = web3Extensions[chainId];

@@ -4,7 +4,7 @@ import {
   cliEntrypoint,
   getAllCliEntrypointsByCliAdapter,
   println,
-  Unit
+  EtherUnits
 } from '../../deps';
 import {
   CliConstants,
@@ -55,14 +55,14 @@ export class ContractsCliAdapter {
     description: ContractsCliConstants.CONTRACTS_DEPLOY_DESCRIPTION
   })
   async deployContract(
-    chainId: number,
+    chainId: string,
     contractPath: string,
     contractName: string,
     compiledContractPath: string,
     deployerAccountAddress: string,
     host: string,
-    gas: number,
-    ethereUnit: Unit,
+    gas: string,
+    ethereUnit: EtherUnits,
     gasPrice: string | undefined,
     maxPriorityFeePerGas: string | undefined,
     maxFeePerGas: string | undefined,
@@ -80,13 +80,11 @@ export class ContractsCliAdapter {
         compiledContractPath,
         deployerAccountAddress,
         host,
-        gas,
-        ethereUnit as Unit,
+        BigInt(gas),
+        ethereUnit,
         gasPrice,
-        maxPriorityFeePerGas
-          ? web3.utils.toBN(maxPriorityFeePerGas)
-          : undefined,
-        maxFeePerGas ? web3.utils.toBN(maxFeePerGas) : undefined,
+        maxPriorityFeePerGas ? BigInt(maxPriorityFeePerGas) : undefined,
+        maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
         contractArgs
       );
       await println(`Deployed contract address: ${deployedContractAddress}`);

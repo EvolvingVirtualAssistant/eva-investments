@@ -3,7 +3,7 @@ import { Account } from '../entities/accounts';
 import AccountNotFoundError from './errors/accountNotFoundError';
 
 export const getAccountByAccountAddress = (
-  chainId: number,
+  chainId: string,
   address: string
 ): Account => {
   const account = getAccountsRepository().getAccount(chainId, address);
@@ -13,5 +13,5 @@ export const getAccountByAccountAddress = (
   return account;
 };
 
-export const getAccounts = (chainId: number): Account[] =>
+export const getAccounts = (chainId: string): Account[] =>
   getAccountsRepository().getAccounts(chainId);
