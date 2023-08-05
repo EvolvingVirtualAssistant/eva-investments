@@ -1,5 +1,5 @@
 import { setupProxy } from '../domain/services/proxy';
-import { Web3, provider, Socket } from '../deps';
+import { Web3, Web3BaseProvider } from '../deps';
 import { NodesConfigRepository } from '../driven/repositories/nodesConfigRepository';
 import { NodesRepository } from '../driven/repositories/nodesRepository';
 import { Node } from '../domain/entities/node';
@@ -44,39 +44,29 @@ const setupWeb3Proxy = async (
 };
 
 export class Web3Extension extends Web3 {
-  private _chainId: number;
+  private _chainId: string;
   private _currentNode: Node | undefined;
 
   constructor(
-    chainId: number,
+    chainId: string,
     automaticProviders: boolean,
-    provider: provider,
-    socket: Socket,
+    provider: Web3BaseProvider,
     proxyCallbacksFilePath?: string
   );
   constructor(
-    chainId: number,
+    chainId: string,
     automaticProviders: boolean,
-    provider: provider,
-    socket?: Socket,
+    provider?: Web3BaseProvider,
     proxyCallbacksFilePath?: string
   );
   constructor(
-    chainId: number,
+    chainId: string,
     automaticProviders: boolean,
-    provider?: provider,
-    socket?: Socket,
-    proxyCallbacksFilePath?: string
-  );
-  constructor(
-    chainId: number,
-    automaticProviders: boolean,
-    provider?: provider,
-    socket?: Socket,
+    provider?: Web3BaseProvider,
     proxyCallbacksFilePath?: string
   ) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    super(provider!, socket!);
+    super(provider!);
     this._chainId = chainId;
 
     if (_nodesConfigRepository == null || _nodesRepository == null) {
@@ -93,16 +83,18 @@ export class Web3Extension extends Web3 {
       // eslint-disable-next-line @typescript-eslint/ban-types
       apply: (targetObj: Function, thisArg: any, argumentsList: any[]) => {
         const res = Reflect.apply(targetObj, thisArg, argumentsList);
-        this.eth.getChainId().then((chainId) => (this._chainId = chainId));
+        this.eth
+          .getChainId()
+          .then((chainId) => (this._chainId = chainId.toString()));
         return res;
       }
-    }) as (provider: provider) => boolean;
+    }) as (provider: Web3BaseProvider) => boolean;
 
     this.automaticProviders = automaticProviders;
   }
 
-  get chainId(): number {
-    return this._chainId;
+  get chainId(): bigint {
+    return BigInt(this._chainId);
   }
 
   get currentNode(): Node {

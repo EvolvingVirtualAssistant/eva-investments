@@ -1,5 +1,5 @@
 class AccountNotFoundError extends Error {
-  constructor(chainId: number, address: string) {
+  constructor(chainId: string, address: string) {
     super(
       `Could not find account in chain ${chainId} with address: ${address}.`
     );

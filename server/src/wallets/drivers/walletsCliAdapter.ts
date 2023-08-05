@@ -1,4 +1,5 @@
 import {
+  BN,
   cliAdapter,
   cliEntrypoint,
   getAllCliEntrypointsByCliAdapter,
@@ -55,7 +56,7 @@ export class WalletsCliAdapter {
     description: WalletsCliConstants.ALLOWANCE_LIST_TOKENS_DESCRIPTION
   })
   async listTokensAllowances(
-    chainId: number,
+    chainId: string,
     ownerAddress: string,
     nDays: number
   ): Promise<void> {
@@ -94,7 +95,7 @@ export class WalletsCliAdapter {
     description: WalletsCliConstants.ALLOWANCE_APPROVE_TOKEN_DESCRIPTION
   })
   async approveTokenAllowance(
-    chainId: number,
+    chainId: string,
     tokenAddress: string,
     ownerAddress: string,
     spenderAddress: string,
@@ -109,7 +110,7 @@ export class WalletsCliAdapter {
         getAccountByAccountAddress(chainId, ownerAddress),
         tokenAddress,
         spenderAddress,
-        web3.utils.toBN(amount),
+        new BN(amount),
         isWeth
       );
     } catch (e) {
@@ -122,7 +123,7 @@ export class WalletsCliAdapter {
     description: WalletsCliConstants.ALLOWANCE_REVOKE_TOKEN_DESCRIPTION
   })
   async revokeTokenAllowance(
-    chainId: number,
+    chainId: string,
     tokenAddress: string,
     ownerAddress: string,
     spenderAddress: string,
@@ -136,7 +137,7 @@ export class WalletsCliAdapter {
         getAccountByAccountAddress(chainId, ownerAddress),
         tokenAddress,
         spenderAddress,
-        web3.utils.toBN(0),
+        new BN(0),
         isWeth
       );
     } catch (e) {

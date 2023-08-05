@@ -1,9 +1,9 @@
 import { Dictionary } from '../../../types/types';
 import {
   BN,
-  SignedTransaction,
+  SignTransactionResult,
   TransactionReceipt,
-  Unit as EthereUnit,
+  EtherUnits,
   Web3,
   getNonceTracker,
   logError,
@@ -11,7 +11,9 @@ import {
   logWarn,
   wrapWithLogger,
   Transaction,
-  TransactionConfig
+  TypedTransaction,
+  Address,
+  FeeMarketEIP1559Transaction
 } from '../../../deps';
 import { Account } from '../../../wallets/domain/entities/accounts';
 import { TRANSACTION_TIMEOUT } from '../constants/contractConstants';
@@ -32,15 +34,15 @@ type TransactionsQueue = {
 const transactionsQueuesByAccountAddress: Dictionary<TransactionsQueue> = {};
 
 export const sendTransaction = async (
-  chainId: number,
+  chainId: string,
   web3: Web3,
   account: Account,
   sendMethodEncoded: string,
-  gas: number,
-  ethereUnit: EthereUnit,
+  gas: bigint,
+  ethereUnit: EtherUnits,
   gasPrice?: string,
-  maxPriorityFeePerGas?: BN,
-  maxFeePerGas?: BN,
+  maxPriorityFeePerGas?: bigint,
+  maxFeePerGas?: bigint,
   toAddress?: string,
   value?: BN
 ): Promise<TransactionReceipt> => {
@@ -60,7 +62,7 @@ export const sendTransaction = async (
 };
 
 export const estimateGas = async (
-  chainId: number,
+  chainId: string,
   web3: Web3,
   account: Account,
   fromAddress: string,
@@ -68,7 +70,7 @@ export const estimateGas = async (
   value: BN | undefined,
   method: any,
   ...methodArgs: any[]
-): Promise<number> => {
+): Promise<bigint> => {
   return estimateGasPartialLock(
     chainId,
     web3,
@@ -82,15 +84,15 @@ export const estimateGas = async (
 };
 
 const sendLockTransaction = async (
-  chainId: number,
+  chainId: string,
   web3: Web3,
   account: Account,
   sendMethodEncoded: string,
-  gas: number,
-  ethereUnit: EthereUnit,
+  gas: bigint,
+  ethereUnit: EtherUnits,
   gasPrice?: string,
-  maxPriorityFeePerGas?: BN,
-  maxFeePerGas?: BN,
+  maxPriorityFeePerGas?: bigint,
+  maxFeePerGas?: bigint,
   toAddress?: string,
   value?: BN
 ): Promise<TransactionReceipt> => {
@@ -164,15 +166,15 @@ const getOrCreateTransactionsQueue = (web3: Web3, account: Account) => {
 };
 
 const sendNoLockTransaction = async (
-  chainId: number,
+  chainId: string,
   web3: Web3,
   account: Account,
   sendMethodEncoded: string,
-  gas: number,
-  ethereUnit: EthereUnit,
+  gas: bigint,
+  ethereUnit: EtherUnits,
   gasPrice?: string,
-  maxPriorityFeePerGas?: BN,
-  maxFeePerGas?: BN,
+  maxPriorityFeePerGas?: bigint,
+  maxFeePerGas?: bigint,
   toAddress?: string,
   value?: BN
 ): Promise<TransactionReceipt> => {
@@ -216,15 +218,15 @@ const sendNoLockTransaction = async (
 };
 
 const sendPartialLockTransaction = async (
-  chainId: number,
+  chainId: string,
   web3: Web3,
   account: Account,
   sendMethodEncoded: string,
-  gas: number,
-  ethereUnit: EthereUnit,
+  gas: bigint,
+  ethereUnit: EtherUnits,
   gasPrice?: string,
-  maxPriorityFeePerGas?: BN,
-  maxFeePerGas?: BN,
+  maxPriorityFeePerGas?: bigint,
+  maxFeePerGas?: bigint,
   toAddress?: string,
   value?: BN
 ): Promise<TransactionReceipt> => {
@@ -297,7 +299,7 @@ const sendPartialLockTransaction = async (
 };
 
 const estimateGasPartialLock = async (
-  chainId: number,
+  chainId: string,
   web3: Web3,
   account: Account,
   fromAddress: string,
@@ -305,7 +307,7 @@ const estimateGasPartialLock = async (
   value: BN | undefined,
   method: any,
   ...methodArgs: any[]
-): Promise<number> => {
+): Promise<bigint> => {
   const transactionsQueue = getOrCreateTransactionsQueue(web3, account);
 
   if (transactionsQueue.lock) {
@@ -347,24 +349,24 @@ const estimateGasPartialLock = async (
 };
 
 type SignedTransactionWithNonce = {
-  signedTransaction: SignedTransaction;
-  nonce: number;
+  signedTransaction: SignTransactionResult;
+  nonce: bigint;
   gasPriceInWei?: string;
-  maxPriorityFeePerGasInWei?: BN;
-  maxFeePerGasInWei?: BN;
-  gas: number;
+  maxPriorityFeePerGasInWei?: bigint;
+  maxFeePerGasInWei?: bigint;
+  gas: bigint;
 };
 
 const signTransaction = async (
-  chainId: number,
+  chainId: string,
   web3: Web3,
   account: Account,
   sendMethodEncoded: string,
-  gas: number,
-  ethereUnit: EthereUnit,
+  gas: bigint,
+  ethereUnit: EtherUnits,
   gasPrice?: string,
-  maxPriorityFeePerGas?: BN,
-  maxFeePerGas?: BN,
+  maxPriorityFeePerGas?: bigint,
+  maxFeePerGas?: bigint,
   toAddress?: string,
   value?: BN,
   mutexNonce = false
@@ -387,24 +389,25 @@ const signTransaction = async (
       : nonceTracker.getNextUnsafeNonce(chainId, account.address);
   }
 
-  const tx: TransactionConfig = {
+  const tx: { [key: string]: string | bigint | number | undefined } = {
     from: account.address,
     to: toAddress,
     data: sendMethodEncoded,
     gas, //750000
-    value,
-    nonce: nonce
+    value: value ? BigInt(value.toString()) : undefined,
+    nonce: nonce,
+    chainId
   };
-  let maxPriorityFeePerGasInWei: BN | undefined;
-  let maxFeePerGasInWei: BN | undefined;
+  let maxPriorityFeePerGasInWei: bigint | undefined;
+  let maxFeePerGasInWei: bigint | undefined;
   let gasPriceInWei: string | undefined;
 
   // EIP-1559 (type 0x2) transaction
   if (maxPriorityFeePerGas && maxFeePerGas) {
-    maxPriorityFeePerGasInWei = new BN(
+    maxPriorityFeePerGasInWei = web3.utils.toBigInt(
       web3.utils.toWei(maxPriorityFeePerGas.toString(), ethereUnit)
     );
-    maxFeePerGasInWei = new BN(
+    maxFeePerGasInWei = web3.utils.toBigInt(
       web3.utils.toWei(maxFeePerGas.toString(), ethereUnit)
     );
     tx.maxPriorityFeePerGas = maxPriorityFeePerGasInWei;
@@ -450,12 +453,12 @@ const sendSignedTransaction = async (
         value: TransactionReceipt | PromiseLike<TransactionReceipt>
       ) => void,
       timeoutId: NodeJS.Timeout,
-      confirmationNumber: number,
+      confirmations: bigint,
       receipt: TransactionReceipt,
       latestBlockHash?: string
     ) => {
       logDebug(
-        `Transaction confirmed. ConfirmationNumber: ${confirmationNumber} , LatestBlockHash: ${latestBlockHash} , 
+        `Transaction confirmed. Confirmations: ${confirmations} , LatestBlockHash: ${latestBlockHash} , 
   TxHash: ${receipt.transactionHash}, ContractAddress: ${receipt.contractAddress}, 
   GasUsed: ${receipt.gasUsed}, CumulativeGasUsed: ${receipt.cumulativeGasUsed}`
       );
@@ -482,20 +485,14 @@ const sendSignedTransaction = async (
     );
     web3.eth
       .sendSignedTransaction(signedTransaction.rawTransaction!)
-      .once(
-        'confirmation',
-        (
-          confirmationNumber: number,
-          receipt: TransactionReceipt,
-          latestBlockHash?: string
-        ) =>
-          onConfirmation(
-            resolve,
-            timeoutId,
-            confirmationNumber,
-            receipt,
-            latestBlockHash
-          )
+      .once('confirmation', ({ confirmations, receipt, latestBlockHash }) =>
+        onConfirmation(
+          resolve,
+          timeoutId,
+          confirmations,
+          receipt,
+          latestBlockHash
+        )
       )
       .catch((e) => {
         clearTimeout(timeoutId);
@@ -505,7 +502,7 @@ const sendSignedTransaction = async (
 };
 
 const _estimateGas = async (
-  chainId: number,
+  chainId: string,
   web3: Web3,
   account: Account,
   mutexNonce = false,
@@ -514,7 +511,7 @@ const _estimateGas = async (
   value: BN | undefined,
   method: any,
   ...methodArgs: any[]
-): Promise<number> => {
+): Promise<bigint> => {
   const nonceTracker = getNonceTracker();
   let nonce;
 
@@ -537,20 +534,20 @@ const _estimateGas = async (
     from: fromAddress,
     gas: gasForEstimateCall,
     nonce,
-    value
+    value: value ? BigInt(value.toString()) : undefined
   });
 };
 
 const cancelTransaction = async (
   web3: Web3,
   account: Account,
-  nonce: number,
-  gas: number,
+  nonce: bigint,
+  gas: bigint,
   gasPriceInWei?: string,
-  maxPriorityFeePerGasInWei?: BN,
-  maxFeePerGasInWei?: BN
+  maxPriorityFeePerGasInWei?: bigint,
+  maxFeePerGasInWei?: bigint
 ): Promise<TransactionReceipt> => {
-  const tx: TransactionConfig = {
+  const tx: { [key: string]: string | number | bigint | undefined } = {
     from: account.address,
     to: account.address,
     gas, //750000
@@ -560,9 +557,9 @@ const cancelTransaction = async (
 
   // EIP-1559 (type 0x2) transaction
   if (maxPriorityFeePerGasInWei && maxFeePerGasInWei) {
-    // in order to cancel it we have to make it at least 10% higher gasPrice than previous tx
-    tx.maxPriorityFeePerGas = maxPriorityFeePerGasInWei.muln(1.1);
-    tx.maxFeePerGas = maxFeePerGasInWei.muln(1.1);
+    // in order to cancel it we have to make it at least 10% higher maxPriorityFeePerGasInWei and maxFeePerGasInWei than previous tx
+    tx.maxPriorityFeePerGas = (maxPriorityFeePerGasInWei * 11n) / 10n;
+    tx.maxFeePerGas = (maxFeePerGasInWei * 11n) / 10n;
   } else if (gasPriceInWei) {
     // Legacy (type 0x0) transaction
     // in order to cancel it we have to make it at least 10% higher gasPrice than previous tx

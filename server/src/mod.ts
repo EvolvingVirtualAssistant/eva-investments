@@ -36,7 +36,8 @@ export {
 } from './chains/domain/services/blocksService';
 export {
   getGasWrappedTokenAddress,
-  getNativeTokenSymbol
+  getNativeTokenSymbol,
+  getMempoolBlockAge
 } from './chains/domain/services/chainsService';
 export { decodeInput } from './chains/domain/services/decodeInputService';
 export { DecodedInput } from './chains/domain/entities/transaction';
@@ -47,16 +48,16 @@ export {
 export {
   Web3,
   Web3Extension,
-  Unit as EthereUnit,
+  EtherUnits,
   TransactionReceipt,
-  ContractSendMethod,
   Contract,
   Transaction,
-  SignedTransaction,
+  SignTransactionResult,
   BN,
   WorkerPool,
   WorkerTask,
-  BlockHeader,
+  BlockHeaderOutput,
+  GetTransactionOutput,
   Node,
   nodeToProvider,
   wrapWithLogger,
@@ -66,7 +67,9 @@ export {
   logError,
   LoggerOptions,
   LoggerOutputType,
-  EventData
+  EventLog,
+  ContractAbi,
+  ContractEvents
 } from './deps';
 export {
   readJsonFile,

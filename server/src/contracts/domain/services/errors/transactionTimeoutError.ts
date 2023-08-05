@@ -1,19 +1,17 @@
-import { BN } from '../../../../deps';
-
 export class TransactionTimeoutError extends Error {
-  private _nonce: number;
+  private _nonce: bigint;
   private _gasPriceInWei?: string;
-  private _maxPriorityFeePerGasInWei?: BN;
-  private _maxFeePerGasInWei?: BN;
-  private _gas: number;
+  private _maxPriorityFeePerGasInWei?: bigint;
+  private _maxFeePerGasInWei?: bigint;
+  private _gas: bigint;
 
   constructor(
     txHash: string | undefined,
-    nonce: number,
+    nonce: bigint,
     gasPriceInWei: string | undefined,
-    maxPriorityFeePerGasInWei: BN | undefined,
-    maxFeePerGasInWei: BN | undefined,
-    gas: number,
+    maxPriorityFeePerGasInWei: bigint | undefined,
+    maxFeePerGasInWei: bigint | undefined,
+    gas: bigint,
     timeout: number
   ) {
     super(

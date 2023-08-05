@@ -4,38 +4,22 @@ import {
   Dictionary,
   NodeType
 } from '../../types/blockchainCommunication.types';
+import { SocketConstructorOpts } from '../../deps';
 
 export interface NodeOptions {
   host: string;
   type: NodeType;
   isFree?: boolean;
-
-  // Http, Ws (clientConfig), Ipc (server listener connections -> sockets)
-  keepAlive?: boolean;
-  // Http, Ws, Ipc (server listener connections -> sockets)
-  timeout?: number;
-}
-
-export interface Header {
-  name: string;
-  value: string;
-}
-
-function isHeader(obj: any): boolean {
-  return isType(obj, ['name', 'value'], []);
-}
-
-function validHeaders(headers: Header[] | undefined) {
-  return headers !== undefined && headers.every((header) => isHeader(header));
 }
 
 // ----------------------------------- HTTP -----------------------------------
 
+// type https://microsoft.github.io/PowerBI-JavaScript/interfaces/_node_modules_typedoc_node_modules_typescript_lib_lib_dom_d_.requestinit.html#keepalive
 export interface HttpNodeOptions extends NodeOptions {
-  agent?: Agent;
-  withCredentials?: boolean;
-  headers?: Header[];
+  providerOptions: ProviderOptions;
 }
+
+type ProviderOptions = RequestInit;
 
 export function buildHttpNodeOptions(obj: any): HttpNodeOptions {
   if (!isHttpNodeOptions(obj)) {
@@ -47,103 +31,33 @@ export function buildHttpNodeOptions(obj: any): HttpNodeOptions {
 
 export function isHttpNodeOptions(obj: any): boolean {
   return (
-    isType(
-      obj,
-      ['host', 'type'],
-      ['isFree', 'keepAlive', 'agent', 'timeout', 'withCredentials', 'headers']
-    ) &&
-    ((obj as unknown as HttpNodeOptions).headers === undefined ||
-      validHeaders((obj as unknown as HttpNodeOptions).headers)) &&
-    ((obj as unknown as HttpNodeOptions).agent === undefined ||
-      validAgent((obj as unknown as HttpNodeOptions).agent)) &&
+    isType(obj, ['host', 'type'], ['isFree', 'providerOptions']) &&
+    ((obj as unknown as HttpNodeOptions).providerOptions === undefined ||
+      validProviderOptions(
+        (obj as unknown as HttpNodeOptions).providerOptions
+      )) &&
     (obj as unknown as HttpNodeOptions).type === 'HTTP'
   );
 }
 
-export interface Agent {
-  http?: HttpAgentOptions;
-  https?: HttpsAgentOptions;
-  baseUrl?: string;
-}
-
-export interface HttpAgentOptions {
-  keepAlive?: boolean;
-  keepAliveMsecs?: number;
-  maxSockets?: number;
-  maxTotalSockets?: number;
-  maxFreeSockets?: number;
-  scheduling?: string;
-  timeout?: number;
-}
-
-export interface HttpsAgentOptions extends HttpAgentOptions {
-  maxCachedSessions?: number;
-  servername?: string;
-}
-
-function isAgent(obj: any): boolean {
+function validProviderOptions(providerOptions: ProviderOptions | undefined) {
   return (
-    isType(obj, [], ['http', 'https', 'baseUrl']) &&
-    ((obj as Agent).http === undefined || isHttpAgent((obj as Agent).http)) &&
-    ((obj as Agent).https === undefined || isHttpsAgent((obj as Agent).https))
+    providerOptions !== undefined &&
+    isType(
+      providerOptions,
+      [],
+      ['headers', 'credentials', 'body', 'keepalive', 'method'] // only adding these ones for the time being
+    )
   );
-}
-
-function isHttpAgent(obj: any): boolean {
-  return isType(
-    obj,
-    [],
-    [
-      'keepAlive',
-      'keepAliveMsecs',
-      'maxSockets',
-      'maxTotalSockets',
-      'maxFreeSockets',
-      'scheduling',
-      'timeout'
-    ]
-  );
-}
-
-function isHttpsAgent(obj: any): boolean {
-  return isType(
-    obj,
-    [],
-    [
-      'keepAlive',
-      'keepAliveMsecs',
-      'maxSockets',
-      'maxTotalSockets',
-      'maxFreeSockets',
-      'scheduling',
-      'timeout',
-      'maxCachedSessions',
-      'timeout'
-    ]
-  );
-}
-
-function validAgent(agent: Agent | undefined) {
-  return agent !== undefined && isAgent(agent);
 }
 
 // --------------------------------- Websocket --------------------------------
 
+// Based on ClientOptions
 export interface WsNodeOptions extends NodeOptions {
   headers?: Dictionary<string>;
-
+  maxPayload?: number;
   protocol?: string;
-
-  // If in the future we use any of the values inside the object
-  // on our code, then maybe consider giving it a proper type,
-  // but for now we'll be passing it directly to the underlying libs
-  config?: object;
-
-  // If in the future we use any of the values inside the object
-  // on our code, then maybe consider giving it a proper type,
-  // but for now we'll be passing it directly to the underlying libs
-  requestOptions?: any;
-
   reconnectOptions?: ReconnectOptions;
 }
 
@@ -160,16 +74,7 @@ export function isWsNodeOptions(obj: any): boolean {
     isType(
       obj,
       ['host', 'type'],
-      [
-        'isFree',
-        'keepAlive',
-        'timeout',
-        'headers',
-        'protocol',
-        'config',
-        'requestOptions',
-        'reconnectOptions'
-      ]
+      ['isFree', 'headers', 'maxPayload', 'protocol', 'reconnectOptions']
     ) &&
     ((obj as unknown as WsNodeOptions).reconnectOptions === undefined ||
       isReconnectOptions((obj as unknown as WsNodeOptions).reconnectOptions)) &&
@@ -178,14 +83,13 @@ export function isWsNodeOptions(obj: any): boolean {
 }
 
 export interface ReconnectOptions {
-  auto?: boolean;
-  delay?: number;
-  maxAttempts?: number;
-  onTimeout?: boolean;
+  autoReconnect: boolean;
+  delay: number;
+  maxAttempts: number;
 }
 
 function isReconnectOptions(obj: any): boolean {
-  return isType(obj, [], ['auto', 'delay', 'maxAttempts', 'onTimeout']);
+  return isType(obj, ['autoReconnect', 'delay', 'maxAttempts'], []);
 }
 
 // ----------------------------------- IPC ------------------------------------
@@ -195,7 +99,8 @@ function isReconnectOptions(obj: any): boolean {
 // in order to understand what options are supported in
 // the creationg of a net.Server, and what options can be specified
 // in the underlying socket
-export type IpcNodeOptions = NodeOptions;
+export type IpcNodeOptions = NodeOptions &
+  SocketConstructorOpts & { reconnectOptions: ReconnectOptions };
 
 export function buildIpcNodeOptions(obj: any): IpcNodeOptions {
   if (!isIpcNodeOptions(obj)) {
@@ -207,7 +112,21 @@ export function buildIpcNodeOptions(obj: any): IpcNodeOptions {
 
 export function isIpcNodeOptions(obj: any): boolean {
   return (
-    isType(obj, ['host', 'type'], ['isFree', 'keepAlive', 'timeout']) &&
+    isType(
+      obj,
+      ['host', 'type'],
+      [
+        'isFree',
+        'fd',
+        'allowHalfOpen',
+        'readable',
+        'writable',
+        'signal',
+        'reconnectOptions'
+      ]
+    ) &&
+    ((obj as unknown as WsNodeOptions).reconnectOptions === undefined ||
+      isReconnectOptions((obj as unknown as WsNodeOptions).reconnectOptions)) &&
     (obj as unknown as IpcNodeOptions).type === 'IPC'
   );
 }

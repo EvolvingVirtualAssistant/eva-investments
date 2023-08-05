@@ -19,13 +19,13 @@ type ContractABI = {
 };
 
 const abiByChainAndAddress: Dictionary<ContractABI> = {};
-const getABIByChainAndAddressKey = (chainId: number, address: string): string =>
+const getABIByChainAndAddressKey = (chainId: string, address: string): string =>
   chainId + address;
 
 // Only supports decoding function types
 export const decodeInput = (
   web3: Web3,
-  chainId: number,
+  chainId: string,
   address: string,
   input: string
 ): DecodedInput => {
@@ -63,7 +63,7 @@ export const decodeInput = (
 
 const getABIForChainAndAddress = (
   web3: Web3,
-  chainId: number,
+  chainId: string,
   address: string
 ): ContractABI => {
   const key = getABIByChainAndAddressKey(chainId, address);
@@ -93,7 +93,7 @@ const getABIForChainAndAddress = (
 
 const createAbiByChainAndAddress = (
   web3: Web3,
-  chainId: number,
+  chainId: string,
   address: string,
   callbackOnChange?: () => void
 ): ContractABI => {

@@ -1,10 +1,12 @@
+import { ContractAbi } from '../../../../deps';
+
 class ContractContentMissingError extends Error {
   constructor(
     contractPath: string,
     contractName: string,
     contractJson: string,
     contractByteCode: string,
-    abi: []
+    abi: ContractAbi
   ) {
     super(
       `Could not load contract ${contractName} (found in ${contractPath}) successfully. 

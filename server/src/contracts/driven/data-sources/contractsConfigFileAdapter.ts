@@ -12,7 +12,7 @@ import { unwatchFile, watchFile } from '../../../utils/filesystemWatcher';
 const CONTRACTS_ENV_KEY = 'CONTRACTS';
 
 type ContractsByChainId = {
-  chainId: number;
+  chainId: string;
   contracts: ContractData[];
 };
 
@@ -34,7 +34,7 @@ export class ContractsConfigFileAdapter implements ContractsRepository {
   }
 
   getContractsData(
-    chainId: number,
+    chainId: string,
     filter?: ContractDataFilter
   ): ContractData[] {
     try {

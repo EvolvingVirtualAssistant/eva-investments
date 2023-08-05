@@ -2,8 +2,8 @@ import { NodeAuth } from '../../domain/entities/nodeAuth';
 import { NodeOptions } from '../../domain/entities/nodeOptions';
 
 export interface NodesConfigRepository {
-  getNodesOptions(chainId: number): NodeOptions[];
-  getNodesAuth(chainId: number): NodeAuth[];
+  getNodesOptions(chainId: string): NodeOptions[];
+  getNodesAuth(chainId: string): NodeAuth[];
 
   callOnChange(callback: () => void): void;
   disableCallOnChange(): void;

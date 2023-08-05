@@ -9,7 +9,7 @@ export type ContractDataFilter = {
 
 export interface ContractsRepository {
   getContractsData(
-    chainId: number,
+    chainId: string,
     filter?: ContractDataFilter
   ): ContractData[];
 

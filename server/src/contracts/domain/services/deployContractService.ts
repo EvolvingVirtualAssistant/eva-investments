@@ -1,5 +1,13 @@
 import { readJsonFile } from '../../../utils/files';
-import { Unit, Web3, Contract, logDebug, BN } from '../../../deps';
+import {
+  EtherUnits,
+  Web3,
+  Contract,
+  logDebug,
+  BN,
+  ContractAbi,
+  ContractConstructorArgs
+} from '../../../deps';
 import AccountNotFoundError from '../../../wallets/domain/services/errors/accountNotFoundError';
 import ContractContentMissingError from './errors/contractContentMissingError';
 import { sendTransaction } from './transactionService';
@@ -10,11 +18,11 @@ export const deployPrecompiledContract = async (
   precompiledContractPath: any,
   deployerAccountAddress: string,
   host: string,
-  gas: number,
-  ethereUnit: Unit,
+  gas: bigint,
+  ethereUnit: EtherUnits,
   gasPrice: string | undefined,
-  maxPriorityFeePerGas: BN | undefined,
-  maxFeePerGas: BN | undefined,
+  maxPriorityFeePerGas: bigint | undefined,
+  maxFeePerGas: bigint | undefined,
   contractArguments?: unknown[]
 ): Promise<string> => {
   const contractJson = readJsonFile(precompiledContractPath);
@@ -40,11 +48,11 @@ export const deployContract = async (
   compiledContractPath: string,
   deployerAccountAddress: string,
   host: string,
-  gas: number,
-  ethereUnit: Unit,
+  gas: bigint,
+  ethereUnit: EtherUnits,
   gasPrice: string | undefined,
-  maxPriorityFeePerGas: BN | undefined,
-  maxFeePerGas: BN | undefined,
+  maxPriorityFeePerGas: bigint | undefined,
+  maxFeePerGas: bigint | undefined,
   contractArguments?: unknown[]
 ): Promise<string> => {
   let contractJson = readJsonFile(compiledContractPath);
@@ -64,21 +72,21 @@ export const deployContract = async (
   );
 };
 
-const _deployContract = async (
+const _deployContract = async <Abi extends ContractAbi>(
   web3: Web3,
   contractJson: any,
   deployerAccountAddress: string,
   host: string,
-  gas: number,
-  ethereUnit: Unit,
+  gas: bigint,
+  ethereUnit: EtherUnits,
   gasPrice: string | undefined,
-  maxPriorityFeePerGas: BN | undefined,
-  maxFeePerGas: BN | undefined,
-  contractArguments: unknown[] = []
+  maxPriorityFeePerGas: bigint | undefined,
+  maxFeePerGas: bigint | undefined,
+  contractArguments?: unknown[]
 ): Promise<string> => {
   web3.setProvider(host); //"http://localhost:8545"
 
-  const chainId = await web3.eth.getChainId();
+  const chainId = (await web3.eth.getChainId()).toString();
   const deployerAccount = getAccountByAccountAddress(
     chainId,
     deployerAccountAddress
@@ -88,7 +96,7 @@ const _deployContract = async (
   }
   const contractByteCode: string =
     contractJson?.evm?.bytecode?.object || contractJson?.bytecode;
-  const abi: [] = contractJson?.abi;
+  const abi: Abi = contractJson?.abi;
 
   if (!contractJson || !contractByteCode || !abi) {
     throw new ContractContentMissingError(
@@ -104,7 +112,10 @@ const _deployContract = async (
   const contractTxEncoded = contract
     .deploy({
       data: contractByteCode,
-      arguments: contractArguments
+      arguments:
+        contractArguments != null
+          ? (contractArguments as ContractConstructorArgs<Abi>)
+          : undefined
     })
     .encodeABI();
 
@@ -130,35 +141,35 @@ const _deployContract = async (
   return createReceipt.contractAddress;
 };
 
-export const loadContract = (
+export const loadContract = <Abi extends ContractAbi>(
   web3: Web3,
   compiledContractPath: string,
   contractPath: string,
   contractName: string,
   contractAddress: string
-): Contract => {
+): Contract<Abi> => {
   let contractJson = readJsonFile(compiledContractPath);
   contractJson = contractJson?.contracts[contractPath]?.[contractName];
-  const abi: [] = contractJson?.abi;
+  const abi: Abi = contractJson?.abi;
 
   return _loadContract(web3, abi, contractAddress);
 };
 
-export const loadPrecompiledContract = (
+export const loadPrecompiledContract = <Abi extends ContractAbi>(
   web3: Web3,
   compiledContractPath: string,
   contractAddress: string
-): Contract => {
+): Contract<Abi> => {
   const contractJson = readJsonFile(compiledContractPath);
-  const abi: [] = contractJson?.abi;
+  const abi: Abi = contractJson?.abi;
 
   return _loadContract(web3, abi, contractAddress);
 };
 
-const _loadContract = (
+const _loadContract = <Abi extends ContractAbi>(
   web3: Web3,
-  abi: [],
+  abi: Abi,
   contractAddress: string
-): Contract => {
-  return new web3.eth.Contract(abi, contractAddress);
+): Contract<Abi> => {
+  return new web3.eth.Contract<Abi>(abi, contractAddress);
 };

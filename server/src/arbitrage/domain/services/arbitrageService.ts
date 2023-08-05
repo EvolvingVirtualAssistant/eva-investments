@@ -5,7 +5,7 @@ export const startArbitrage = async (
   path: ArbitragePool[],
   arbitrageParams: ArbitrageParams,
   accountAddress: string,
-  chainId: number
+  chainId: string
 ): Promise<string> => {
   return await getExternalDeps().startArbitrage(
     path,
