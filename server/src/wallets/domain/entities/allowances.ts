@@ -1,8 +1,8 @@
 export type TokenAllowance = {
-  tokenAddress: string;
-  amount: string;
-  toAddress: string;
-  block: number;
+  tokenAddress: string | undefined;
+  amount: string | undefined;
+  toAddress: string | undefined;
+  block: bigint;
 };
 
 export type TokenAllowances = {

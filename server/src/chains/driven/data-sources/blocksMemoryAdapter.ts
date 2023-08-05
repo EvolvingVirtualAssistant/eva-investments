@@ -1,13 +1,13 @@
 import { Block } from '../../domain/entities/block';
 import { Dictionary } from '../../../types/types';
 import { BlocksRepository } from '../repositories/blocksRepository';
-import { BlockTransactionString } from 'web3-eth';
+import { GetBlockOutput } from '../../../deps';
 
 export class BlocksMemoryAdapter implements BlocksRepository {
   private static instance: BlocksMemoryAdapter;
 
-  private latestBlockByChainId: Dictionary<Block | { number: number }>;
-  private latestBlockNumberByChainId: Dictionary<number>;
+  private latestBlockByChainId: Dictionary<Block | { number: bigint }>;
+  private latestBlockNumberByChainId: Dictionary<bigint>;
 
   private constructor() {
     this.latestBlockByChainId = {};
@@ -21,26 +21,26 @@ export class BlocksMemoryAdapter implements BlocksRepository {
     return this.instance;
   }
 
-  getLatestBlockNumber(chainId: number): number | undefined {
+  getLatestBlockNumber(chainId: string): bigint | undefined {
     return this.latestBlockNumberByChainId[chainId];
   }
 
-  setLatestBlockNumber(chainId: number, blockNumber: number): void {
+  setLatestBlockNumber(chainId: string, blockNumber: bigint): void {
     this.latestBlockNumberByChainId[chainId] = blockNumber;
   }
 
-  getLatestBlock(chainId: number): Block | undefined {
+  getLatestBlock(chainId: string): Block | undefined {
     const block = this.latestBlockByChainId[chainId];
     return block ? (block as Block) : undefined;
   }
 
-  setLatestBlock(chainId: number, block: BlockTransactionString): void {
+  setLatestBlock(chainId: string, block: GetBlockOutput): void {
     this.latestBlockByChainId[chainId] = {
-      number: block.number,
-      baseFeePerGas: block.baseFeePerGas!,
-      gasLimit: block.gasLimit,
-      gasUsed: block.gasUsed,
-      transactionsHashes: block.transactions
+      number: block.number as bigint,
+      baseFeePerGas: block.baseFeePerGas! as bigint,
+      gasLimit: block.gasLimit as bigint,
+      gasUsed: block.gasUsed as bigint,
+      transactionsHashes: block.transactions as string[]
     };
   }
 }

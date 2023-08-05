@@ -1,21 +1,38 @@
 import { join as pathJoin } from 'path';
 import { readdirSync, readFileSync } from 'fs';
-import Web3 from 'web3';
+import { SocketConstructorOpts } from 'net';
+import { Web3 } from 'web3';
 import {
-  provider,
   TransactionReceipt,
-  SignedTransaction,
-  TransactionConfig
-} from 'web3-core';
-import { BlockHeader, BlockTransactionString } from 'web3-eth';
-import { Subscription } from 'web3-core-subscriptions';
+  Web3BaseProvider,
+  BlockHeaderOutput,
+  ContractAbi,
+  ContractEvents,
+  ContractConstructorArgs,
+  HexString
+} from 'web3-types';
+import {
+  SignTransactionResult,
+  TypedTransaction,
+  FeeMarketEIP1559Transaction
+} from 'web3-eth-accounts';
+import { Address } from 'web3-eth-accounts/lib/commonjs/tx/address';
+import { IpcProvider } from 'web3-providers-ipc';
 import HttpProvider from 'web3-providers-http';
 import WebsocketProvider from 'web3-providers-ws';
-import IpcProvider from 'web3-providers-ipc';
-import { Unit } from 'web3-utils';
-import { ContractSendMethod, Contract } from 'web3-eth-contract';
-import { Socket } from 'net';
+import { EtherUnits } from 'web3-utils';
+import { Contract } from 'web3-eth-contract';
+import { Web3Subscription, Web3EventMap } from 'web3-core';
 import { logError, logDebug, logWarn } from 'logger';
+
+type ResolvedReturnType<T> = T extends Promise<infer R> ? R : never;
+type GetBlockOutput = ResolvedReturnType<
+  ReturnType<typeof Web3.prototype.eth.getBlock>
+>;
+
+type GetTransactionOutput = ResolvedReturnType<
+  ReturnType<typeof Web3.prototype.eth.getTransaction>
+>;
 
 function findRootFolder(path: string): string {
   let foldersMatched = 0;
@@ -51,23 +68,30 @@ const currentWorkingDir = __dirname + '/../../../../'; //process.cwd();
 export const ROOT_PATH = findRootFolder(currentWorkingDir);
 
 export {
-  BlockHeader,
-  BlockTransactionString,
-  TransactionConfig,
+  BlockHeaderOutput,
+  GetBlockOutput,
+  GetTransactionOutput,
+  TypedTransaction,
+  Address,
+  FeeMarketEIP1559Transaction,
+  ContractAbi,
+  ContractEvents,
+  ContractConstructorArgs,
+  HexString,
+  Web3EventMap,
   pathJoin,
   readFileSync,
+  SocketConstructorOpts,
   Web3,
-  provider,
+  Web3BaseProvider,
   HttpProvider,
   IpcProvider,
   WebsocketProvider,
-  Unit,
+  EtherUnits,
   TransactionReceipt,
-  ContractSendMethod,
-  SignedTransaction,
-  Subscription,
+  SignTransactionResult,
+  Web3Subscription,
   Contract,
-  Socket,
   logError,
   logDebug,
   logWarn

@@ -1,9 +1,10 @@
 import {
   BN,
   Contract,
+  ContractAbi,
   logDebug,
   TransactionReceipt,
-  Unit,
+  EtherUnits,
   Web3,
   Web3Extension
 } from '../../../deps';
@@ -11,31 +12,32 @@ import { loadPrecompiledContract } from '../../../contracts/domain/services/depl
 import { Account } from '../entities/accounts';
 import { sendTransaction } from '../../../contracts/domain/services/transactionService';
 import { getContractByName } from '../../../contracts/domain/services/contractService';
-import { Dictionary, EthereUnit, getLatestBlockNumber } from '../../../app';
+import { Dictionary, getLatestBlockNumber } from '../../../app';
 import { TokenAllowances } from '../entities/allowances';
+import { Erc20Abi } from '../entities/tokens';
 
 export const approveToken = async (
-  chainId: number,
+  chainId: string,
   web3: Web3,
   account: Account,
   tokenAddress: string,
   spenderAddress: string,
   tokenAmount: BN,
   isWeth = false,
-  gas = 48486,
-  ethereUnit: Unit = 'gwei' as EthereUnit,
-  gasPrice = '1.2444',
-  maxPriorityFeePerGas = web3.utils.toBN('1.561699993'),
-  maxFeePerGas = web3.utils.toBN('1.561700001')
+  gas = 48486n,
+  ethereUnit: EtherUnits = 'wei',
+  gasPrice = Web3.utils.toWei('1.2444', 'gwei'),
+  maxPriorityFeePerGas = BigInt(Web3.utils.toWei('1.561699993', 'gwei')),
+  maxFeePerGas = BigInt(Web3.utils.toWei('1.561700001', 'gwei'))
 ): Promise<void> => {
-  const tokenContract: Contract = getTokenContract(
+  const tokenContract: Contract<Erc20Abi> = getTokenContract(
     chainId,
     web3,
     tokenAddress,
     isWeth
   );
   const approveFnEnconded = tokenContract.methods
-    .approve(spenderAddress, tokenAmount)
+    .approve(spenderAddress, BigInt(tokenAmount.toString()))
     .encodeABI();
 
   let approveResponse;
@@ -61,7 +63,7 @@ export const approveToken = async (
           type: 'bool'
         }
       ],
-      transactionReceipt.logs?.[0]?.data,
+      Web3.utils.bytesToHex(transactionReceipt.logs?.[0]?.data || ''),
       transactionReceipt.logs?.flatMap((log: any) => log.topics)
     );
   } finally {
@@ -76,7 +78,7 @@ export const approveToken = async (
 };
 
 export const getTokenAllowance = async (
-  chainId: number,
+  chainId: string,
   web3: Web3,
   accountAddress: string,
   tokenAddress: string,
@@ -84,7 +86,7 @@ export const getTokenAllowance = async (
   spenderAddress: string,
   isWeth = false
 ): Promise<BN> => {
-  const tokenContract: Contract = getTokenContract(
+  const tokenContract: Contract<Erc20Abi> = getTokenContract(
     chainId,
     web3,
     tokenAddress,
@@ -99,20 +101,20 @@ export const getTokenAllowance = async (
     .allowance(ownerAddress, spenderAddress)
     .call(ethCallOptions);
 
-  return Web3.utils.toBN(allowance);
+  return new BN(allowance.toString());
 };
 
-const getWETH9Contract = (chainId: number) =>
+const getWETH9Contract = (chainId: string) =>
   getContractByName(chainId, 'WETH9');
-const getERC20Contract = (chainId: number) =>
+const getERC20Contract = (chainId: string) =>
   getContractByName(chainId, 'ERC20');
 
-export const getTokenContract = (
-  chainId: number,
+export const getTokenContract = <Abi extends ContractAbi>(
+  chainId: string,
   web3: Web3,
   address: string,
   isWeth = false
-): Contract => {
+): Contract<Abi> => {
   return loadPrecompiledContract(
     web3,
     isWeth
@@ -124,7 +126,7 @@ export const getTokenContract = (
 
 export const getAllTokensAllowances = async (
   web3: Web3Extension,
-  chainId: number,
+  chainId: string,
   ownerAddress: string,
   nDays: number
 ): Promise<TokenAllowances[]> => {
@@ -135,25 +137,46 @@ export const getAllTokensAllowances = async (
   const daysInSec = nDays * 24 * 60 * 60;
   const prevBlocks = Math.round(daysInSec / Math.floor(blockAvgTime));
 
-  const logs = await web3.eth.getPastLogs({
-    fromBlock: web3.utils.numberToHex(currBlock - prevBlocks),
+  type ResolvedReturnType<T> = T extends Promise<Array<infer R>> ? R : never;
+  type PastLog = ResolvedReturnType<
+    ReturnType<typeof Web3.prototype.eth.getPastLogs>
+  >;
+
+  const logs: PastLog[] = await web3.eth.getPastLogs({
+    fromBlock: web3.utils.numberToHex(currBlock - BigInt(prevBlocks)),
     toBlock: 'latest',
     topics: [
-      web3.utils.soliditySha3('Approval(address,address,uint256)'),
+      web3.utils.soliditySha3('Approval(address,address,uint256)')!,
       `0x000000000000000000000000${ownerAddress.substring(2)}`
     ]
   });
 
+  const isStringArray = (obj: PastLog): obj is string => {
+    return (obj as string).substring !== undefined;
+  };
+
   const tokensAllowances: Dictionary<TokenAllowances> = {};
 
   logs.forEach((log) => {
+    // just typing log as something else than a string
+    if (isStringArray(log)) {
+      return;
+    }
     const newTokenAllowance = {
       tokenAddress: log.address,
-      amount: web3.utils.hexToNumberString(log.data),
+      amount: log.data
+        ? web3.utils.hexToNumberString(log.data as string)
+        : undefined,
       toAddress:
-        log.topics.length === 3 ? '0x' + log.topics[2].substring(26) : '',
-      block: log.blockNumber
+        log.topics?.length === 3
+          ? '0x' + (log.topics[2] as string).substring(26)
+          : '',
+      block: log.blockNumber as bigint
     };
+
+    if (!newTokenAllowance.tokenAddress) {
+      return;
+    }
 
     let tokenAllowances = tokensAllowances[newTokenAllowance.tokenAddress];
 
@@ -191,7 +214,7 @@ export const getAllTokensAllowances = async (
 
 const calculateBlockAvgTime = async (
   web3: Web3,
-  currBlock: number
+  currBlock: bigint
 ): Promise<number> => {
   const nBlocks = 1000;
   const currentTs = await web3.eth

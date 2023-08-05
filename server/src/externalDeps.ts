@@ -23,7 +23,7 @@ export interface ExternalDeps {
     path: ArbitragePool[],
     arbitrageParams: ArbitrageParams,
     accountAddress: string,
-    chainId: number
+    chainId: string
   ) => Promise<string>;
   stopAllArbitrages: (force?: boolean) => Promise<void>;
   stopArbitrage: (arbitrageId: string, force?: boolean) => Promise<void>;

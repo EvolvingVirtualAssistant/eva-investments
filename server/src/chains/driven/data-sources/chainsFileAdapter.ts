@@ -6,7 +6,7 @@ import { ROOT_PATH } from '../../../deps';
 const CHAINS_ENV_KEY = 'CHAINS';
 
 type ChainByChainId = {
-  chainId: number;
+  chainId: string;
   nativeTokenSymbol: string;
   gasWrappedTokenAddress: string;
   mempoolBlockAge: number;
@@ -26,7 +26,7 @@ export class ChainsFileAdapter implements ChainsRepository {
     return ChainsFileAdapter.instance;
   }
 
-  getGasWrappedTokenAddress(chainId: number): string | undefined {
+  getGasWrappedTokenAddress(chainId: string): string | undefined {
     const chains = getObjFromJson(
       CHAINS_ENV_KEY,
       ROOT_PATH,
@@ -38,7 +38,7 @@ export class ChainsFileAdapter implements ChainsRepository {
       ?.gasWrappedTokenAddress;
   }
 
-  getNativeTokenSymbol(chainId: number): string | undefined {
+  getNativeTokenSymbol(chainId: string): string | undefined {
     const chains = getObjFromJson(
       CHAINS_ENV_KEY,
       ROOT_PATH,
@@ -49,7 +49,7 @@ export class ChainsFileAdapter implements ChainsRepository {
     return chains.find((chain) => chain.chainId === chainId)?.nativeTokenSymbol;
   }
 
-  getMempoolBlockAge(chainId: number): number | undefined {
+  getMempoolBlockAge(chainId: string): number | undefined {
     const chains = getObjFromJson(
       CHAINS_ENV_KEY,
       ROOT_PATH,

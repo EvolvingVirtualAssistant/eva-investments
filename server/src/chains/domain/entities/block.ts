@@ -1,7 +1,7 @@
 export interface Block {
-  number: number;
-  baseFeePerGas: number;
-  gasLimit: number;
-  gasUsed: number;
+  number: bigint;
+  baseFeePerGas: bigint;
+  gasLimit: bigint;
+  gasUsed: bigint;
   transactionsHashes: string[];
 }

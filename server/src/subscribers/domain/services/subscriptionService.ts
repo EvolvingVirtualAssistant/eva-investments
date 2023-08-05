@@ -1,18 +1,21 @@
 import { randomUUID } from 'crypto';
 import { Dictionary } from 'src/types/types';
 import {
-  BlockHeader,
   logDebug,
   logWarn,
-  Subscription,
+  Web3Subscription,
   Web3,
-  wrapWithLogger
+  wrapWithLogger,
+  BlockHeaderOutput,
+  HexString,
+  Web3EventMap
 } from '../../../deps';
 
 /**
  * @deprecated
  */
-const subscriptions: Dictionary<Subscription<BlockHeader>> = {};
+const subscriptions: Dictionary<Web3Subscription<{ data: BlockHeaderOutput }>> =
+  {};
 
 export interface CustomSubscription<T> {
   eventType: string;
@@ -27,68 +30,91 @@ const customEventsSubs: Dictionary<CustomSubscription<any>> = {};
 
 export const subscribeLatestBlock = (
   web3: Web3,
-  dataHandler: (data: BlockHeader) => void,
+  dataHandler: (data: BlockHeaderOutput) => void,
   errorHandler?: (error: Error) => void
-): Promise<Subscription<BlockHeader>> => {
-  const subscription = web3.eth
-    .subscribe('newBlockHeaders')
-    .on('data', dataHandler);
+): Promise<Web3Subscription<{ data: BlockHeaderOutput }>> => {
+  return web3.eth.subscribe('newBlockHeaders').then((subscription) => {
+    subscription.on('data', dataHandler);
+
+    // Return promise of subscription on connected
+    return new Promise<Web3Subscription<{ data: BlockHeaderOutput }>>(
+      (resolve, reject) => {
+        let connected = false;
+
+        subscription.on('connected', (subscriptionId: number) => {
+          connected = true;
+          subscriptions[subscriptionId] = subscription;
+
+          resolve(subscription);
+        });
+        subscription.on('error', (error: Error) => {
+          if (!connected) {
+            reject(error);
+          } else if (errorHandler != null) {
+            errorHandler(error);
+          } else {
+            defaultErrorHandler(error);
+          }
+        });
+      }
+    );
+  });
 
   // Return promise of subscription on connected
-  return new Promise<Subscription<BlockHeader>>((resolve, reject) => {
+  /*return new Promise<Subscription<BlockHeader>>((resolve, reject) => {
     let connected = false;
 
-    subscription
-      .on('connected', (subscriptionId: string) => {
-        connected = true;
-        subscriptions[subscriptionId] = subscription;
+    subscription.on('connected', (subscriptionId: string) => {
+      connected = true;
+      subscriptions[subscriptionId] = subscription;
 
-        resolve(subscription);
-      })
-      .on('error', (error: Error) => {
-        if (!connected) {
-          reject(error);
-        } else if (errorHandler != null) {
-          errorHandler(error);
-        } else {
-          defaultErrorHandler(error);
-        }
-      });
-  });
+      resolve(subscription);
+    });
+    subscription.on('error', (error: Error) => {
+      if (!connected) {
+        reject(error);
+      } else if (errorHandler != null) {
+        errorHandler(error);
+      } else {
+        defaultErrorHandler(error);
+      }
+    });
+  });*/
 };
 
 const subscribePendingTransaction = (
   web3: Web3,
   dataHandler: (data: string) => void,
   errorHandler?: (error: Error) => void
-): Promise<Subscription<string>> => {
-  const subscription = web3.eth
-    .subscribe('pendingTransactions')
-    .on('data', dataHandler);
+): Promise<Web3Subscription<{ data: HexString }>> => {
+  return web3.eth.subscribe('pendingTransactions').then((subscription) => {
+    subscription.on('data', dataHandler);
 
-  // Return promise of subscription on connected
-  return new Promise<Subscription<string>>((resolve, reject) => {
-    let connected = false;
+    // Return promise of subscription on connected
+    return new Promise<Web3Subscription<{ data: HexString }>>(
+      (resolve, reject) => {
+        let connected = false;
 
-    subscription
-      .on('connected', (subscriptionId: string) => {
-        connected = true;
-        resolve(subscription);
-      })
-      .on('error', (error: Error) => {
-        if (!connected) {
-          reject(error);
-        } else if (errorHandler != null) {
-          errorHandler(error);
-        } else {
-          defaultErrorHandler(error);
-        }
-      });
+        subscription.on('connected', (subscriptionId: number) => {
+          connected = true;
+          resolve(subscription);
+        });
+        subscription.on('error', (error: Error) => {
+          if (!connected) {
+            reject(error);
+          } else if (errorHandler != null) {
+            errorHandler(error);
+          } else {
+            defaultErrorHandler(error);
+          }
+        });
+      }
+    );
   });
 };
 
 const subscribeCustomEvent = <T>(
-  chainId: number,
+  chainId: string,
   eventType: string,
   eventHandler: (data: T) => Promise<void>,
   errorHandler?: (error: Error) => void
@@ -117,7 +143,7 @@ const subscribeCustomEvent = <T>(
 };
 
 export const emitCustomEvent = (
-  chainId: number,
+  chainId: string,
   eventType: string,
   event: any
 ) => {
@@ -163,8 +189,8 @@ const defaultErrorHandler = (error: Error) => {
 
 // ---------------- Register callbacks for chainId and event type ----------------
 
-type SubscriptionByChainEvent<T, S> = {
-  subscription: Subscription<S> | CustomSubscription<S>;
+type SubscriptionByChainEvent<T, S extends Web3EventMap> = {
+  subscription: Web3Subscription<S> | CustomSubscription<S>;
   callbacks: Callback<T>[][];
   shouldTerminate: boolean;
   terminate?: (value: unknown) => void;
@@ -187,7 +213,7 @@ type Callback<T> = {
 };
 
 const getSubscriptionByChainEventKey = (
-  chainId: number,
+  chainId: string,
   eventType: string
 ): string => chainId + eventType;
 const subscriptionsByChainEvent: Dictionary<
@@ -196,7 +222,7 @@ const subscriptionsByChainEvent: Dictionary<
 
 export const registerSubscription = async <T>(
   web3: Web3,
-  chainId: number,
+  chainId: string,
   eventType: string,
   priority = Number.MAX_SAFE_INTEGER,
   skipOnUnfinishedEvent = false,
@@ -253,7 +279,7 @@ export const registerSubscription = async <T>(
   return { subscriptionId: key, callbackId };
 };
 
-const addCallbackToSubscription = <T, S>(
+const addCallbackToSubscription = <T, S extends Web3EventMap>(
   sub: SubscriptionByChainEvent<T, S>,
   priority: number,
   skipOnUnfinishedEvent: boolean,

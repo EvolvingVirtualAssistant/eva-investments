@@ -4,11 +4,11 @@ import { ContractData } from '../entities/contract';
 import { Dictionary } from 'src/mod';
 
 const callbacksOnChange: Dictionary<() => void> = {};
-const getCallbacksOnChangeKey = (chainId: number, address: string) =>
+const getCallbacksOnChangeKey = (chainId: string, address: string) =>
   chainId + address;
 
 export const getContractByName = (
-  chainId: number,
+  chainId: string,
   name: string,
   isCompiled = true
 ): ContractData => {
@@ -19,7 +19,7 @@ export const getContractByName = (
 };
 
 export const getContractByAddress = (
-  chainId: number,
+  chainId: string,
   address: string,
   callOnChange?: () => void,
   isCompiled = true
@@ -42,7 +42,7 @@ const validateContractPaths = (
 };
 
 const getCompiledContractByName = (
-  chainId: number,
+  chainId: string,
   name: string
 ): ContractData => {
   const contracts = getContractsRepository().getContractsData(chainId, {
@@ -59,7 +59,7 @@ const getCompiledContractByName = (
 };
 
 const getCompiledContractByAddress = (
-  chainId: number,
+  chainId: string,
   address: string,
   callOnChange?: () => void
 ): ContractData => {
@@ -81,7 +81,7 @@ const getCompiledContractByAddress = (
 };
 
 const registerCallbackOnChange = (
-  chainId: number,
+  chainId: string,
   address: string,
   callOnChange: () => void
 ) => {

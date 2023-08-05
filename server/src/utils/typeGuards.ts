@@ -1,4 +1,4 @@
-import { logWarn, Unit } from '../deps';
+import { logWarn, EtherUnits } from '../deps';
 
 export function isType<T>(
   obj: any,
@@ -28,7 +28,7 @@ export function isType<T>(
   );
 }
 
-export function isOfEthereUnitType(value: string): value is Unit {
+export function isOfEthereUnitType(value: string): value is EtherUnits {
   return [
     'noether',
     'wei',

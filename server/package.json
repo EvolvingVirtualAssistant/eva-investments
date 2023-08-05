@@ -39,6 +39,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/bn.js": "^5.1.1",
     "@types/jest": "^27.4.0",
     "@types/node": "^17.0.2",
     "@typescript-eslint/eslint-plugin": "^5.7.0",
@@ -61,9 +62,9 @@
     "cli": "file:src/libs/cli",
     "concurrently": "^7.0.0",
     "dotenv": "^10.0.0",
+    "logger": "file:src/libs/logger",
     "swagger-client-mapper": "file:src/libs/swagger-client-mapper",
-    "worker-pool": "file:src/libs/worker-pool",
-    "logger": "file:src/libs/logger"
+    "worker-pool": "file:src/libs/worker-pool"
   },
   "jest": {
     "preset": "ts-jest",
