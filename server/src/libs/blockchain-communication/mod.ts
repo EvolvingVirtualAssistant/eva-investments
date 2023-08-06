@@ -18,6 +18,7 @@ export { Web3 } from './deps';
 export type {
   BlockHeader,
   BlockTransactionString,
+  TransactionConfig,
   Subscription,
   Unit,
   TransactionReceipt,

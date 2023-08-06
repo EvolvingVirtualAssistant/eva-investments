@@ -9,7 +9,9 @@ import {
   logError,
   logDebug,
   logWarn,
-  wrapWithLogger
+  wrapWithLogger,
+  Transaction,
+  TransactionConfig
 } from '../../../deps';
 import { Account } from '../../../wallets/domain/entities/accounts';
 import { TRANSACTION_TIMEOUT } from '../constants/contractConstants';
@@ -35,8 +37,10 @@ export const sendTransaction = async (
   account: Account,
   sendMethodEncoded: string,
   gas: number,
-  gasPrice: string,
   ethereUnit: EthereUnit,
+  gasPrice?: string,
+  maxPriorityFeePerGas?: BN,
+  maxFeePerGas?: BN,
   toAddress?: string,
   value?: BN
 ): Promise<TransactionReceipt> => {
@@ -46,8 +50,10 @@ export const sendTransaction = async (
     account,
     sendMethodEncoded,
     gas,
-    gasPrice,
     ethereUnit,
+    gasPrice,
+    maxPriorityFeePerGas,
+    maxFeePerGas,
     toAddress,
     value
   );
@@ -81,8 +87,10 @@ const sendLockTransaction = async (
   account: Account,
   sendMethodEncoded: string,
   gas: number,
-  gasPrice: string,
   ethereUnit: EthereUnit,
+  gasPrice?: string,
+  maxPriorityFeePerGas?: BN,
+  maxFeePerGas?: BN,
   toAddress?: string,
   value?: BN
 ): Promise<TransactionReceipt> => {
@@ -104,8 +112,10 @@ const sendLockTransaction = async (
       account,
       sendMethodEncoded,
       gas,
-      gasPrice,
       ethereUnit,
+      gasPrice,
+      maxPriorityFeePerGas,
+      maxFeePerGas,
       toAddress,
       value
     );
@@ -118,8 +128,10 @@ const sendLockTransaction = async (
         web3,
         account,
         e.getNonce(),
+        e.getGas(),
         e.getGasPriceInWei(),
-        e.getGas()
+        e.getMaxPriorityFeePerGasInWei(),
+        e.getMaxFeePerGasInWei()
       );
     } else {
       //recovering nonce value
@@ -157,8 +169,10 @@ const sendNoLockTransaction = async (
   account: Account,
   sendMethodEncoded: string,
   gas: number,
-  gasPrice: string,
   ethereUnit: EthereUnit,
+  gasPrice?: string,
+  maxPriorityFeePerGas?: BN,
+  maxFeePerGas?: BN,
   toAddress?: string,
   value?: BN
 ): Promise<TransactionReceipt> => {
@@ -169,8 +183,10 @@ const sendNoLockTransaction = async (
       account,
       sendMethodEncoded,
       gas,
-      gasPrice,
       ethereUnit,
+      gasPrice,
+      maxPriorityFeePerGas,
+      maxFeePerGas,
       toAddress,
       value,
       true
@@ -184,8 +200,10 @@ const sendNoLockTransaction = async (
         web3,
         account,
         e.getNonce(),
+        e.getGas(),
         e.getGasPriceInWei(),
-        e.getGas()
+        e.getMaxPriorityFeePerGasInWei(),
+        e.getMaxFeePerGasInWei()
       );
     } else {
       //recovering nonce value
@@ -203,8 +221,10 @@ const sendPartialLockTransaction = async (
   account: Account,
   sendMethodEncoded: string,
   gas: number,
-  gasPrice: string,
   ethereUnit: EthereUnit,
+  gasPrice?: string,
+  maxPriorityFeePerGas?: BN,
+  maxFeePerGas?: BN,
   toAddress?: string,
   value?: BN
 ): Promise<TransactionReceipt> => {
@@ -226,8 +246,10 @@ const sendPartialLockTransaction = async (
       account,
       sendMethodEncoded,
       gas,
-      gasPrice,
       ethereUnit,
+      gasPrice,
+      maxPriorityFeePerGas,
+      maxFeePerGas,
       toAddress,
       value
     );
@@ -238,8 +260,10 @@ const sendPartialLockTransaction = async (
           web3,
           account,
           e.getNonce(),
+          e.getGas(),
           e.getGasPriceInWei(),
-          e.getGas()
+          e.getMaxPriorityFeePerGasInWei(),
+          e.getMaxFeePerGasInWei()
         );
       }
       throw e;
@@ -252,8 +276,10 @@ const sendPartialLockTransaction = async (
         web3,
         account,
         e.getNonce(),
+        e.getGas(),
         e.getGasPriceInWei(),
-        e.getGas()
+        e.getMaxPriorityFeePerGasInWei(),
+        e.getMaxFeePerGasInWei()
       );
     } else {
       //recovering nonce value
@@ -323,7 +349,9 @@ const estimateGasPartialLock = async (
 type SignedTransactionWithNonce = {
   signedTransaction: SignedTransaction;
   nonce: number;
-  gasPriceInWei: string;
+  gasPriceInWei?: string;
+  maxPriorityFeePerGasInWei?: BN;
+  maxFeePerGasInWei?: BN;
   gas: number;
 };
 
@@ -333,8 +361,10 @@ const signTransaction = async (
   account: Account,
   sendMethodEncoded: string,
   gas: number,
-  gasPrice: string,
   ethereUnit: EthereUnit,
+  gasPrice?: string,
+  maxPriorityFeePerGas?: BN,
+  maxFeePerGas?: BN,
   toAddress?: string,
   value?: BN,
   mutexNonce = false
@@ -357,25 +387,62 @@ const signTransaction = async (
       : nonceTracker.getNextUnsafeNonce(chainId, account.address);
   }
 
-  const gasPriceInWei = web3.utils.toWei(gasPrice, ethereUnit);
+  const tx: TransactionConfig = {
+    from: account.address,
+    to: toAddress,
+    data: sendMethodEncoded,
+    gas, //750000
+    value,
+    nonce: nonce
+  };
+  let maxPriorityFeePerGasInWei: BN | undefined;
+  let maxFeePerGasInWei: BN | undefined;
+  let gasPriceInWei: string | undefined;
+
+  // EIP-1559 (type 0x2) transaction
+  if (maxPriorityFeePerGas && maxFeePerGas) {
+    maxPriorityFeePerGasInWei = new BN(
+      web3.utils.toWei(maxPriorityFeePerGas.toString(), ethereUnit)
+    );
+    maxFeePerGasInWei = new BN(
+      web3.utils.toWei(maxFeePerGas.toString(), ethereUnit)
+    );
+    tx.maxPriorityFeePerGas = maxPriorityFeePerGasInWei;
+    tx.maxFeePerGas = maxFeePerGasInWei;
+  } else if (gasPrice) {
+    // Legacy (type 0x0) transaction
+    const gasPriceInWei = web3.utils.toWei(gasPrice, ethereUnit);
+    tx.gasPrice = gasPriceInWei;
+  } else {
+    throw new Error(
+      `Could not sign transaction ${sendMethodEncoded}. No gas prices were provided, gasPrice:${gasPrice} , maxPriorityFeePerGas:${maxPriorityFeePerGas}, maxFeePerGas:${maxFeePerGas}`
+    );
+  }
+
   const signedTransaction = await web3.eth.accounts.signTransaction(
-    {
-      from: account.address,
-      to: toAddress,
-      data: sendMethodEncoded,
-      gas, //750000
-      gasPrice: gasPriceInWei, //1.2444,
-      value,
-      nonce: nonce
-    },
+    tx,
     account.privateKey
   );
-  return { signedTransaction, nonce, gasPriceInWei, gas };
+  return {
+    signedTransaction,
+    nonce,
+    gasPriceInWei,
+    maxPriorityFeePerGasInWei,
+    maxFeePerGasInWei,
+    gas
+  };
 };
 
 const sendSignedTransaction = async (
   web3: Web3,
-  { signedTransaction, nonce, gasPriceInWei, gas }: SignedTransactionWithNonce
+  {
+    signedTransaction,
+    nonce,
+    gasPriceInWei,
+    maxPriorityFeePerGasInWei,
+    maxFeePerGasInWei,
+    gas
+  }: SignedTransactionWithNonce
 ): Promise<TransactionReceipt> => {
   const onConfirmation = wrapWithLogger(
     (
@@ -405,6 +472,8 @@ const sendSignedTransaction = async (
             signedTransaction.transactionHash,
             nonce,
             gasPriceInWei,
+            maxPriorityFeePerGasInWei,
+            maxFeePerGasInWei,
             gas,
             TRANSACTION_TIMEOUT
           )
@@ -476,19 +545,36 @@ const cancelTransaction = async (
   web3: Web3,
   account: Account,
   nonce: number,
-  gasPriceInWei: string,
-  gas: number
+  gas: number,
+  gasPriceInWei?: string,
+  maxPriorityFeePerGasInWei?: BN,
+  maxFeePerGasInWei?: BN
 ): Promise<TransactionReceipt> => {
+  const tx: TransactionConfig = {
+    from: account.address,
+    to: account.address,
+    gas, //750000
+    value: 0,
+    nonce: nonce
+  };
+
+  // EIP-1559 (type 0x2) transaction
+  if (maxPriorityFeePerGasInWei && maxFeePerGasInWei) {
+    // in order to cancel it we have to make it at least 10% higher gasPrice than previous tx
+    tx.maxPriorityFeePerGas = maxPriorityFeePerGasInWei.muln(1.1);
+    tx.maxFeePerGas = maxFeePerGasInWei.muln(1.1);
+  } else if (gasPriceInWei) {
+    // Legacy (type 0x0) transaction
+    // in order to cancel it we have to make it at least 10% higher gasPrice than previous tx
+    tx.gasPrice = `${Number.parseInt(gasPriceInWei) * 1.1}`;
+  } else {
+    throw new Error(
+      `Could not sign cancel transaction. No gas prices were provided, gasPriceInWei:${gasPriceInWei} , maxPriorityFeePerGasInWei:${maxPriorityFeePerGasInWei}, maxFeePerGasInWei:${maxFeePerGasInWei}`
+    );
+  }
+
   const signedTransaction = await web3.eth.accounts.signTransaction(
-    {
-      from: account.address,
-      to: account.address,
-      gas, //750000
-      // in order to cancel it we have to make it at least 10% higher gasPrice than previous tx
-      gasPrice: `${Number.parseInt(gasPriceInWei) * 1.1}`,
-      value: 0,
-      nonce: nonce
-    },
+    tx,
     account.privateKey
   );
 
@@ -496,6 +582,8 @@ const cancelTransaction = async (
     signedTransaction,
     nonce,
     gasPriceInWei,
+    maxPriorityFeePerGasInWei,
+    maxFeePerGasInWei,
     gas
   });
 };
