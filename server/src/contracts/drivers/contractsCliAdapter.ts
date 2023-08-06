@@ -1,4 +1,5 @@
 import {
+  BN,
   cliAdapter,
   cliEntrypoint,
   getAllCliEntrypointsByCliAdapter,
@@ -61,14 +62,17 @@ export class ContractsCliAdapter {
     deployerAccountAddress: string,
     host: string,
     gas: number,
-    gasPrice: string,
-    ethereUnit: string,
+    ethereUnit: Unit,
+    gasPrice: string | undefined,
+    maxPriorityFeePerGas: string | undefined,
+    maxFeePerGas: string | undefined,
     contractArgsJson: string
   ): Promise<void> {
     try {
       const contractArgs = contractArgsJson
         ? Object.values(JSON.parse(contractArgsJson))
         : undefined;
+      const web3 = await getAsyncWeb3Extension(chainId);
       const deployedContractAddress = await deployContract(
         await getAsyncWeb3Extension(chainId),
         contractPath,
@@ -77,8 +81,12 @@ export class ContractsCliAdapter {
         deployerAccountAddress,
         host,
         gas,
-        gasPrice,
         ethereUnit as Unit,
+        gasPrice,
+        maxPriorityFeePerGas
+          ? web3.utils.toBN(maxPriorityFeePerGas)
+          : undefined,
+        maxFeePerGas ? web3.utils.toBN(maxFeePerGas) : undefined,
         contractArgs
       );
       await println(`Deployed contract address: ${deployedContractAddress}`);

@@ -1,12 +1,18 @@
+import { BN } from '../../../../deps';
+
 export class TransactionTimeoutError extends Error {
   private _nonce: number;
-  private _gasPriceInWei: string;
+  private _gasPriceInWei?: string;
+  private _maxPriorityFeePerGasInWei?: BN;
+  private _maxFeePerGasInWei?: BN;
   private _gas: number;
 
   constructor(
     txHash: string | undefined,
     nonce: number,
-    gasPriceInWei: string,
+    gasPriceInWei: string | undefined,
+    maxPriorityFeePerGasInWei: BN | undefined,
+    maxFeePerGasInWei: BN | undefined,
     gas: number,
     timeout: number
   ) {
@@ -15,6 +21,8 @@ export class TransactionTimeoutError extends Error {
     );
     this._nonce = nonce;
     this._gasPriceInWei = gasPriceInWei;
+    this._maxPriorityFeePerGasInWei = maxPriorityFeePerGasInWei;
+    this._maxFeePerGasInWei = maxFeePerGasInWei;
     this._gas = gas;
   }
 
@@ -24,6 +32,14 @@ export class TransactionTimeoutError extends Error {
 
   getGasPriceInWei() {
     return this._gasPriceInWei;
+  }
+
+  getMaxPriorityFeePerGasInWei() {
+    return this._maxPriorityFeePerGasInWei;
+  }
+
+  getMaxFeePerGasInWei() {
+    return this._maxFeePerGasInWei;
   }
 
   getGas() {
