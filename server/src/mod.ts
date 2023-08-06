@@ -36,6 +36,10 @@ export {
 export { decodeInput } from './chains/domain/services/decodeInputService';
 export { DecodedInput } from './chains/domain/entities/transaction';
 export {
+  isZeroAddress,
+  ZERO_ADDRESS
+} from './chains/domain/entities/zeroAddress';
+export {
   Web3,
   Web3Extension,
   Unit as EthereUnit,
