@@ -34,6 +34,7 @@ export {
   Web3Extension,
   BlockHeader,
   BlockTransactionString,
+  TransactionConfig,
   Node,
   NodesConfigRepository,
   NodesRepository,

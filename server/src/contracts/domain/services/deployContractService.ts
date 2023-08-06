@@ -1,5 +1,5 @@
 import { readJsonFile } from '../../../utils/files';
-import { Unit, Web3, Contract, logDebug } from '../../../deps';
+import { Unit, Web3, Contract, logDebug, BN } from '../../../deps';
 import AccountNotFoundError from '../../../wallets/domain/services/errors/accountNotFoundError';
 import ContractContentMissingError from './errors/contractContentMissingError';
 import { sendTransaction } from './transactionService';
@@ -11,8 +11,10 @@ export const deployPrecompiledContract = async (
   deployerAccountAddress: string,
   host: string,
   gas: number,
-  gasPrice: string,
   ethereUnit: Unit,
+  gasPrice: string | undefined,
+  maxPriorityFeePerGas: BN | undefined,
+  maxFeePerGas: BN | undefined,
   contractArguments?: unknown[]
 ): Promise<string> => {
   const contractJson = readJsonFile(precompiledContractPath);
@@ -23,8 +25,10 @@ export const deployPrecompiledContract = async (
     deployerAccountAddress,
     host,
     gas,
-    gasPrice,
     ethereUnit,
+    gasPrice,
+    maxPriorityFeePerGas,
+    maxFeePerGas,
     contractArguments
   );
 };
@@ -37,8 +41,10 @@ export const deployContract = async (
   deployerAccountAddress: string,
   host: string,
   gas: number,
-  gasPrice: string,
   ethereUnit: Unit,
+  gasPrice: string | undefined,
+  maxPriorityFeePerGas: BN | undefined,
+  maxFeePerGas: BN | undefined,
   contractArguments?: unknown[]
 ): Promise<string> => {
   let contractJson = readJsonFile(compiledContractPath);
@@ -50,8 +56,10 @@ export const deployContract = async (
     deployerAccountAddress,
     host,
     gas,
-    gasPrice,
     ethereUnit,
+    gasPrice,
+    maxPriorityFeePerGas,
+    maxFeePerGas,
     contractArguments
   );
 };
@@ -62,8 +70,10 @@ const _deployContract = async (
   deployerAccountAddress: string,
   host: string,
   gas: number,
-  gasPrice: string,
   ethereUnit: Unit,
+  gasPrice: string | undefined,
+  maxPriorityFeePerGas: BN | undefined,
+  maxFeePerGas: BN | undefined,
   contractArguments: unknown[] = []
 ): Promise<string> => {
   web3.setProvider(host); //"http://localhost:8545"
@@ -105,8 +115,10 @@ const _deployContract = async (
     deployerAccount,
     contractTxEncoded,
     gas,
+    ethereUnit,
     gasPrice,
-    ethereUnit
+    maxPriorityFeePerGas,
+    maxFeePerGas
   );
 
   logDebug(`Contract deployed receipt: ${JSON.stringify(createReceipt)}`);

@@ -22,8 +22,10 @@ export const erc20TokenApprove = async (
   spenderAddress: string,
   tokenAmount: BN,
   gas = 48486,
+  ethereUnit: Unit = 'gwei' as EthereUnit,
   gasPrice = '1.2444',
-  ethereUnit: Unit = 'gwei' as EthereUnit
+  maxPriorityFeePerGas = web3.utils.toBN('1.561699993'),
+  maxFeePerGas = web3.utils.toBN('1.561700001')
 ): Promise<void> => {
   const tokenContract: Contract = getTokenContract(
     chainId,
@@ -44,8 +46,10 @@ export const erc20TokenApprove = async (
       account,
       approveFnEnconded,
       gas,
-      gasPrice,
       ethereUnit,
+      gasPrice,
+      maxPriorityFeePerGas,
+      maxFeePerGas,
       tokenAddress
     );
     approveResponse = web3.eth.abi.decodeLog(
