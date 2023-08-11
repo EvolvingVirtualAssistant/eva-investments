@@ -51,7 +51,7 @@ export const decodeInput = (
 
     return {
       contractName: contractName,
-      fnName: abi[0].fnName,
+      fnName: abi[i].fnName,
       args: cleanDecodedParameters(decodedParameters)
     };
   }
@@ -122,7 +122,7 @@ const createAbiByChainAndAddress = (
 
 const cleanDecodedParameters = (decodedParameters: Dictionary<any>): any[] => {
   return Object.entries(decodedParameters)
-    .filter((entry) => Number.isInteger(entry[0]))
+    .filter((entry) => Number.parseInt(entry[0]) >= 0)
     .sort()
     .map((entry) => entry[1]);
 };
