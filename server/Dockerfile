@@ -21,19 +21,19 @@ ARG DEFAULT_BUILD_MODE
 ARG DEBIAN_FRONTEND=noninteractive
 
 # install ethereum blockchain
-RUN npm install -g ganache-cli
+RUN npm install -g ganache
 
 # expose port 8545 (default ganache port)
 EXPOSE 8545
 
 # install geth and other tooling to interact with blockchain
-RUN curl -fsSL https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.15-8be800ff.tar.gz --output geth-linux-amd64-1.10.15-8be800ff.tar.gz \
-    && tar --directory=/opt -xvf geth-linux-amd64-1.10.15-8be800ff.tar.gz \
-    && rm geth-linux-amd64-1.10.15-8be800ff.tar.gz
+RUN curl -fsSL https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.12.0-e501b3b0.tar.gz --output geth-linux-amd64-1.12.0-e501b3b0.tar.gz \
+    && tar --directory=/opt -xvf geth-linux-amd64-1.12.0-e501b3b0.tar.gz \
+    && rm geth-linux-amd64-1.12.0-e501b3b0.tar.gz
 
-ENV PATH "$PATH:/opt/geth-linux-amd64-1.10.15-8be800ff"
+ENV PATH "$PATH:/opt/geth-linux-amd64-1.12.0-e501b3b0"
 
-CMD ganache-cli -v -h 0.0.0.0 \ 
+CMD ganache -v -h 0.0.0.0 \ 
     --account=\"$(cat run/secrets/test_acc1_priv_key),3000000000000000000000000000000000000000000\" \
     --account=\"$(cat run/secrets/test_acc2_priv_key),3000000000000000000000000000000000000000000\" \
     --gasPrice 2000000000
