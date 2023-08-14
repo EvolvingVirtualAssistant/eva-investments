@@ -27,7 +27,7 @@ type StartArbitrageParams = {
   profitWithRefund: boolean;
   gasFactor: number;
   gasPriceOffset: string;
-  txRevertDeadline?: number;
+  txRevertDeadline: number;
 };
 
 type StartArbitrageParamsWithParsedPool = StartArbitrageParams & {
@@ -86,21 +86,13 @@ export class ArbitrageCliAdapter {
   private _startArbitrage(arbitrageConfigFilePath: string): Promise<void> {
     const config: StartArbitrageParams = readJsonFile(arbitrageConfigFilePath);
     const configWithParsedPools = this.parsePools(config);
-    const {
-      pools,
-      accountAddress,
-      chainId,
-      txRevertDeadline,
-      ...arbitrageParams
-    } = configWithParsedPools;
-    return startArbitrage(
-      pools,
-      { ...arbitrageParams, deadline: txRevertDeadline },
-      accountAddress,
-      chainId
-    ).then((arbId) => {
-      println(`Arbitrage with id: ${arbId} successfully started`);
-    });
+    const { pools, accountAddress, chainId, ...arbitrageParams } =
+      configWithParsedPools;
+    return startArbitrage(pools, arbitrageParams, accountAddress, chainId).then(
+      (arbId) => {
+        println(`Arbitrage with id: ${arbId} successfully started`);
+      }
+    );
   }
 
   @cliEntrypoint({
