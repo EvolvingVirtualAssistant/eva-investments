@@ -21,6 +21,13 @@ export const getPendingBlockNumber = (
   );
 };
 
+export const getPendingBlockNumberSync = (
+  chainId: number
+): number | undefined => {
+  const blockNumber = getBlocksRepository().getLatestBlockNumber(chainId);
+  return blockNumber == null ? blockNumber : blockNumber + 1;
+};
+
 export const getBlockNumberTrackerSubscriptionCallback =
   (chainId: number) =>
   (event: BlockHeader): void => {

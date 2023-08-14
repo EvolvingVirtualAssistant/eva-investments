@@ -27,6 +27,7 @@ export {
 export {
   getLatestBlockNumber,
   getPendingBlockNumber,
+  getPendingBlockNumberSync,
   getBlockNumberTrackerSubscriptionCallback,
   getBlockSubscriptionCallback,
   getBlockTransactionHashes,
