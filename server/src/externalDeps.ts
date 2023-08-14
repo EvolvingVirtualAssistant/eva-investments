@@ -9,7 +9,7 @@ export type ArbitrageParams = {
   profitWithRefund: boolean;
   gasFactor: number;
   gasPriceOffset: string;
-  deadline?: number;
+  txRevertDeadline?: number;
 };
 
 export type ArbitragePool = {
