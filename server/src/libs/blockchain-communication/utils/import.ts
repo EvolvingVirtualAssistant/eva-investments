@@ -9,7 +9,7 @@ export async function attemptImport(
   try {
     imported = await import(path);
   } catch (e) {
-    logWarn(e);
+    logWarn(JSON.stringify(e));
     imported = fallbackImport;
   }
 
