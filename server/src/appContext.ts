@@ -22,6 +22,8 @@ import { ExternalDeps, getExternalImports } from './externalDeps';
 import { ArbitrageCliAdapter } from './arbitrage/drivers/arbitrageCliAdapter';
 import { BlocksMemoryAdapter } from './chains/driven/data-sources/blocksMemoryAdapter';
 import { BlocksRepository } from './chains/driven/repositories/blocksRepository';
+import { ChainsRepository } from './chains/driven/repositories/chainsRepository';
+import { ChainsFileAdapter } from './chains/driven/data-sources/chainsFileAdapter';
 
 // Furthermore as things start to grow, and I may have logging and other utilitary libs in the middle and if these
 // are not completly stateless (or need to be instantiated) it may be nice to actually pass as parameter an object containing
@@ -105,6 +107,10 @@ export function getAccountsRepository(): AccountsRepository {
 
 export function getContractsRepository(): ContractsRepository {
   return ContractsConfigFileAdapter.getInstance();
+}
+
+export function getChainsRepository(): ChainsRepository {
+  return ChainsFileAdapter.getInstance();
 }
 
 export function getBlocksRepository(): BlocksRepository {
