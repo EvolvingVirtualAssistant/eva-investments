@@ -20,8 +20,8 @@ export {
   unregisterCallback
 } from './subscribers/domain/services/subscriptionService';
 export {
-  erc20TokenApprove,
-  getErc20TokenAllowance,
+  approveToken,
+  getTokenAllowance,
   getTokenContract
 } from './wallets/domain/services/tokensService';
 export {
@@ -34,6 +34,10 @@ export {
   getNextBlockBaseFee,
   getBlockGasLimit
 } from './chains/domain/services/blocksService';
+export {
+  getGasWrappedTokenAddress,
+  getNativeTokenSymbol
+} from './chains/domain/services/chainsService';
 export { decodeInput } from './chains/domain/services/decodeInputService';
 export { DecodedInput } from './chains/domain/entities/transaction';
 export {

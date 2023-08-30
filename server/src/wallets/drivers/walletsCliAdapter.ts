@@ -7,7 +7,7 @@ import {
 import { CliConstants } from '../../constants/cliConstants';
 import { WalletsCliConstants } from '../constants/cliConstants';
 import {
-  erc20TokenApprove,
+  approveToken,
   getAllTokensAllowances
 } from '../domain/services/tokensService';
 import { getAsyncWeb3Extension } from '../../appContext';
@@ -98,17 +98,19 @@ export class WalletsCliAdapter {
     tokenAddress: string,
     ownerAddress: string,
     spenderAddress: string,
-    amount: string
+    amount: string,
+    isWeth: boolean
   ): Promise<void> {
     try {
       const web3 = await getAsyncWeb3Extension(chainId);
-      await erc20TokenApprove(
+      await approveToken(
         chainId,
         web3,
         getAccountByAccountAddress(chainId, ownerAddress),
         tokenAddress,
         spenderAddress,
-        web3.utils.toBN(amount)
+        web3.utils.toBN(amount),
+        isWeth
       );
     } catch (e) {
       println(`${e}`);
@@ -123,17 +125,19 @@ export class WalletsCliAdapter {
     chainId: number,
     tokenAddress: string,
     ownerAddress: string,
-    spenderAddress: string
+    spenderAddress: string,
+    isWeth: boolean
   ): Promise<void> {
     try {
       const web3 = await getAsyncWeb3Extension(chainId);
-      await erc20TokenApprove(
+      await approveToken(
         chainId,
         web3,
         getAccountByAccountAddress(chainId, ownerAddress),
         tokenAddress,
         spenderAddress,
-        web3.utils.toBN(0)
+        web3.utils.toBN(0),
+        isWeth
       );
     } catch (e) {
       println(`${e}`);
