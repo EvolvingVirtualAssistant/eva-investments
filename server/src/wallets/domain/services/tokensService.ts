@@ -14,13 +14,14 @@ import { getContractByName } from '../../../contracts/domain/services/contractSe
 import { Dictionary, EthereUnit, getLatestBlockNumber } from '../../../app';
 import { TokenAllowances } from '../entities/allowances';
 
-export const erc20TokenApprove = async (
+export const approveToken = async (
   chainId: number,
   web3: Web3,
   account: Account,
   tokenAddress: string,
   spenderAddress: string,
   tokenAmount: BN,
+  isWeth = false,
   gas = 48486,
   ethereUnit: Unit = 'gwei' as EthereUnit,
   gasPrice = '1.2444',
@@ -31,7 +32,7 @@ export const erc20TokenApprove = async (
     chainId,
     web3,
     tokenAddress,
-    false
+    isWeth
   );
   const approveFnEnconded = tokenContract.methods
     .approve(spenderAddress, tokenAmount)
@@ -74,19 +75,20 @@ export const erc20TokenApprove = async (
   }
 };
 
-export const getErc20TokenAllowance = async (
+export const getTokenAllowance = async (
   chainId: number,
   web3: Web3,
   accountAddress: string,
   tokenAddress: string,
   ownerAddress: string,
-  spenderAddress: string
+  spenderAddress: string,
+  isWeth = false
 ): Promise<BN> => {
   const tokenContract: Contract = getTokenContract(
     chainId,
     web3,
     tokenAddress,
-    false
+    isWeth
   );
 
   const ethCallOptions = {
