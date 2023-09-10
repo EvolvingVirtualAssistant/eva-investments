@@ -16,7 +16,6 @@ import {
   TypedTransaction,
   FeeMarketEIP1559Transaction
 } from 'web3-eth-accounts';
-import { Address } from 'web3-eth-accounts/lib/commonjs/tx/address';
 import { IpcProvider } from 'web3-providers-ipc';
 import HttpProvider from 'web3-providers-http';
 import WebsocketProvider from 'web3-providers-ws';
@@ -72,7 +71,6 @@ export {
   GetBlockOutput,
   GetTransactionOutput,
   TypedTransaction,
-  Address,
   FeeMarketEIP1559Transaction,
   ContractAbi,
   ContractEvents,

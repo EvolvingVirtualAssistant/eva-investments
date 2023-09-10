@@ -14,7 +14,7 @@ export { NodeAuth } from './domain/entities/nodeAuth';
 export { Node } from './domain/entities/node';
 export { NonceTracker, getNonceTracker } from './domain/services/nonceTracker';
 export { nodeToProvider } from './domain/services/providerService';
-export { Web3, Address, FeeMarketEIP1559Transaction } from './deps';
+export { Web3, FeeMarketEIP1559Transaction } from './deps';
 export type {
   BlockHeaderOutput,
   GetBlockOutput,

@@ -42,6 +42,7 @@ const appContext: AppContext = {
 let appContextReady = false;
 
 export async function initAppContext() {
+  overrideDefaults();
   await initServices();
 
   if (appContext.externalDeps == null) {
@@ -67,6 +68,12 @@ function getAppContext(): AppContext {
   }
 
   return appContext;
+}
+
+function overrideDefaults() {
+  (BigInt.prototype as any).toJSON = function () {
+    return this.toString();
+  };
 }
 
 // Init all cliAdapters
