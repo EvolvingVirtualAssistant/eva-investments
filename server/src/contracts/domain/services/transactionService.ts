@@ -6,14 +6,9 @@ import {
   EtherUnits,
   Web3,
   getNonceTracker,
-  logError,
   logDebug,
   logWarn,
-  wrapWithLogger,
-  Transaction,
-  TypedTransaction,
-  Address,
-  FeeMarketEIP1559Transaction
+  wrapWithLogger
 } from '../../../deps';
 import { Account } from '../../../wallets/domain/entities/accounts';
 import { TRANSACTION_TIMEOUT } from '../constants/contractConstants';

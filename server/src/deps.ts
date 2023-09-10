@@ -36,7 +36,6 @@ export {
   GetBlockOutput,
   GetTransactionOutput,
   TypedTransaction,
-  Address,
   FeeMarketEIP1559Transaction,
   ContractAbi,
   ContractEvents,
