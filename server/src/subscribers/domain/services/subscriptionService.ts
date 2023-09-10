@@ -33,32 +33,45 @@ export const subscribeLatestBlock = (
   dataHandler: (data: BlockHeaderOutput) => void,
   errorHandler?: (error: Error) => void
 ): Promise<Web3Subscription<{ data: BlockHeaderOutput }>> => {
-  return web3.eth.subscribe('newBlockHeaders').then((subscription) => {
-    subscription.on('data', dataHandler);
+  return web3.eth
+    .subscribe('newBlockHeaders')
+    .then((subscription: Web3Subscription<{ data: BlockHeaderOutput }>) => {
+      subscription.on('data', dataHandler);
 
-    // Return promise of subscription on connected
-    return new Promise<Web3Subscription<{ data: BlockHeaderOutput }>>(
-      (resolve, reject) => {
-        let connected = false;
+      // Return promise of subscription on connected
+      return new Promise<Web3Subscription<{ data: BlockHeaderOutput }>>(
+        (resolve, reject) => {
+          let connected = false;
 
-        subscription.on('connected', (subscriptionId: number) => {
-          connected = true;
-          subscriptions[subscriptionId] = subscription;
+          // 'connected' not being triggered although it has been fixed https://github.com/web3/web3.js/pull/6342
+          subscription.on('connected', (subscriptionId: string) => {
+            connected = true;
+            subscriptions[subscriptionId] = subscription;
 
-          resolve(subscription);
-        });
-        subscription.on('error', (error: Error) => {
-          if (!connected) {
-            reject(error);
-          } else if (errorHandler != null) {
-            errorHandler(error);
-          } else {
-            defaultErrorHandler(error);
+            resolve(subscription);
+          });
+          subscription.on('error', (error: Error) => {
+            if (!connected) {
+              reject(error);
+            } else if (errorHandler != null) {
+              errorHandler(error);
+            } else {
+              defaultErrorHandler(error);
+            }
+          });
+
+          // since connected not being triggered, need to resolve promise
+          if (subscription.id == null) {
+            reject(
+              'subscription to latest block does not have an id, cannot proceed'
+            );
           }
-        });
-      }
-    );
-  });
+          connected = true;
+          subscriptions[subscription.id!] = subscription;
+          resolve(subscription);
+        }
+      );
+    });
 
   // Return promise of subscription on connected
   /*return new Promise<Subscription<BlockHeader>>((resolve, reject) => {
@@ -87,30 +100,41 @@ const subscribePendingTransaction = (
   dataHandler: (data: string) => void,
   errorHandler?: (error: Error) => void
 ): Promise<Web3Subscription<{ data: HexString }>> => {
-  return web3.eth.subscribe('pendingTransactions').then((subscription) => {
-    subscription.on('data', dataHandler);
+  return web3.eth
+    .subscribe('pendingTransactions')
+    .then((subscription: Web3Subscription<{ data: HexString }>) => {
+      subscription.on('data', dataHandler);
 
-    // Return promise of subscription on connected
-    return new Promise<Web3Subscription<{ data: HexString }>>(
-      (resolve, reject) => {
-        let connected = false;
+      // Return promise of subscription on connected
+      return new Promise<Web3Subscription<{ data: HexString }>>(
+        (resolve, reject) => {
+          let connected = false;
 
-        subscription.on('connected', (subscriptionId: number) => {
+          subscription.on('connected', (subscriptionId: string) => {
+            connected = true;
+            resolve(subscription);
+          });
+          subscription.on('error', (error: Error) => {
+            if (!connected) {
+              reject(error);
+            } else if (errorHandler != null) {
+              errorHandler(error);
+            } else {
+              defaultErrorHandler(error);
+            }
+          });
+
+          // since connected not being triggered, need to resolve promise
+          if (subscription.id == null) {
+            reject(
+              'subscription to latest block does not have an id, cannot proceed'
+            );
+          }
           connected = true;
           resolve(subscription);
-        });
-        subscription.on('error', (error: Error) => {
-          if (!connected) {
-            reject(error);
-          } else if (errorHandler != null) {
-            errorHandler(error);
-          } else {
-            defaultErrorHandler(error);
-          }
-        });
-      }
-    );
-  });
+        }
+      );
+    });
 };
 
 const subscribeCustomEvent = <T>(
@@ -216,6 +240,7 @@ const getSubscriptionByChainEventKey = (
   chainId: string,
   eventType: string
 ): string => chainId + eventType;
+
 const subscriptionsByChainEvent: Dictionary<
   SubscriptionByChainEvent<any, any>
 > = {};
