@@ -1,7 +1,7 @@
 import { readJsonFile } from '../../../utils/files';
 import { getContractsRepository } from '../../../appContext';
 import { ContractData } from '../entities/contract';
-import { Dictionary } from 'src/mod';
+import { Dictionary } from '../../../mod';
 
 const callbacksOnChange: Dictionary<() => void> = {};
 const getCallbacksOnChangeKey = (chainId: string, address: string) =>

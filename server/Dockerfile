@@ -33,11 +33,12 @@ RUN curl -fsSL https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1
 
 ENV PATH "$PATH:/opt/geth-linux-amd64-1.12.0-e501b3b0"
 
-CMD ganache -v -h 0.0.0.0 \ 
+CMD ganache --logging.verbose --logging.debug --chain.vmErrorsOnRPCResponse -h 0.0.0.0 \ 
     --account=\"$(cat run/secrets/test_acc1_priv_key),3000000000000000000000000000000000000000000\" \
     --account=\"$(cat run/secrets/test_acc2_priv_key),3000000000000000000000000000000000000000000\" \
     --gasPrice 2000000000 \
-    --chain.chainId 1337
+    --chain.chainId 1337 \
+    --database.dbPath "/opt/db"
 
 # --------------------------------------------------------------------------------------------------------
 
