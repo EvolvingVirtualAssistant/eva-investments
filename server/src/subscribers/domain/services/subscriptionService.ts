@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { Dictionary } from 'src/types/types';
+import { Dictionary } from '../../../types/types';
 import {
   logDebug,
   logWarn,

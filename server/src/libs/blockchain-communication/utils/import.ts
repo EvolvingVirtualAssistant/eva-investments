@@ -9,7 +9,10 @@ export async function attemptImport(
   try {
     imported = await import(path);
   } catch (e) {
-    logWarn(JSON.stringify(e));
+    logWarn('Error while attemptImport', JSON.stringify(e));
+    if (e instanceof Error) {
+      logWarn('attemptImport error msg:', e.message);
+    }
     imported = fallbackImport;
   }
 

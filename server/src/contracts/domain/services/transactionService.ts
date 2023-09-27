@@ -78,6 +78,7 @@ export const estimateGas = async (
   );
 };
 
+// TODO: revisit try catch and promise combo (check sendPartialLockTransaction)
 const sendLockTransaction = async (
   chainId: string,
   web3: Web3,
@@ -160,6 +161,7 @@ const getOrCreateTransactionsQueue = (web3: Web3, account: Account) => {
   return transactionsQueue;
 };
 
+// TODO: revisit try catch and promise combo (check sendPartialLockTransaction)
 const sendNoLockTransaction = async (
   chainId: string,
   web3: Web3,
@@ -236,8 +238,9 @@ const sendPartialLockTransaction = async (
   transactionsQueue.lock = true;
   //logDebug('Acquired lock', sendMethodEncoded);
 
+  let signedTransaction: SignedTransactionWithNonce;
   try {
-    const signedTransaction = await signTransaction(
+    signedTransaction = await signTransaction(
       chainId,
       web3,
       account,
@@ -250,23 +253,30 @@ const sendPartialLockTransaction = async (
       toAddress,
       value
     );
-    //There will be possibly usecases that we are not covering yet on the catch
-    return sendSignedTransaction(web3, signedTransaction).catch((e) => {
-      if (e instanceof TransactionTimeoutError) {
-        cancelTransaction(
-          web3,
-          account,
-          e.getNonce(),
-          e.getGas(),
-          e.getGasPriceInWei(),
-          e.getMaxPriorityFeePerGasInWei(),
-          e.getMaxFeePerGasInWei()
-        );
-      }
-      throw e;
-    });
   } catch (e) {
-    logWarn('Error executing send transaction', e);
+    await getSendSignedTransactionErrorHandler(
+      chainId,
+      web3,
+      account
+    )(e).finally(() => {
+      transactionsQueue.lock = false;
+      transactionsQueue.lockRequests.shift()?.('');
+    });
+  }
+
+  return sendSignedTransaction(web3, signedTransaction!)
+    .catch(getSendSignedTransactionErrorHandler(chainId, web3, account))
+    .finally(() => {
+      transactionsQueue.lock = false;
+      transactionsQueue.lockRequests.shift()?.('');
+    });
+};
+
+//There will be possibly usecases that we are not covering yet on the catch
+const getSendSignedTransactionErrorHandler =
+  (chainId: string, web3: Web3, account: Account) =>
+  async (e: unknown): Promise<never> => {
+    logWarn('Error executing send transaction', JSON.stringify(e));
 
     if (e instanceof TransactionTimeoutError) {
       cancelTransaction(
@@ -286,12 +296,7 @@ const sendPartialLockTransaction = async (
     }
 
     throw e;
-  } finally {
-    //logDebug('Releasing lock', transactionsQueue.lockRequests.length);
-    transactionsQueue.lock = false;
-    transactionsQueue.lockRequests.shift()?.('');
-  }
-};
+  };
 
 const estimateGasPartialLock = async (
   chainId: string,
