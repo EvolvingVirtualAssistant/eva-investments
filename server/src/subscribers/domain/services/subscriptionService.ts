@@ -52,6 +52,7 @@ export const subscribeLatestBlock = (
           });
           subscription.on('error', (error: Error) => {
             if (!connected) {
+              subscription.unsubscribe();
               reject(error);
             } else if (errorHandler != null) {
               errorHandler(error);
@@ -62,6 +63,7 @@ export const subscribeLatestBlock = (
 
           // since connected not being triggered, need to resolve promise
           if (subscription.id == null) {
+            subscription.unsubscribe();
             reject(
               'subscription to latest block does not have an id, cannot proceed'
             );
