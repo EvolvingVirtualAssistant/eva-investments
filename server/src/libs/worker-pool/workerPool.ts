@@ -88,6 +88,7 @@ export class WorkerPool extends EventEmitter {
       }
 
       // Delete worker and create a new one
+      worker.worker.removeAllListeners();
       this.workers.splice(this.workers.indexOf(worker), 1);
       this.addWorker();
     });

@@ -108,6 +108,7 @@ const _deployContract = async <Abi extends ContractAbi>(
     );
   }
 
+  // TODO: check _loadContract comment
   const contract = new web3.eth.Contract(abi);
   const contractTxEncoded = contract
     .deploy({
@@ -171,5 +172,9 @@ const _loadContract = <Abi extends ContractAbi>(
   abi: Abi,
   contractAddress: string
 ): Contract<Abi> => {
+  // TODO: Update web3js version to a version where contract initialization is no longer adding a listener on the requestmanager for the provider events
+  // warning: MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 message listeners added to [EventEmitter]. Use emitter.setMaxListeners() to increase limit
+  // web3_subscription_manager.js -> listenToProviderEvents -> this.requestManager.provider.on
+  // this was fixed on version 2 (https://github.com/web3/web3.js/issues/1648) but potentially when migrating to version 4, they ignored everything in version 2 and 3
   return new web3.eth.Contract<Abi>(abi, contractAddress);
 };
