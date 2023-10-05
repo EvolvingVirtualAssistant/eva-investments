@@ -85,7 +85,12 @@ const isChainByChainId = (obj: any): boolean => {
   return (
     isType(
       obj,
-      ['chainId', 'nativeTokenSymbol', 'gasWrappedTokenAddress'],
+      [
+        'chainId',
+        'nativeTokenSymbol',
+        'gasWrappedTokenAddress',
+        'mempoolBlockAge'
+      ],
       []
     ) &&
     (obj as ChainByChainId).chainId != null &&
