@@ -1,19 +1,19 @@
 import { ArbitrageParams, ArbitragePool } from '../../../externalDeps';
 import { getExternalDeps } from '../../../appContext';
 
-export const startArbitrage = async (
+export async function startArbitrage<ArbParams extends ArbitrageParams>(
   path: ArbitragePool[],
-  arbitrageParams: ArbitrageParams,
+  arbitrageParams: ArbParams,
   accountAddress: string,
   chainId: string
-): Promise<string> => {
+): Promise<string> {
   return await getExternalDeps().startArbitrage(
     path,
     arbitrageParams,
     accountAddress,
     chainId
   );
-};
+}
 
 export const stopAllArbitrages = async (force = false) => {
   await getExternalDeps().stopAllArbitrages(force);
