@@ -87,5 +87,6 @@ export {
   OrderedDoublyLinkedSet,
   DoublyLinkedNode
 } from './utils/collections';
+export { FileAndMemoryCacheAdapter } from './utils/data-sources/fileAndMemoryCacheAdapter';
 export { Dictionary } from './types/types';
 export { getAsyncWeb3Extension, getWeb3Extension } from './appContext';

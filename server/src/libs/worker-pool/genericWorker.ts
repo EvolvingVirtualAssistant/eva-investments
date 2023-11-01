@@ -2,7 +2,8 @@ import { parentPort, pathJoin, ROOT_PATH } from './deps';
 import { Dictionary, WorkerTask } from './workerPool.types';
 
 type OnMessageFunction = (
-  task: WorkerTask
+  task: WorkerTask,
+  intermediateCallback: (res: any, err: any) => void
 ) => Promise<{ result: any; error: any }>;
 
 const workerFilePaths: Dictionary<OnMessageFunction> = {};
@@ -18,14 +19,26 @@ parentPort?.on('message', async (task: WorkerTask) => {
       workerFilePaths[task.workerFilePath] = workerOnMessageFn;
     }
 
-    const res = await workerOnMessageFn(task);
+    const res = await workerOnMessageFn(task, (res: any, err: any) =>
+      parentPort?.postMessage({
+        result: res,
+        error: err,
+        taskId: task.taskId,
+        isFinished: false
+      })
+    );
     result = res.result;
     error = res.error;
   } catch (e) {
     console.warn('worker - onmessage error', e);
     error = e;
   } finally {
-    parentPort?.postMessage({ result, error });
+    parentPort?.postMessage({
+      result,
+      error,
+      taskId: task.taskId,
+      isFinished: true
+    });
   }
 });
 

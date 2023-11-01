@@ -16,7 +16,10 @@ import {
   LoggerOutputType
 } from '../../types/logger.types';
 
-export const onMessage = (task: WorkerTask): { result: any; error: any } => {
+export const onMessage = (
+  task: WorkerTask,
+  intermediateCallback: (res: any, err: any) => void
+): { result: any; error: any } => {
   try {
     switch (task.fn) {
       case LoggerLevel.INFO:

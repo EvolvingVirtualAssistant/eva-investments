@@ -3,6 +3,7 @@ export type WorkerTask = {
   fn: string;
   args: any[];
   workerId?: string;
+  taskId: string;
 };
 
 export interface Dictionary<T> {

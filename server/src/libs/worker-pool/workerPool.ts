@@ -65,15 +65,31 @@ export class WorkerPool extends EventEmitter {
       shared
     };
 
-    worker.worker.on('message', ({ result, error }) => {
+    worker.worker.on('message', ({ result, error, taskId, isFinished }) => {
+      if (worker.workerPoolTask?.taskId != taskId) {
+        console.warn(
+          `Received message for taskId ${taskId}, but was expecting taskId ${worker.workerPoolTask?.taskId}`,
+          result,
+          error
+        );
+        return;
+      }
+
       if (result != null) {
         worker.workerPoolTask?.done(result, null);
+
+        if (!isFinished) {
+          return;
+        }
+
+        worker.workerPoolTask?.emitDestroy();
         worker.workerPoolTask = undefined;
       } else {
         console.error(
-          'Received msg with error from worker',
+          'Received msg with error from worker and task',
           error,
-          worker.workerPoolTask
+          worker.workerPoolTask,
+          taskId
         );
         worker.workerPoolTask?.done(null, error);
         worker.workerPoolTask = undefined;
@@ -96,7 +112,7 @@ export class WorkerPool extends EventEmitter {
       // Delete worker and create a new one
       worker.worker.removeAllListeners();
       delete this.workers[id];
-      this.addWorker();
+      this.addWorker(worker.shared);
     });
 
     this.workers[id] = worker;
@@ -135,14 +151,20 @@ export class WorkerPool extends EventEmitter {
       );
     }
 
-    const task: WorkerTask = { workerFilePath, fn, args, workerId: id };
+    const task: WorkerTask = {
+      workerFilePath,
+      fn,
+      args,
+      workerId: id,
+      taskId: randomUUID()
+    };
     if (freeWorker == null) {
       // queue up a new task
       this.tasks.push({ task, doneCallback });
       return;
     }
 
-    freeWorker.workerPoolTask = new WorkerPoolTask(doneCallback);
+    freeWorker.workerPoolTask = new WorkerPoolTask(doneCallback, task.taskId);
     freeWorker.worker.postMessage(task);
   }
 
