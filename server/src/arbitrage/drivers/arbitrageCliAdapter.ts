@@ -17,22 +17,32 @@ import {
 } from '../domain/services/arbitrageService';
 
 type StartArbitrageParams = {
-  pools: string;
   accountAddress: string;
   chainId: string;
   inputAmountsByToken: Dictionary<string>;
-  outputAmountsByToken: Dictionary<string>;
   slippagePercentage: number;
-  isOutputSlippage: boolean;
   profitWithRefund: boolean;
   gasFactor: number;
   gasPriceOffset: string;
   txRevertDeadline: number;
+  intraBlock: boolean;
 };
 
-type StartArbitrageParamsWithParsedPool = StartArbitrageParams & {
+interface StartStaticArbitrageParams extends StartArbitrageParams {
+  pools: string;
+  outputAmountsByToken: Dictionary<string>;
+  isOutputSlippage: boolean;
+}
+
+type StartStaticArbitrageParamsWithParsedPool = StartStaticArbitrageParams & {
   pools: ArbitragePool[];
 };
+
+interface StartDynamicArbitrageParams extends StartArbitrageParams {
+  tokenIn: string;
+  tokenOut: string;
+  maxHops: number;
+}
 
 @cliAdapter({
   tokens: [ArbitrageCliConstants.ADAPTER_TOKEN],
@@ -84,15 +94,36 @@ export class ArbitrageCliAdapter {
   }
 
   private _startArbitrage(arbitrageConfigFilePath: string): Promise<void> {
-    const config: StartArbitrageParams = readJsonFile(arbitrageConfigFilePath);
-    const configWithParsedPools = this.parsePools(config);
-    const { pools, accountAddress, chainId, ...arbitrageParams } =
-      configWithParsedPools;
-    return startArbitrage(pools, arbitrageParams, accountAddress, chainId).then(
-      (arbId) => {
+    const config = readJsonFile(arbitrageConfigFilePath);
+
+    if (config['pools']) {
+      const configWithParsedPools = this.parsePools(
+        config as unknown as StartStaticArbitrageParams
+      );
+      const { pools, accountAddress, chainId, ...arbitrageParams } =
+        configWithParsedPools;
+
+      return startArbitrage(
+        pools,
+        arbitrageParams,
+        accountAddress,
+        chainId
+      ).then((arbId) => {
         println(`Arbitrage with id: ${arbId} successfully started`);
-      }
-    );
+      });
+    }
+
+    if (config['tokenIn'] && config['tokenOut'] && config['maxHops']) {
+      const { accountAddress, chainId, ...arbitrageParams } =
+        config as unknown as StartDynamicArbitrageParams;
+      return startArbitrage([], arbitrageParams, accountAddress, chainId).then(
+        (arbId) => {
+          println(`Arbitrage with id: ${arbId} successfully started`);
+        }
+      );
+    }
+
+    return println(`Could not start arbitrage: invalid configuration provided`);
   }
 
   @cliEntrypoint({
@@ -158,8 +189,8 @@ export class ArbitrageCliAdapter {
   }
 
   private parsePools(
-    config: StartArbitrageParams
-  ): StartArbitrageParamsWithParsedPool {
+    config: StartStaticArbitrageParams
+  ): StartStaticArbitrageParamsWithParsedPool {
     const regex = /(\s*\w+\s*,\s*\w+\s*\/\s*\w+\s*)/g;
     const iterator = config.pools.matchAll(regex);
 
@@ -182,7 +213,7 @@ export class ArbitrageCliAdapter {
       );
     }
 
-    return { ...config, pools } as StartArbitrageParamsWithParsedPool;
+    return { ...config, pools } as StartStaticArbitrageParamsWithParsedPool;
   }
 
   @cliEntrypoint({

@@ -199,14 +199,13 @@ export const unsubscribe = async (subscriptionId: string, force = false) => {
     });
   }
 
-  await sub.subscription.unsubscribe((error: Error, result: boolean) => {
-    if (result) {
-      delete subscriptionsByChainEvent[subscriptionId];
-      logDebug(`Successfully unsubscribed - ${subscriptionId}`);
-    } else {
-      logWarn(`Error unsubscribing - ${subscriptionId} - ${error}`);
-    }
-  });
+  try {
+    await sub.subscription.unsubscribe();
+    delete subscriptionsByChainEvent[subscriptionId];
+    logDebug(`Successfully unsubscribed - ${subscriptionId}`);
+  } catch (e) {
+    logWarn(`Error unsubscribing - ${subscriptionId} - ${e}`);
+  }
 };
 
 const defaultErrorHandler = (error: Error) => {
@@ -246,6 +245,8 @@ const getSubscriptionByChainEventKey = (
 const subscriptionsByChainEvent: Dictionary<
   SubscriptionByChainEvent<any, any>
 > = {};
+
+const subscriptionIdByCallbackId: Dictionary<string> = {};
 
 export const registerSubscription = async <T>(
   web3: Web3,
@@ -302,6 +303,7 @@ export const registerSubscription = async <T>(
     callback,
     ...args
   );
+  subscriptionIdByCallbackId[callbackId] = key;
 
   return { subscriptionId: key, callbackId };
 };
@@ -378,19 +380,30 @@ const addCallbackToSubscription = <T, S extends Web3EventMap>(
   return id;
 };
 
-export const unregisterCallback = (
-  subscriptionId: string,
-  callbackId: string
-) => {
+export const unregisterCallback = async (callbackId: string, force = false) => {
+  const subscriptionId = subscriptionIdByCallbackId[callbackId];
+  if (!subscriptionId) {
+    return;
+  }
+
   const sub = subscriptionsByChainEvent[subscriptionId];
 
   if (!sub) {
     return;
   }
 
-  sub.callbacks = sub.callbacks.map((callbacks) => {
-    return callbacks.filter((callback) => callback.id !== callbackId);
-  });
+  sub.callbacks = sub.callbacks
+    .map((callbacks) => {
+      return callbacks.filter((callback) => callback.id !== callbackId);
+    })
+    .filter((callbacks) => callbacks.length > 0);
+
+  if (sub.callbacks.length === 0) {
+    await unsubscribe(subscriptionId, force);
+  }
+
+  logDebug(`Unregistered callback: ${callbackId}`);
+  delete subscriptionIdByCallbackId[callbackId];
 };
 
 const getDataHandler = <S>(subscriptionKey: string) => {

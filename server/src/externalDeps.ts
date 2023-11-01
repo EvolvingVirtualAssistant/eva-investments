@@ -3,13 +3,12 @@ import { Dictionary } from './types/types';
 
 export type ArbitrageParams = {
   inputAmountsByToken: Dictionary<string>;
-  outputAmountsByToken: Dictionary<string>;
   slippagePercentage: number;
-  isOutputSlippage: boolean;
   profitWithRefund: boolean;
   gasFactor: number;
   gasPriceOffset: string;
   txRevertDeadline?: number;
+  intraBlock: boolean;
 };
 
 export type ArbitragePool = {
@@ -19,9 +18,9 @@ export type ArbitragePool = {
 };
 
 export interface ExternalDeps {
-  startArbitrage: (
+  startArbitrage: <ArbParams extends ArbitrageParams>(
     path: ArbitragePool[],
-    arbitrageParams: ArbitrageParams,
+    arbitrageParams: ArbParams,
     accountAddress: string,
     chainId: string
   ) => Promise<string>;
