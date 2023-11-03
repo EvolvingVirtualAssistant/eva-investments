@@ -208,7 +208,7 @@ export class ArbitrageCliAdapter {
           };
         });
     } catch (e) {
-      throw Error(
+      throw new Error(
         `Provided pools arg: ${config.pools} does not respect the format: (dex_name , tokenA/tokenB) - (dex_name , tokenA/tokenB) ...  . Error: ${e}`
       );
     }

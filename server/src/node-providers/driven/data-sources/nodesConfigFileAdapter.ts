@@ -157,7 +157,7 @@ const buildNodeOptions = (nodesOptions: NodeOptions): NodeOptions => {
     return buildIpcNodeOptions(nodesOptions);
   }
 
-  throw Error(
+  throw new Error(
     `The deserialized JSON contains the following invalid node options: ${nodesOptions}`
   );
 };
