@@ -2,7 +2,7 @@ import { taggedTemplate } from '../../constants/cliConstants';
 
 export const ArbitrageCliConstants = {
   USAGE: 'arbitrage [COMMAND] [OPTIONS]',
-  HELP_COMMAND_TEMPLATE: taggedTemplate`\nUsage:\n\t${0}\n\nOptions:\n${1}\n\nRun 'contracts --help' for more information on the contracts command.\n`,
+  HELP_COMMAND_TEMPLATE: taggedTemplate`\nUsage:\n\t${0}\n\nOptions:\n${1}\n\nRun 'arbitrage --help' for more information on the arbitrage command.\n`,
   ADAPTER_TOKEN: 'arbitrage',
   ADAPTER_DESCRIPTION: 'Arbitrage related operations',
   ARBITRAGE_START_TOKEN: 'start',
