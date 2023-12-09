@@ -32,3 +32,12 @@ export const getMempoolBlockAge = (chaindId: string): number => {
   }
   return mempoolBlockAge;
 };
+
+export const getBlockTime = (chaindId: string): number => {
+  const blockTime = getChainsRepository().getBlockTime(chaindId);
+
+  if (blockTime == null) {
+    throw new Error(`Unable to get the block time, for chain ${chaindId}`);
+  }
+  return blockTime;
+};

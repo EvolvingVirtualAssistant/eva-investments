@@ -37,7 +37,8 @@ export {
 export {
   getGasWrappedTokenAddress,
   getNativeTokenSymbol,
-  getMempoolBlockAge
+  getMempoolBlockAge,
+  getBlockTime
 } from './chains/domain/services/chainsService';
 export { decodeInput } from './chains/domain/services/decodeInputService';
 export { DecodedInput } from './chains/domain/entities/transaction';

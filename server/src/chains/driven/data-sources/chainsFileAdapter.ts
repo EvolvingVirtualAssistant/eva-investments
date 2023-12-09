@@ -10,6 +10,7 @@ type ChainByChainId = {
   nativeTokenSymbol: string;
   gasWrappedTokenAddress: string;
   mempoolBlockAge: number;
+  blockTime: number;
 };
 
 export class ChainsFileAdapter implements ChainsRepository {
@@ -59,6 +60,17 @@ export class ChainsFileAdapter implements ChainsRepository {
 
     return chains.find((chain) => chain.chainId === chainId)?.mempoolBlockAge;
   }
+
+  getBlockTime(chainId: string): number | undefined {
+    const chains = getObjFromJson(
+      CHAINS_ENV_KEY,
+      ROOT_PATH,
+      buildChains,
+      chainsValidation
+    );
+
+    return chains.find((chain) => chain.chainId === chainId)?.blockTime;
+  }
 }
 
 const chainsValidation = (chains: unknown): void => {
@@ -73,7 +85,9 @@ const buildChains = (chains: unknown[]): ChainByChainId[] => {
 
 const buildChainByChainId = (obj: any): ChainByChainId => {
   if (!isChainByChainId(obj)) {
-    throw new Error(`There was an error building chain by chainId from ${obj}`);
+    throw new Error(
+      `There was an error building chain by chainId from ${JSON.stringify(obj)}`
+    );
   }
 
   return {
@@ -89,7 +103,8 @@ const isChainByChainId = (obj: any): boolean => {
         'chainId',
         'nativeTokenSymbol',
         'gasWrappedTokenAddress',
-        'mempoolBlockAge'
+        'mempoolBlockAge',
+        'blockTime'
       ],
       []
     ) &&
@@ -98,6 +113,8 @@ const isChainByChainId = (obj: any): boolean => {
     (obj as ChainByChainId).gasWrappedTokenAddress != null &&
     (obj as ChainByChainId).nativeTokenSymbol != null &&
     (obj as ChainByChainId).mempoolBlockAge != null &&
-    !isNaN(Number((obj as ChainByChainId).mempoolBlockAge))
+    !isNaN(Number((obj as ChainByChainId).mempoolBlockAge)) &&
+    (obj as ChainByChainId).blockTime != null &&
+    !isNaN(Number((obj as ChainByChainId).blockTime))
   );
 };
