@@ -10,7 +10,10 @@ export {
   sendTransaction,
   estimateGas
 } from './contracts/domain/services/transactionService';
-export { getContractByName } from './contracts/domain/services/contractService';
+export {
+  getContractByName,
+  getContractByAddress
+} from './contracts/domain/services/contractService';
 export { getContractEvents } from './contracts/domain/services/contractEventsService';
 export {
   emitCustomEvent,

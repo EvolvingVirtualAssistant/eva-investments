@@ -12,6 +12,12 @@ import {
 } from '../../constants/cliConstants';
 import { deployContract } from '../domain/services/deployContractService';
 import { getAsyncWeb3Extension } from '../../appContext';
+import {
+  addParticipant,
+  getParticipants,
+  removeParticipant,
+  transferOwnership
+} from '../domain/services/accessControlService';
 
 @cliAdapter({
   tokens: [ContractsCliConstants.ADAPTER_TOKEN],
@@ -88,6 +94,113 @@ export class ContractsCliAdapter {
         contractArgs
       );
       await println(`Deployed contract address: ${deployedContractAddress}`);
+    } catch (e) {
+      println(`${e}`);
+    }
+  }
+
+  @cliEntrypoint({
+    tokens: [ContractsCliConstants.CONTRACTS_PARTICIPANTS_LIST_TOKEN],
+    description: ContractsCliConstants.CONTRACTS_PARTICIPANTS_LIST_DESCRIPTION
+  })
+  async listParticipants(
+    chainId: string,
+    contractAddress: string,
+    ownerAddress: string
+  ) {
+    try {
+      const participantsList = (
+        await getParticipants(chainId, contractAddress, ownerAddress)
+      )
+        .map((address) => `- ${address}`)
+        .join('\n');
+      await println(
+        `Participants of contract ${contractAddress} :\n${participantsList}`
+      );
+    } catch (e) {
+      println(`${e}`);
+    }
+  }
+
+  @cliEntrypoint({
+    tokens: [ContractsCliConstants.CONTRACTS_PARTICIPANTS_ADD_TOKEN],
+    description: ContractsCliConstants.CONTRACTS_PARTICIPANTS_ADD_DESCRIPTION
+  })
+  async addParticipant(
+    chainId: string,
+    contractAddress: string,
+    participantAddress: string,
+    ownerAddress: string,
+    maxPriorityFeePerGas: string | undefined
+  ) {
+    try {
+      await addParticipant(
+        chainId,
+        contractAddress,
+        participantAddress,
+        ownerAddress,
+        maxPriorityFeePerGas
+      );
+      await println(
+        `Participant ${participantAddress} was added to contract ${contractAddress}`
+      );
+    } catch (e) {
+      println(`${e}`);
+    }
+  }
+
+  @cliEntrypoint({
+    tokens: [ContractsCliConstants.CONTRACTS_PARTICIPANTS_REMOVE_TOKEN],
+    description: ContractsCliConstants.CONTRACTS_PARTICIPANTS_REMOVE_DESCRIPTION
+  })
+  async removeParticipant(
+    chainId: string,
+    contractAddress: string,
+    participantAddress: string,
+    ownerAddress: string,
+    maxPriorityFeePerGas?: string
+  ) {
+    try {
+      await removeParticipant(
+        chainId,
+        contractAddress,
+        participantAddress,
+        ownerAddress,
+        maxPriorityFeePerGas
+      );
+      await println(
+        `Participant ${participantAddress} was removed from contract ${contractAddress}`
+      );
+    } catch (e) {
+      println(`${e}`);
+    }
+  }
+
+  @cliEntrypoint({
+    tokens: [
+      ContractsCliConstants.CONTRACTS_PARTICIPANTS_TRANSFER_OWNERSHIP_TOKEN
+    ],
+    description:
+      ContractsCliConstants.CONTRACTS_PARTICIPANTS_TRANSFER_OWNERSHIP_DESCRIPTION
+  })
+  async transferOwnership(
+    chainId: string,
+    contractAddress: string,
+    ownerAddress: string,
+    newOwnerAddress: string,
+    maxPriorityFeePerGas?: string
+  ) {
+    try {
+      await transferOwnership(
+        chainId,
+        contractAddress,
+        ownerAddress,
+        newOwnerAddress,
+        maxPriorityFeePerGas
+      );
+      await println(
+        `Ownership of contract ${contractAddress} was transfered to ${newOwnerAddress}`
+      );
     } catch (e) {
       println(`${e}`);
     }

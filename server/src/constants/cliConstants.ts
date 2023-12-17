@@ -57,5 +57,18 @@ export const ContractsCliConstants = {
   ADAPTER_DESCRIPTION: 'Contracts related operations',
   CONTRACTS_DEPLOY_TOKEN: 'deploy',
   CONTRACTS_DEPLOY_DESCRIPTION:
-    'Deploys contract given contractPath(1) contractName(2) compiledContractPath(3) deployerAccountAddress(4) host(5) gas(6) gasPrice(7) ethereUnit(8) contractArgsJson(9)'
+    'Deploys contract given contractPath(1) contractName(2) compiledContractPath(3) deployerAccountAddress(4) host(5) gas(6) gasPrice(7) ethereUnit(8) contractArgsJson(9)',
+  CONTRACTS_PARTICIPANTS_LIST_TOKEN: 'participants_list',
+  CONTRACTS_PARTICIPANTS_LIST_DESCRIPTION:
+    'List participants of contract given chainId(1) contractAddress(2) ownerAddress(3)',
+  CONTRACTS_PARTICIPANTS_ADD_TOKEN: 'participants_add',
+  CONTRACTS_PARTICIPANTS_ADD_DESCRIPTION:
+    'Adds participant to contract given chainId(1) contractAddress(2) participantAddress(3) ownerAddress(4)',
+  CONTRACTS_PARTICIPANTS_REMOVE_TOKEN: 'participants_remove',
+  CONTRACTS_PARTICIPANTS_REMOVE_DESCRIPTION:
+    'Removes participant from contract given chainId(1) contractAddress(2) participantAddress(3) ownerAddress(45)',
+  CONTRACTS_PARTICIPANTS_TRANSFER_OWNERSHIP_TOKEN:
+    'participants_transfer_ownership',
+  CONTRACTS_PARTICIPANTS_TRANSFER_OWNERSHIP_DESCRIPTION:
+    'Transfers ownership of contract to some other address given chainId(1) contractAddress(2) ownerAddress(3) newOwnerAddress(4)'
 } as const;

@@ -27,6 +27,32 @@ export interface ExternalDeps {
   stopAllArbitrages: (force?: boolean) => Promise<void>;
   stopArbitrage: (arbitrageId: string, force?: boolean) => Promise<void>;
   getAllArbitragesIds: () => string[];
+  getParticipants: (
+    chainId: string,
+    contractAddress: string,
+    ownerAddress: string
+  ) => Promise<string[]>;
+  addParticipant: (
+    chainId: string,
+    contractAddress: string,
+    participantAddress: string,
+    ownerAddress: string,
+    maxPriorityFeePerGas?: string
+  ) => Promise<void>;
+  removeParticipant: (
+    chainId: string,
+    contractAddress: string,
+    participantAddress: string,
+    ownerAddress: string,
+    maxPriorityFeePerGas?: string
+  ) => Promise<void>;
+  transferOwnership: (
+    chainId: string,
+    contractAddress: string,
+    ownerAddress: string,
+    newOwnerAddress: string,
+    maxPriorityFeePerGas?: string
+  ) => Promise<void>;
 }
 
 let externalDeps: ExternalDeps | undefined;
@@ -53,7 +79,11 @@ export async function getExternalImports() {
     startArbitrage: externalImportsFind('startArbitrage'),
     stopAllArbitrages: externalImportsFind('stopAllArbitrages'),
     stopArbitrage: externalImportsFind('stopArbitrage'),
-    getAllArbitragesIds: externalImportsFind('getAllArbitragesIds')
+    getAllArbitragesIds: externalImportsFind('getAllArbitragesIds'),
+    getParticipants: externalImportsFind('getParticipants'),
+    addParticipant: externalImportsFind('addParticipant'),
+    removeParticipant: externalImportsFind('removeParticipant'),
+    transferOwnership: externalImportsFind('transferOwnership')
   };
 
   return externalDeps;
