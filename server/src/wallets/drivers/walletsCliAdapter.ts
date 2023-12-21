@@ -13,6 +13,10 @@ import {
 } from '../domain/services/tokensService';
 import { getAsyncWeb3Extension } from '../../appContext';
 import { getAccountByAccountAddress } from '../domain/services/accountsService';
+import {
+  createAccount,
+  recoverAccount
+} from '../domain/services/walletsService';
 
 @cliAdapter({
   tokens: [WalletsCliConstants.ADAPTER_TOKEN],
@@ -139,6 +143,46 @@ export class WalletsCliAdapter {
         spenderAddress,
         new BN(0),
         isWeth
+      );
+    } catch (e) {
+      println(`${e}`);
+    }
+  }
+
+  @cliEntrypoint({
+    tokens: [WalletsCliConstants.CREATE_ACCOUNT_TOKEN],
+    description: WalletsCliConstants.CREATE_ACCOUNT_TOKEN_DESCRIPTION
+  })
+  async createAccount(
+    chainId: string,
+    filePath: string,
+    password: string
+  ): Promise<void> {
+    try {
+      await createAccount(chainId, filePath, password);
+    } catch (e) {
+      println(`${e}`);
+    }
+  }
+
+  @cliEntrypoint({
+    tokens: [WalletsCliConstants.RECOVER_ACCOUNT_TOKEN],
+    description: WalletsCliConstants.RECOVER_ACCOUNT_TOKEN_DESCRIPTION
+  })
+  async recoverAccount(
+    chainId: string,
+    mnemonic: string,
+    derivationPath: string,
+    filePath: string,
+    password: string
+  ): Promise<void> {
+    try {
+      await recoverAccount(
+        chainId,
+        mnemonic,
+        derivationPath,
+        filePath,
+        password
       );
     } catch (e) {
       println(`${e}`);

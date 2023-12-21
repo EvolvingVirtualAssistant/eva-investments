@@ -53,6 +53,18 @@ export interface ExternalDeps {
     newOwnerAddress: string,
     maxPriorityFeePerGas?: string
   ) => Promise<void>;
+  createAccount: (
+    chainId: string,
+    filePath: string,
+    password: string
+  ) => Promise<void>;
+  recoverAccount: (
+    chainId: string,
+    mnemonic: string,
+    derivationPath: string,
+    filePath: string,
+    password: string
+  ) => Promise<void>;
 }
 
 let externalDeps: ExternalDeps | undefined;
@@ -83,7 +95,9 @@ export async function getExternalImports() {
     getParticipants: externalImportsFind('getParticipants'),
     addParticipant: externalImportsFind('addParticipant'),
     removeParticipant: externalImportsFind('removeParticipant'),
-    transferOwnership: externalImportsFind('transferOwnership')
+    transferOwnership: externalImportsFind('transferOwnership'),
+    createAccount: externalImportsFind('createAccount'),
+    recoverAccount: externalImportsFind('recoverAccount')
   };
 
   return externalDeps;
