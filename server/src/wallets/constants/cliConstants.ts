@@ -13,5 +13,11 @@ export const WalletsCliConstants = {
     'Approve token allowance in chain(1), for tokenAddress(2), given by ownerAddress(3) to spenderAddress(4) in the amount(5)',
   ALLOWANCE_REVOKE_TOKEN_TOKEN: 'revoke_allowance',
   ALLOWANCE_REVOKE_TOKEN_DESCRIPTION:
-    'Revoke token allowance in chain(1), for tokenAddress(2), given by ownerAddress(3) to spenderAddress(4)'
+    'Revoke token allowance in chain(1), for tokenAddress(2), given by ownerAddress(3) to spenderAddress(4)',
+  CREATE_ACCOUNT_TOKEN: 'create_account',
+  CREATE_ACCOUNT_TOKEN_DESCRIPTION:
+    'Creates an account in chain(1), and stores in path(2), encrypting it using password(3)',
+  RECOVER_ACCOUNT_TOKEN: 'recover_account',
+  RECOVER_ACCOUNT_TOKEN_DESCRIPTION:
+    'Recovers an account in chain(1), using mnemonic(2) and derivationPath(3), and storing it in path(4), encrypted using password(5)'
 } as const;
