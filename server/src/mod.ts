@@ -10,6 +10,8 @@ export {
   sendTransaction,
   estimateGas
 } from './contracts/domain/services/transactionService';
+export type { SignedTransactionWithNonce } from './contracts/domain/entities/transaction';
+export { TransactionInterruptedError } from './contracts/domain/services/errors/transactionInterruptedError';
 export {
   getContractByName,
   getContractByAddress
