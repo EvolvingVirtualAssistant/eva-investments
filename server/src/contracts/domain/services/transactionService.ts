@@ -415,6 +415,49 @@ const signTransaction = async (
       : nonceTracker.getNextUnsafeNonce(chainId, account.address);
   }
 
+  const tx = createTransaction(
+    chainId,
+    web3,
+    account,
+    sendMethodEncoded,
+    gas,
+    ethereUnit,
+    nonce,
+    gasPrice,
+    maxPriorityFeePerGas,
+    maxFeePerGas,
+    toAddress,
+    value
+  );
+
+  const signedTransaction = await web3.eth.accounts.signTransaction(
+    tx,
+    account.privateKey
+  );
+  return {
+    signedTransaction,
+    nonce,
+    gasPriceInWei: tx.gasPrice as string | undefined,
+    maxPriorityFeePerGasInWei: tx.maxPriorityFeePerGas as bigint | undefined,
+    maxFeePerGasInWei: tx.maxFeePerGas as bigint | undefined,
+    gas
+  };
+};
+
+const createTransaction = (
+  chainId: string,
+  web3: Web3,
+  account: Account,
+  sendMethodEncoded: string,
+  gas: bigint,
+  ethereUnit: EtherUnits,
+  nonce: bigint,
+  gasPrice?: string,
+  maxPriorityFeePerGas?: bigint,
+  maxFeePerGas?: bigint,
+  toAddress?: string,
+  value?: BN
+) => {
   const tx: { [key: string]: string | bigint | number | undefined } = {
     from: account.address,
     to: toAddress,
@@ -450,6 +493,38 @@ const signTransaction = async (
 
   logDebug(`method encoded: ${sendMethodEncoded}`); // TODO: remove after tests
 
+  return tx;
+};
+
+export const signTransactionWithManualNonce = async (
+  chainId: string,
+  web3: Web3,
+  account: Account,
+  sendMethodEncoded: string,
+  gas: bigint,
+  ethereUnit: EtherUnits,
+  nonce: bigint,
+  gasPrice?: string,
+  maxPriorityFeePerGas?: bigint,
+  maxFeePerGas?: bigint,
+  toAddress?: string,
+  value?: BN
+): Promise<SignedTransactionWithNonce> => {
+  const tx = createTransaction(
+    chainId,
+    web3,
+    account,
+    sendMethodEncoded,
+    gas,
+    ethereUnit,
+    nonce,
+    gasPrice,
+    maxPriorityFeePerGas,
+    maxFeePerGas,
+    toAddress,
+    value
+  );
+
   const signedTransaction = await web3.eth.accounts.signTransaction(
     tx,
     account.privateKey
@@ -457,9 +532,9 @@ const signTransaction = async (
   return {
     signedTransaction,
     nonce,
-    gasPriceInWei,
-    maxPriorityFeePerGasInWei,
-    maxFeePerGasInWei,
+    gasPriceInWei: tx.gasPrice as string | undefined,
+    maxPriorityFeePerGasInWei: tx.maxPriorityFeePerGas as bigint | undefined,
+    maxFeePerGasInWei: tx.maxFeePerGas as bigint | undefined,
     gas
   };
 };

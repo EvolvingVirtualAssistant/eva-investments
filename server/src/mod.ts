@@ -8,7 +8,8 @@ export type { Account } from './wallets/domain/entities/accounts';
 export { getAccountByAccountAddress } from './wallets/domain/services/accountsService';
 export {
   sendTransaction,
-  estimateGas
+  estimateGas,
+  signTransactionWithManualNonce
 } from './contracts/domain/services/transactionService';
 export type { SignedTransactionWithNonce } from './contracts/domain/entities/transaction';
 export { TransactionInterruptedError } from './contracts/domain/services/errors/transactionInterruptedError';
