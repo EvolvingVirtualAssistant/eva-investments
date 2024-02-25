@@ -26,6 +26,7 @@ type StartArbitrageParams = {
   gasPriceOffset: string;
   txRevertDeadline: number;
   intraBlock: boolean;
+  dryRun: boolean;
 };
 
 interface StartStaticArbitrageParams extends StartArbitrageParams {

@@ -9,6 +9,7 @@ export type ArbitrageParams = {
   gasPriceOffset: string;
   txRevertDeadline?: number;
   intraBlock: boolean;
+  dryRun: boolean;
 };
 
 export type ArbitragePool = {
