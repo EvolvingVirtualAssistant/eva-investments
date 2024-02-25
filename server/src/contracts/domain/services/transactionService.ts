@@ -61,7 +61,7 @@ export const sendTransaction = async (
   );
 };
 
-export const estimateGas = async (
+export const estimateGas = (
   chainId: string,
   web3: Web3,
   account: Account,
@@ -491,7 +491,7 @@ const createTransaction = (
     );
   }
 
-  logDebug(`method encoded: ${sendMethodEncoded}`); // TODO: remove after tests
+  // logDebug(`method encoded: ${sendMethodEncoded}`);
 
   return tx;
 };
@@ -587,9 +587,9 @@ const sendSignedTransaction = async (
         ),
       TRANSACTION_TIMEOUT
     );
-    logDebug(
-      `signedTransaction.rawTransaction: ${signedTransaction.rawTransaction!}`
-    ); // TODO: remove after tests
+    // logDebug(
+    //  `signedTransaction.rawTransaction: ${signedTransaction.rawTransaction!}`
+    // );
     web3.eth
       .sendSignedTransaction(signedTransaction.rawTransaction!)
       .once('confirmation', ({ confirmations, receipt, latestBlockHash }) =>
