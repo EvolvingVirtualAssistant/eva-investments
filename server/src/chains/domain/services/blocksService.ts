@@ -55,13 +55,13 @@ export const getBlockTransactionHashes = (
   chainId: string,
   blockNumber: bigint
 ): Promise<string[]> => {
-  const block = getBlocksRepository().getLatestBlock(chainId);
-  if (block == null || block?.number !== blockNumber) {
+  const latestBlock = getBlocksRepository().getLatestBlock(chainId);
+  if (latestBlock == null || latestBlock?.number !== blockNumber) {
     return web3.eth
       .getBlock(blockNumber)
       .then((block) => block.transactions as string[]);
   }
-  return Promise.resolve(block.transactionsHashes);
+  return Promise.resolve(latestBlock.transactionsHashes);
 };
 
 export const getNextBlockBaseFee = (chainId: string): bigint | undefined => {
