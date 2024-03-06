@@ -1,7 +1,6 @@
 import { Dictionary } from '../../../types/types';
 import {
   BN,
-  SignTransactionResult,
   TransactionReceipt,
   EtherUnits,
   Web3,
@@ -13,6 +12,8 @@ import {
 import { Account } from '../../../wallets/domain/entities/accounts';
 import { TRANSACTION_TIMEOUT } from '../constants/contractConstants';
 import { TransactionTimeoutError } from './errors/transactionTimeoutError';
+import { TransactionInterruptedError } from './errors/transactionInterruptedError';
+import { SignedTransactionWithNonce } from '../entities/transaction';
 
 type Task = {
   execute: (...args: any[]) => Promise<void>;
@@ -39,7 +40,10 @@ export const sendTransaction = async (
   maxPriorityFeePerGas?: bigint,
   maxFeePerGas?: bigint,
   toAddress?: string,
-  value?: BN
+  value?: BN,
+  shouldInterruptTxCallback?: (
+    signedTxWithNonce: SignedTransactionWithNonce
+  ) => boolean
 ): Promise<TransactionReceipt> => {
   return sendPartialLockTransaction(
     chainId,
@@ -52,11 +56,12 @@ export const sendTransaction = async (
     maxPriorityFeePerGas,
     maxFeePerGas,
     toAddress,
-    value
+    value,
+    shouldInterruptTxCallback
   );
 };
 
-export const estimateGas = async (
+export const estimateGas = (
   chainId: string,
   web3: Web3,
   account: Account,
@@ -90,7 +95,10 @@ const sendLockTransaction = async (
   maxPriorityFeePerGas?: bigint,
   maxFeePerGas?: bigint,
   toAddress?: string,
-  value?: BN
+  value?: BN,
+  shouldInterruptTxCallback?: (
+    signedTxWithNonce: SignedTransactionWithNonce
+  ) => boolean
 ): Promise<TransactionReceipt> => {
   const transactionsQueue = getOrCreateTransactionsQueue(web3, account);
 
@@ -117,6 +125,13 @@ const sendLockTransaction = async (
       toAddress,
       value
     );
+
+    if (
+      shouldInterruptTxCallback != null &&
+      shouldInterruptTxCallback(signedTransaction)
+    ) {
+      throw new TransactionInterruptedError(signedTransaction);
+    }
     return await sendSignedTransaction(web3, signedTransaction);
   } catch (e) {
     logWarn('Error executing send transaction', e);
@@ -173,7 +188,10 @@ const sendNoLockTransaction = async (
   maxPriorityFeePerGas?: bigint,
   maxFeePerGas?: bigint,
   toAddress?: string,
-  value?: BN
+  value?: BN,
+  shouldInterruptTxCallback?: (
+    signedTxWithNonce: SignedTransactionWithNonce
+  ) => boolean
 ): Promise<TransactionReceipt> => {
   try {
     const signedTransaction = await signTransaction(
@@ -190,6 +208,13 @@ const sendNoLockTransaction = async (
       value,
       true
     );
+
+    if (
+      shouldInterruptTxCallback != null &&
+      shouldInterruptTxCallback(signedTransaction)
+    ) {
+      throw new TransactionInterruptedError(signedTransaction);
+    }
     return sendSignedTransaction(web3, signedTransaction);
   } catch (e) {
     logWarn('Error executing send transaction', e);
@@ -225,7 +250,10 @@ const sendPartialLockTransaction = async (
   maxPriorityFeePerGas?: bigint,
   maxFeePerGas?: bigint,
   toAddress?: string,
-  value?: BN
+  value?: BN,
+  shouldInterruptTxCallback?: (
+    signedTxWithNonce: SignedTransactionWithNonce
+  ) => boolean
 ): Promise<TransactionReceipt> => {
   const transactionsQueue = getOrCreateTransactionsQueue(web3, account);
 
@@ -253,6 +281,13 @@ const sendPartialLockTransaction = async (
       toAddress,
       value
     );
+
+    if (
+      shouldInterruptTxCallback != null &&
+      shouldInterruptTxCallback(signedTransaction)
+    ) {
+      throw new TransactionInterruptedError(signedTransaction);
+    }
   } catch (e) {
     await getSendSignedTransactionErrorHandler(
       chainId,
@@ -348,15 +383,6 @@ const estimateGasPartialLock = async (
   }
 };
 
-type SignedTransactionWithNonce = {
-  signedTransaction: SignTransactionResult;
-  nonce: bigint;
-  gasPriceInWei?: string;
-  maxPriorityFeePerGasInWei?: bigint;
-  maxFeePerGasInWei?: bigint;
-  gas: bigint;
-};
-
 const signTransaction = async (
   chainId: string,
   web3: Web3,
@@ -389,6 +415,49 @@ const signTransaction = async (
       : nonceTracker.getNextUnsafeNonce(chainId, account.address);
   }
 
+  const tx = createTransaction(
+    chainId,
+    web3,
+    account,
+    sendMethodEncoded,
+    gas,
+    ethereUnit,
+    nonce,
+    gasPrice,
+    maxPriorityFeePerGas,
+    maxFeePerGas,
+    toAddress,
+    value
+  );
+
+  const signedTransaction = await web3.eth.accounts.signTransaction(
+    tx,
+    account.privateKey
+  );
+  return {
+    signedTransaction,
+    nonce,
+    gasPriceInWei: tx.gasPrice as string | undefined,
+    maxPriorityFeePerGasInWei: tx.maxPriorityFeePerGas as bigint | undefined,
+    maxFeePerGasInWei: tx.maxFeePerGas as bigint | undefined,
+    gas
+  };
+};
+
+const createTransaction = (
+  chainId: string,
+  web3: Web3,
+  account: Account,
+  sendMethodEncoded: string,
+  gas: bigint,
+  ethereUnit: EtherUnits,
+  nonce: bigint,
+  gasPrice?: string,
+  maxPriorityFeePerGas?: bigint,
+  maxFeePerGas?: bigint,
+  toAddress?: string,
+  value?: BN
+) => {
   const tx: { [key: string]: string | bigint | number | undefined } = {
     from: account.address,
     to: toAddress,
@@ -414,13 +483,47 @@ const signTransaction = async (
     tx.maxFeePerGas = maxFeePerGasInWei;
   } else if (gasPrice) {
     // Legacy (type 0x0) transaction
-    const gasPriceInWei = web3.utils.toWei(gasPrice, ethereUnit);
+    gasPriceInWei = web3.utils.toWei(gasPrice, ethereUnit);
     tx.gasPrice = gasPriceInWei;
   } else {
     throw new Error(
       `Could not sign transaction ${sendMethodEncoded}. No gas prices were provided, gasPrice:${gasPrice} , maxPriorityFeePerGas:${maxPriorityFeePerGas}, maxFeePerGas:${maxFeePerGas}`
     );
   }
+
+  // logDebug(`method encoded: ${sendMethodEncoded}`);
+
+  return tx;
+};
+
+export const signTransactionWithManualNonce = async (
+  chainId: string,
+  web3: Web3,
+  account: Account,
+  sendMethodEncoded: string,
+  gas: bigint,
+  ethereUnit: EtherUnits,
+  nonce: bigint,
+  gasPrice?: string,
+  maxPriorityFeePerGas?: bigint,
+  maxFeePerGas?: bigint,
+  toAddress?: string,
+  value?: BN
+): Promise<SignedTransactionWithNonce> => {
+  const tx = createTransaction(
+    chainId,
+    web3,
+    account,
+    sendMethodEncoded,
+    gas,
+    ethereUnit,
+    nonce,
+    gasPrice,
+    maxPriorityFeePerGas,
+    maxFeePerGas,
+    toAddress,
+    value
+  );
 
   const signedTransaction = await web3.eth.accounts.signTransaction(
     tx,
@@ -429,9 +532,9 @@ const signTransaction = async (
   return {
     signedTransaction,
     nonce,
-    gasPriceInWei,
-    maxPriorityFeePerGasInWei,
-    maxFeePerGasInWei,
+    gasPriceInWei: tx.gasPrice as string | undefined,
+    maxPriorityFeePerGasInWei: tx.maxPriorityFeePerGas as bigint | undefined,
+    maxFeePerGasInWei: tx.maxFeePerGas as bigint | undefined,
     gas
   };
 };
@@ -460,7 +563,8 @@ const sendSignedTransaction = async (
       logDebug(
         `Transaction confirmed. Confirmations: ${confirmations} , LatestBlockHash: ${latestBlockHash} , 
   TxHash: ${receipt.transactionHash}, ContractAddress: ${receipt.contractAddress}, 
-  GasUsed: ${receipt.gasUsed}, CumulativeGasUsed: ${receipt.cumulativeGasUsed}`
+  GasUsed: ${receipt.gasUsed}, CumulativeGasUsed: ${receipt.cumulativeGasUsed}, 
+  gasPriceInWei: ${gasPriceInWei}, maxPriorityFeePerGasInWei: ${maxPriorityFeePerGasInWei}, maxFeePerGasInWei: ${maxFeePerGasInWei}`
       );
       clearTimeout(timeoutId);
       resolve(receipt);
@@ -483,6 +587,9 @@ const sendSignedTransaction = async (
         ),
       TRANSACTION_TIMEOUT
     );
+    // logDebug(
+    //  `signedTransaction.rawTransaction: ${signedTransaction.rawTransaction!}`
+    // );
     web3.eth
       .sendSignedTransaction(signedTransaction.rawTransaction!)
       .once('confirmation', ({ confirmations, receipt, latestBlockHash }) =>
@@ -559,7 +666,15 @@ const cancelTransaction = async (
   if (maxPriorityFeePerGasInWei && maxFeePerGasInWei) {
     // in order to cancel it we have to make it at least 10% higher maxPriorityFeePerGasInWei and maxFeePerGasInWei than previous tx
     tx.maxPriorityFeePerGas = (maxPriorityFeePerGasInWei * 11n) / 10n;
+    tx.maxPriorityFeePerGas =
+      tx.maxPriorityFeePerGas == maxPriorityFeePerGasInWei
+        ? maxPriorityFeePerGasInWei + 1n
+        : tx.maxPriorityFeePerGas;
     tx.maxFeePerGas = (maxFeePerGasInWei * 11n) / 10n;
+    tx.maxFeePerGas =
+      tx.maxFeePerGas == maxFeePerGasInWei
+        ? maxFeePerGasInWei + 1n
+        : tx.maxFeePerGas;
   } else if (gasPriceInWei) {
     // Legacy (type 0x0) transaction
     // in order to cancel it we have to make it at least 10% higher gasPrice than previous tx
@@ -569,6 +684,9 @@ const cancelTransaction = async (
       `Could not sign cancel transaction. No gas prices were provided, gasPriceInWei:${gasPriceInWei} , maxPriorityFeePerGasInWei:${maxPriorityFeePerGasInWei}, maxFeePerGasInWei:${maxFeePerGasInWei}`
     );
   }
+
+  logDebug(`Cancelling tx by bumping old gasPriceInWei: ${gasPriceInWei}, maxPriorityFeePerGasInWei: ${maxPriorityFeePerGasInWei}, maxFeePerGasInWei: ${maxFeePerGasInWei}
+  with new gasPriceInWei: ${tx.gasPrice}, maxPriorityFeePerGasInWei: ${tx.maxPriorityFeePerGas}, maxFeePerGasInWei: ${tx.maxFeePerGas}`);
 
   const signedTransaction = await web3.eth.accounts.signTransaction(
     tx,

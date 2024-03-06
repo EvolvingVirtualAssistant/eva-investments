@@ -57,7 +57,10 @@ export const ContractsCliConstants = {
   ADAPTER_DESCRIPTION: 'Contracts related operations',
   CONTRACTS_DEPLOY_TOKEN: 'deploy',
   CONTRACTS_DEPLOY_DESCRIPTION:
-    'Deploys contract given contractPath(1) contractName(2) compiledContractPath(3) deployerAccountAddress(4) host(5) gas(6) gasPrice(7) ethereUnit(8) contractArgsJson(9)',
+    'Deploys contract given chainId(1) contractPath(2) contractName(3) compiledContractPath(4) deployerAccountAddress(5) host(6) gas(7) gasPrice(8) ethereUnit(9) contractArgsJson(10)',
+  CONTRACTS_DEPLOY_PRECOMPILED_TOKEN: 'deploy_precompiled',
+  CONTRACTS_DEPLOY_PRECOMPILED_DESCRIPTION:
+    'Deploys contract given chainId(1) precompiledContractPath(2) deployerAccountAddress(3) host(4) gas(5) gasPrice(6) ethereUnit(7) contractArgsJson(8)',
   CONTRACTS_PARTICIPANTS_LIST_TOKEN: 'participants_list',
   CONTRACTS_PARTICIPANTS_LIST_DESCRIPTION:
     'List participants of contract given chainId(1) contractAddress(2) ownerAddress(3)',

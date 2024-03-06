@@ -10,7 +10,10 @@ import {
   CliConstants,
   ContractsCliConstants
 } from '../../constants/cliConstants';
-import { deployContract } from '../domain/services/deployContractService';
+import {
+  deployContract,
+  deployPrecompiledContract
+} from '../domain/services/deployContractService';
 import { getAsyncWeb3Extension } from '../../appContext';
 import {
   addParticipant,
@@ -84,6 +87,44 @@ export class ContractsCliAdapter {
         contractPath,
         contractName,
         compiledContractPath,
+        deployerAccountAddress,
+        host,
+        BigInt(gas),
+        ethereUnit,
+        gasPrice,
+        maxPriorityFeePerGas ? BigInt(maxPriorityFeePerGas) : undefined,
+        maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
+        contractArgs
+      );
+      await println(`Deployed contract address: ${deployedContractAddress}`);
+    } catch (e) {
+      println(`${e}`);
+    }
+  }
+
+  @cliEntrypoint({
+    tokens: [ContractsCliConstants.CONTRACTS_DEPLOY_PRECOMPILED_TOKEN],
+    description: ContractsCliConstants.CONTRACTS_DEPLOY_PRECOMPILED_DESCRIPTION
+  })
+  async deployPrecompiledContract(
+    chainId: string,
+    precompiledContractPath: string,
+    deployerAccountAddress: string,
+    host: string,
+    gas: string,
+    ethereUnit: EtherUnits,
+    gasPrice: string | undefined,
+    maxPriorityFeePerGas: string | undefined,
+    maxFeePerGas: string | undefined,
+    contractArgsJson: string
+  ): Promise<void> {
+    try {
+      const contractArgs = contractArgsJson
+        ? Object.values(JSON.parse(contractArgsJson))
+        : undefined;
+      const deployedContractAddress = await deployPrecompiledContract(
+        await getAsyncWeb3Extension(chainId),
+        precompiledContractPath,
         deployerAccountAddress,
         host,
         BigInt(gas),
